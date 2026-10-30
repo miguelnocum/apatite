@@ -1,0 +1,11 @@
+spaced repetition: Good→1.0d, Good→3.0d, Good→7.5d, Easy→24.4d
+forgetting it: back in 60s, again in session: true, ease 2.45
+answer checks: exact true, slip true, wrong false
+deck screen open: true with Test deck
+saved and read back: 2 cards, linked to syllabus true
+suggestion: ["1.1 1→4 (90%)"]
+after applying: rating 4, suggestions left 0
+database sees the deck: ["Test deck"], used by for syllabus: ["Test deck"]
+popped out: window "Deck — Test deck", main window back on the notes true, starts in Edit true
+docked: window gone true, main window shows the deck true
+Go ▸ Deck in Its Own Window: Deck — Test deck, remembered for next launch true

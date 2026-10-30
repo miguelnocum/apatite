@@ -1,0 +1,11 @@
+citation check after import: closed
+— Weeds as Political Actors (Weeds as Political Actors.json)
+  paragraphs 2, headings h4 1 h5 1, lists 2 items 4, tables 1, quotes 1
+  footnotes 1, figures 1, captions 1, images 1, bold 1, italic 1, links 1
+  starts: Introduction ¶ With the onset of similar controversies, Whatmore (2009) argues that where once “scientific knowledge claims were called upon to settle dispute, th
+— Plants Out of Place (Plants Out of Place.json)
+  paragraphs 5, headings h4 0 h5 0, lists 0 items 0, tables 0, quotes 0
+  footnotes 0, figures 0, captions 0, images 0, bold 0, italic 0, links 0
+  starts: Introduction ¶ Weeds are plants out of place, and the place they are out of is always a political one. This paragraph is long enough to wrap across several lines 
+app's source list (what Link to source shows): []
+native theme: system

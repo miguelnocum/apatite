@@ -1,0 +1,6 @@
+1st launch: popped out true, reader window open true titled "Reader — Arguelles and March 2022 - Weeds (sample)", main window shows the reader too: false
+   highlighting in the popped-out reader: 1 highlight(s)
+   opening a paper while popped out leaves the main window as it was: true
+   quitting on PDF page 3
+2nd launch: reader window reopened true, popped out true, paper Arguelles and March 2022 - Weeds (sample), on PDF page 3
+   after docking: reader window open false, reader back in main window true

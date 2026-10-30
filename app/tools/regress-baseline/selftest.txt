@@ -1,0 +1,12 @@
+essay editor: essay
+import: ok, pages=3
+pages: page 1 -> 48, page 2 -> 49
+linked ref: Argüelles & March, 2022
+selection: The harmonious idea of people and plants working together to produce gardens can be on PDF page 2
+highlight stored: page 2, The harmonious idea of people and plants…
+annotations on page: 1
+after jump, PDF view is on PDF page 2 (expected 2)
+saved notebook contains the citation: …The harmonious idea of people and plants working together to produce gardens can be” <span data-cite=\"<id>\" data-pg=\"49\" data-anchor=\"<uuid>|<uuid>\"><\/span>
+essays saved: 1, title Selftest essay, body ok true, notes free of essay text true
+rendered citation: (Argüelles & March, 2022, p. 49)
+highlights saved inside the PDF file on page 2: 0

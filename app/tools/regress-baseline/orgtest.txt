@@ -1,0 +1,12 @@
+nested project found: true at /Year 2/Semester 1/Deep Learning
+moved project into Year 2: ["Loose"], groups there: ["Semester 1"]
+top level shows: groups ["Year 2"]
+folders: ["Readings in Week 1", "Week 1 in top"], notebook in Readings: true
+after deleting Readings, notebook moved up to Week 1: true; folders left ["Week 1"]
+used by: ["Second", "Notebook", "Essay A"]
+second notebook boots with the shared points: 1, syllabus DL syllabus
+rating set in the second notebook shows in the first: true
+merge: 1 syllabus for 2 notebooks, both linked to it: true, rating kept the higher: 3, both notebooks' tags point at the shared point: yes
+page picker before: shown None/DL syllabus/New syllabus…
+after New syllabus…: linked to Second syllabus; syllabi now ["Second syllabus", "DL syllabus"]
+page now knows: {"id":"<uuid>","title":"Second syllabus"}

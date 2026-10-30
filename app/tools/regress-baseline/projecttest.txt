@@ -1,0 +1,13 @@
+added source: <id>
+page essays after create: ["Draft one"]
+essay now in second project: ["Draft one"]
+essay left in first project: []
+essay keeps its own sources: 1 source(s)
+page essays after move (should be []): []
+still gone after page save: true
+switched to: Second project, notebook Notebook
+page shows essay: Draft one
+essay citation renders as: (Smith, 2020)
+separate lists (want essay 1, notebook 0): essay list 1, notebook list 0
+after rename: open project Renamed project, folder Renamed project, papers at Renamed project
+after delete: open project My first project; projects ["My first project"]

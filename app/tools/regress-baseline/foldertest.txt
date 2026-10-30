@@ -1,0 +1,7 @@
+found 2 PDFs: 1 loose, subfolders ["Week 1"]
+1. all into a new project: imported 1 into ["folder-src"], duplicates 1, failed []
+2. same folder again: imported 0 into [], duplicates 2, failed []
+3. subfolders as projects: imported 1 into ["Week 1"], duplicates 1, failed []
+   folder-src: a.pdf (a)
+   My first project: 
+   Week 1: b.pdf (b)

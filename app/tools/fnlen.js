@@ -1,4 +1,4 @@
-// Lists the functions in a folder of scripts that are longer than a limit (in lines; nested functions counted on their own).
+// Lists the functions in a folder of scripts (and its subfolders) that are longer than a limit (in lines; nested functions counted on their own).
 // Usage: node fnlen.js ../../web/scripts [limit=20] [how many to list=40]
 const fs = require('fs');
 const path = require('path');
@@ -32,10 +32,18 @@ function longFunctions(file) {
   return found;
 }
 
-const files = fs
-  .readdirSync(dir)
-  .filter(name => name.endsWith('.js'))
-  .sort();
+/* every .js file under the folder, as a path relative to it */
+function jsFiles(folder) {
+  return fs
+    .readdirSync(path.join(dir, folder), { withFileTypes: true })
+    .flatMap(entry => {
+      const rel = path.join(folder, entry.name);
+      return entry.isDirectory() ? jsFiles(rel) : entry.name.endsWith('.js') ? [rel] : [];
+    })
+    .sort();
+}
+
+const files = jsFiles('');
 const results = files.map(longFunctions);
 const over = results.flatMap(r => r.over).sort((a, b) => b[0] - a[0]);
 const total = results.reduce((sum, r) => sum + r.total, 0);

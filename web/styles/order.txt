@@ -1,0 +1,18 @@
+# The page styles, in the order the files are joined (later rules win). make_notebook.py fails if a file is listed here
+# but missing, or on disk but not listed. One path per line.
+
+base.css
+notes-page.css
+word-count.css
+images-comments.css
+toolbar.css
+syllabus-table.css
+writing.css
+spec-points.css
+headings-tags.css
+equations.css
+themes.css
+settings.css
+citations.css
+tables.css
+focus.css

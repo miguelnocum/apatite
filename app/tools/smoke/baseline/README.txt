@@ -1,5 +1,5 @@
 Smoke reports of the Phase 0 baseline (git tag phase0-baseline; the page is identical to the tag's apart from the formatting
-of web/scripts/25-folding.js). Made as page-smoke.js describes. A refactor of the page must keep native.json the same:
+of web/scripts/25-folding.js, now web/scripts/editor/folding.js). Made as page-smoke.js describes. A refactor of the page must keep native.json the same:
 
   python3 app/tools/smoke/compare.py baseline/native.json <your run>     # prints SAME, or the steps that differ
 

@@ -18,18 +18,18 @@ echo "== lint"
 npx eslint --no-eslintrc --env browser,es2017 --parser-options=ecmaVersion:2020 --global katex,claude,MathfieldElement \
   --rule '{"no-undef":2,"no-unused-vars":[1,{"args":"none"}],"no-redeclare":2,"no-dupe-keys":2,"no-unreachable":2}' "$TMP/page.js" && echo "clean"
 echo "== formatting"
-npx prettier --config ../../.prettierrc.json --check "$WEB/scripts/*.js" "$WEB/styles/*.css" 2>&1 | tail -1
+npx prettier --config ../../.prettierrc.json --check "$WEB/scripts/**/*.js" "$WEB/styles/*.css" 2>&1 | tail -1
 echo "== invisible characters (write them as \\u escapes)"
 python3 - "$WEB/scripts" <<'PY'
 import glob, sys
 INVISIBLE = {0x01, 0xa0, 0x2002, 0x2003, 0x2009, 0x200b, 0x200c, 0x200d, 0x202f, 0x2060, 0x3000, 0xfeff}
 found = 0
-for path in sorted(glob.glob(sys.argv[1] + '/*.js')):
+for path in sorted(glob.glob(sys.argv[1] + '/**/*.js', recursive=True)):
     for number, line in enumerate(open(path, encoding='utf8'), 1):
         codes = sorted({'U+%04X' % ord(c) for c in line if ord(c) in INVISIBLE})
         if codes:
             found += 1
-            print('%s:%d %s' % (path.split('/')[-1], number, ' '.join(codes)))
+            print('%s:%d %s' % (path[len(sys.argv[1]) + 1:], number, ' '.join(codes)))
 print('none' if not found else '%d line(s)' % found)
 PY
 echo "== long functions"

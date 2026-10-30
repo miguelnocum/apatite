@@ -2,9 +2,13 @@
 
 web/ holds the page in parts, each a file of its own:
   head.html          the links in the page's head (KaTeX, MathLive, fonts)
-  styles/*.css       the styles, in file-name order (the order matters: later rules win)
+  styles/*.css       the styles, in the order listed in styles/order.txt (the order matters: later rules win)
   body.html          the markup
-  scripts/*.js       the script, in file-name order; they share one scope, so a function in one file can be used in any other
+  scripts/**/*.js    the script, in feature folders, in the order listed in scripts/order.txt; they share one scope, so a
+                     function in one file can be used in any other (top-level code runs in the listed order)
+
+An order.txt lists one path per line, relative to its folder; blank lines and lines starting with # are ignored. The build
+stops with an error if a listed file is missing, if a file is listed twice, or if a file on disk is not listed.
 
 The parts are joined into the whole page (the web version, which works as a web artifact too and switches to the Mac
 app's local files when it finds the app's "nb" message handler), and that is wrapped in a document for the app.
@@ -21,10 +25,29 @@ def read(path):
         return f.read()
 
 
+def manifest(folder, ext):
+    """The paths listed in folder/order.txt, in order. Stops with an error unless they match the files on disk exactly."""
+    listed = []
+    for line in read(os.path.join(folder, 'order.txt')).splitlines():
+        line = line.strip()
+        if line and not line.startswith('#'):
+            listed.append(line)
+    problems = ['listed twice: ' + n for n in sorted({n for n in listed if listed.count(n) > 1})]
+    problems += ['listed but missing: ' + n for n in listed if not os.path.isfile(os.path.join(folder, n))]
+    on_disk = set()
+    for root, _, files in os.walk(folder):
+        for n in files:
+            if n.endswith(ext):
+                on_disk.add(os.path.relpath(os.path.join(root, n), folder).replace(os.sep, '/'))
+    problems += ['on disk but not listed: ' + n for n in sorted(on_disk - set(listed))]
+    if problems:
+        sys.exit('make_notebook: %s does not match %s:\n  %s' % (os.path.join(folder, 'order.txt'), folder, '\n  '.join(problems)))
+    return listed
+
+
 def parts(folder, ext):
-    """The files of one kind in a folder, joined in file-name order."""
-    names = sorted(n for n in os.listdir(folder) if n.endswith(ext))
-    return ''.join(read(os.path.join(folder, n)) for n in names)
+    """The files of one kind in a folder, joined in the order its order.txt lists them."""
+    return ''.join(read(os.path.join(folder, n)) for n in manifest(folder, ext))
 
 
 def page(web):

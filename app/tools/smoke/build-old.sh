@@ -10,7 +10,8 @@ REV=${1:-HEAD}
 git rev-parse --verify --quiet "$REV^{commit}" >/dev/null || { echo "no such commit or tag: $REV" >&2; exit 1; }
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
-git archive "$REV" web | tar -x -C "$TMP"
-python3 app/tools/make_notebook.py "$TMP/web" app/Resources/notebook-old.html >/dev/null
+# the old page is built with the old build script: the layout of web/ (flat files, or folders and order.txt) changed over time
+git archive "$REV" web app/tools/make_notebook.py | tar -x -C "$TMP"
+python3 "$TMP/app/tools/make_notebook.py" "$TMP/web" app/Resources/notebook-old.html >/dev/null
 python3 app/tools/make_notebook.py web app/Resources/notebook.html >/dev/null
 echo "built notebook-old.html ($REV) and notebook.html (working copy)"

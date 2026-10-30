@@ -23,6 +23,11 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Apatite"
 cp Info.plist "$APP/Contents/Info.plist"
+# the test build has its own bundle id, so a test run reads and writes its own preferences (window frames and the like), never the
+# real app's; only this copy of the Info.plist is changed, never Info.plist itself
+if [ "${APATITE_TESTS:-0}" = "1" ]; then
+  /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier local.tracy.apatite.tests" "$APP/Contents/Info.plist"
+fi
 cp Resources/notebook.html "$APP/Contents/Resources/"
 cp Resources/seed-notebook.json "$APP/Contents/Resources/"
 cp Resources/logo.png "$APP/Contents/Resources/"

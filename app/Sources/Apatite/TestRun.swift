@@ -26,6 +26,13 @@ final class TestRun {
 
     static func env(_ key: String) -> String? { ProcessInfo.processInfo.environment[key] }
 
+    /// gives the main window an explicit size, whatever the screen or a saved frame would give it (what a test whose
+    /// numbers depend on the window's size starts with; 1500 x 859 is the default size on the machine the baselines were made on)
+    func pinMainWindowSize(width: CGFloat = 1500, height: CGFloat = 859) {
+        guard let w = NSApp.windows.first(where: { $0.isVisible && !$0.title.hasPrefix("Reader") }) else { return }
+        w.setFrame(NSRect(x: w.frame.minX, y: w.frame.maxY - height, width: width, height: height), display: true)
+    }
+
     /// a step, this many seconds after launch
     func at(_ delay: Double, _ f: @escaping () -> Void) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: f)

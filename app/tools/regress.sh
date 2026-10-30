@@ -23,6 +23,14 @@ APATITE_TESTS=1 ./build.sh 2>&1 | grep -E "error|warning: unre|Built" || exit 1
 [ -x "$BIN" ] || { echo "no binary at $BIN" >&2; exit 1; }
 rm -rf "$OUT"; mkdir -p "$OUT"
 
+# the test build's own bundle id (see build.sh): its preferences, and so its saved window frames, are cleared before each suite
+# so every suite starts from the same window state (the real app's local.tracy.apatite domain is never touched)
+TESTS_ID=local.tracy.apatite.tests
+fresh_state() {
+  defaults delete "$TESTS_ID" 2>/dev/null
+  rm -rf "$HOME/Library/Saved Application State/$TESTS_ID.savedState"
+}
+
 run() {  # run <suite> <report file> <env…>
   local name=$1 file=$2; shift 2
   local lib="$OUT/$name"; mkdir -p "$lib"
@@ -54,6 +62,7 @@ verdict() {
 # (the link suite needs a prepared library with an essay "es1" and a Prince source, so it is not in the default list)
 SUITES=${*:-self project reader org deck folder window import}
 for s in $SUITES; do
+  fresh_state
   case $s in
     self)    run self selftest.txt APATITE_SELFTEST="$PDF" ;;
     project) run project projecttest.txt APATITE_PROJECTTEST=1 ;;
@@ -68,7 +77,7 @@ for s in $SUITES; do
     import)  run import importtest.txt APATITE_IMPORTTEST="$ROOT/testdata/import/Word essay.docx|$ROOT/testdata/import/PDF essay.pdf" ;;
   esac
 done
-defaults delete local.tracy.apatite.tests 2>/dev/null
+fresh_state
 for s in $SUITES; do
   case $s in
     self) verdict self selftest.txt ;;       project) verdict project projecttest.txt ;;

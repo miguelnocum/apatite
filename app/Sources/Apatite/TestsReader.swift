@@ -9,6 +9,7 @@ enum ReaderTest {
     static func runIfRequested() {
         guard let path = TestRun.requested("APATITE_READERTEST") else { return }
         let t = TestRun(report: "readertest.txt"), s = t.s
+        t.at(1.0) { t.pinMainWindowSize() }
         t.at(2.0) {
             s.navigation.openReader()
             if t.importPaper(path) != nil { s.reader.current.map { var i = $0; i.pagesSet = true; s.reader.update(i) } }

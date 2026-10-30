@@ -20,6 +20,7 @@ bench() {  # bench <name> <mklib.py arguments…>
   local name=$1; shift
   local lib="$OUT/$name"
   rm -rf "$lib"; mkdir -p "$lib"
+  defaults delete local.tracy.apatite.tests 2>/dev/null
   local made; made=$(python3 tools/perf/mklib.py "$lib" "$PDF" "$@") || { echo "== $name: mklib.py failed"; return 1; }
   echo "== $name: mklib.py $*"
   [ -n "$made" ] && echo "$made"
@@ -40,5 +41,5 @@ else
   bench big 1500 40 80 400
   bench images 300 6 40 100 --images 6 --image-px 200 --equations 30
 fi
-defaults delete local.tracy.apatite.tests 2>/dev/null
+defaults delete local.tracy.apatite.tests 2>/dev/null   # the test build's own bundle id (see build.sh), never the real app's
 rm -rf "$OUT"

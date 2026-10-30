@@ -1,10 +1,10 @@
+import { HLKEY, keyOf } from '../editor/highlight-colours.js';
 import { closeTbMenu } from '../core/toolbar-menu.js';
 import { KEY } from '../core/example-data.js';
 import { ed, esc, essays, isDocView, NATIVE, post, toast, ui } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { mk } from '../core/paste-cleaning.js';
 import { ZOOMS, applyZoom } from '../view/zoom.js';
-import { HLKEY, keyOf } from '../editor/highlight-key.js';
 import { saveDocNow } from '../editor/notes-document.js';
 import { texShowHTML } from '../equations/equation-tex.js';
 import { eqPreview, eqStore } from '../equations/equation-menus.js';

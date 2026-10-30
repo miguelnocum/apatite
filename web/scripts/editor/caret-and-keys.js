@@ -1,7 +1,7 @@
+import { tbState } from './toolbar-state.js';
 import { caretToStart, fire, selectRange } from '../core/caret.js';
 import { ed } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { tbState } from './editor-commands.js';
 import { anchorElement, mdTopBlock } from '../writing/writing.js';
 
 /* ===== a place for the caret beside a citation or footnote at the start or end of a line (on screen only; never saved) ===== */

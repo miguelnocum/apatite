@@ -1,3 +1,4 @@
+import { tbState } from './toolbar-state.js';
 import { caretInto, restoreSel } from '../core/caret.js';
 import { $, curEd, ed, isDocView, toast, ui } from '../core/helpers-and-state.js';
 import { closestTag, fire, inEd } from '../core/caret.js';
@@ -6,7 +7,7 @@ import { noteCaretCell, rangeWithinCell } from '../tables/table-grid.js';
 import { drawTableHandles, handledTable, tableLayer } from '../tables/table-handles.js';
 import { refreshTableTab } from '../tables/table-tab.js';
 import { toggleFocus } from '../view/focus-mode.js';
-import { keyOf, titleMarks } from './highlight-key.js';
+import { titleMarks } from './highlight-key.js';
 import { openTbMenu } from './toolbar-menus.js';
 import { openCiteCheck } from '../citations/citation-check.js';
 import { insertTOC } from './contents.js';
@@ -259,33 +260,6 @@ const onEditorCommandsSelectionchange = function () {
   ui.lastRange = selection.getRangeAt(0).cloneRange();
   tbState();
 };
-
-/* buttons light up for what the caret is in: a heading, a list, bold, italic, a highlight; the highlighter shows its colour */
-export function tbState() {
-  const inEditor = inEd();
-  const light = (id, on) => {
-    const button = document.getElementById(id);
-    if (button) button.classList.toggle('on', !!(inEditor && on));
-  };
-  light('tb-head', closestTag('h1,h2,h3,h4,h5,h6'));
-  light('tb-list', closestTag('ol,ul,blockquote,[data-callout]'));
-  light('tb-b', commandState('bold'));
-  light('tb-i', commandState('italic'));
-  light('tb-hl', closestTag('mark'));
-  const colour = keyOf(ui.hlColor);
-  const swatch = $('hlsw');
-  if (swatch) swatch.style.background = colour ? colour.hex : 'var(--h1)';
-  const highlighter = $('tb-hl');
-  if (highlighter) highlighter.title = 'Highlight' + (colour && colour.meaning ? ': ' + colour.meaning : '');
-}
-
-function commandState(name) {
-  try {
-    return document.queryCommandState(name);
-  } catch (e) {
-    return false;
-  }
-}
 
 export function initEditorCommands() {
   document.addEventListener('selectionchange', onEditorCommandsSelectionchange);

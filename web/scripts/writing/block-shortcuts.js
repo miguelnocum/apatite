@@ -1,6 +1,6 @@
+import { tbState } from '../editor/toolbar-state.js';
 import { caretInto, caretToStart, fire, selectRange } from '../core/caret.js';
 import { mk } from '../core/paste-cleaning.js';
-import { tbState } from '../editor/editor-commands.js';
 import { MD, anchorElement, mdAscii, mdBefore, mdCaret, mdPara, mdSel, textAfterCaret } from './writing.js';
 import { CALLOUTS } from '../core/callout-kinds.js';
 

@@ -1,6 +1,7 @@
+import { keyOf } from '../editor/highlight-colours.js';
 import { ui } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { keyOf, titleMarks } from '../editor/highlight-key.js';
+import { titleMarks } from '../editor/highlight-key.js';
 import { saveDocSoon } from '../editor/notes-document.js';
 import { MD, mdCaret, mdOff, mdSel } from './writing.js';
 import { renderIMath } from '../equations/inline-equations.js';

@@ -1,6 +1,7 @@
+import { tbState } from '../editor/toolbar-state.js';
 import { closestTag, fire, inEd } from '../core/caret.js';
 import { isDocView, toast } from '../core/helpers-and-state.js';
-import { cmd, tbState } from '../editor/editor-commands.js';
+import { cmd } from '../editor/editor-commands.js';
 import { MD, anchorElement, mdCaret, mdOff, mdPara, mdSel, textAfterCaret } from './writing.js';
 import { mdArrow, mdDash, mdIMath, mdInline } from './inline-shortcuts.js';
 import { TYPED_SPACE, mdBlock, mdCallout, mdRule, mdRuleTyped, quoteExit } from './block-shortcuts.js';

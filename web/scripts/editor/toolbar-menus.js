@@ -1,10 +1,11 @@
+import { keyLabel, keyShown } from './highlight-colours.js';
+import { tbState } from './toolbar-state.js';
 import { closeTbMenu, setTbMenu, tbMenu } from '../core/toolbar-menu.js';
 import { closestTag, fire, restoreSel } from '../core/caret.js';
 import { $, NATIVE, curEd, esc, toast, ui } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { applyHL, cmd, tbState } from './editor-commands.js';
+import { applyHL, cmd } from './editor-commands.js';
 import { ZOOMS, setZoom } from '../view/zoom.js';
-import { keyLabel, keyShown } from './highlight-key.js';
 import {
   CMT_TYPES,
   addComment,

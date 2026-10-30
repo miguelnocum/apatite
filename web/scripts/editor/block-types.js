@@ -1,7 +1,7 @@
+import { tbState } from './toolbar-state.js';
 import { fire } from '../core/caret.js';
 import { ed } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { tbState } from './editor-commands.js';
 import { edBlocks } from '../essays/word-count.js';
 import { hydrateCites } from '../citations/in-text-citations.js';
 import { mdTopBlock } from '../writing/writing.js';

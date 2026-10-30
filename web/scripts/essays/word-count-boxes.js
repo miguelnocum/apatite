@@ -1,7 +1,6 @@
-import { $, esc, ui } from '../core/helpers-and-state.js';
+import { $, ed, esc, ui } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
-import { mk } from '../editor/paste-cleaning.js';
-import { ed } from '../editor/notes-document.js';
+import { mk } from '../core/paste-cleaning.js';
 import { countedIn, edBlocks, tagById, tagCounts, tagNamed, tagsChanged, wcOpts } from './word-count.js';
 import { renderWordCount } from './word-count-sidebar.js';
 import { curEssay } from './essays.js';

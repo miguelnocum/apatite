@@ -1,5 +1,5 @@
 import { esc, toast } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { texShowHTML } from './equation-tex.js';
 import { EQ_BUILTIN, EQ_MENUS, EQ_STRIP, EQ_SYMBOLS, eqPreview, eqStore } from './equation-menus.js';
 import { fitPreviews } from './equation-editor-parts.js';

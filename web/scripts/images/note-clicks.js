@@ -1,4 +1,4 @@
-import { ed } from '../editor/notes-document.js';
+import { ed } from '../core/helpers-and-state.js';
 import { closeFn, fnPop, openFn } from '../editor/footnotes.js';
 import { closeImgTool, imgTool, openImgTool } from './image-toolbar.js';
 

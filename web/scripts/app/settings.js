@@ -1,10 +1,10 @@
 import { KEY } from '../core/example-data.js';
-import { NATIVE, esc, post, toast, ui } from '../core/helpers-and-state.js';
+import { ed, esc, NATIVE, post, toast, ui } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { ZOOMS, applyZoom, closeTbMenu } from '../view/zoom.js';
 import { HLKEY, keyOf } from '../editor/highlight-key.js';
-import { ed, saveDocNow } from '../editor/notes-document.js';
+import { saveDocNow } from '../editor/notes-document.js';
 import { essays, isDocView } from '../essays/essays.js';
 import { texShowHTML } from '../equations/equation-tex.js';
 import { eqPreview, eqStore } from '../equations/equation-menus.js';

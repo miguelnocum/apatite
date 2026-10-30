@@ -16,6 +16,11 @@ export function $(id) {
   return document.getElementById(id);
 }
 
+/* the open notes or essay's editor (null when none is open) */
+export function ed() {
+  return document.getElementById('ed');
+}
+
 export function esc(text) {
   return String(text == null ? '' : text).replace(/[&<>"]/g, c => HTML_ESCAPES[c]);
 }
@@ -42,6 +47,9 @@ export let pts = [];
 export function setPts(value) {
   pts = value;
   return value;
+}
+export function ptById(id) {
+  return pts.find(point => point.id === id);
 }
 export const ui = {
   view: 'syl',

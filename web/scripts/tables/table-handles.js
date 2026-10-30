@@ -1,5 +1,5 @@
-import { ui } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { ed, ui } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
 import { inEd } from '../editor/editor-commands.js';
 import {
   cellRect,
@@ -24,7 +24,6 @@ import {
   startRowResize
 } from './table-sizing.js';
 import { refreshTableTab } from './table-tab.js';
-import { ed } from '../editor/notes-document.js';
 import { caretInto } from '../essays/essays.js';
 
 /* ===== tables: handles over the table the pointer (or caret) is in. A grip above each column and beside each row selects

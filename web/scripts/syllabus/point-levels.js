@@ -1,14 +1,11 @@
-import { pts, toast, ui } from '../core/helpers-and-state.js';
+import { ptById, pts, toast, ui } from '../core/helpers-and-state.js';
+import { POINT, SUB_POINT } from '../core/saved-format.js';
 import { Store } from '../core/storage.js';
 import { renderSide } from './syllabus-view.js';
 import { renderEdit } from './syllabus-editing.js';
 import { secPrefix } from './syllabus-import.js';
 import { flash, render } from '../view/page-render.js';
-import { ptById } from '../editor/notes-document.js';
-
 /* ===== three levels: the section is the chapter (1), points are headings (1.1), sub-points sit under the point above (1.1.1) ===== */
-export const SUB_POINT = 3;
-const POINT = 2;
 
 export function lvl(point) {
   return point && point.lvl === SUB_POINT ? SUB_POINT : POINT;

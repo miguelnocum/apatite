@@ -1,7 +1,7 @@
 import { KEY } from './example-data.js';
 import { $, meta, pts, toast } from './helpers-and-state.js';
-import { SUB_POINT } from '../syllabus/point-levels.js';
-import { sanitize } from '../editor/paste-cleaning.js';
+import { SUB_POINT } from './saved-format.js';
+import { sanitize } from './paste-cleaning.js';
 
 /* ===== storage: artifact database when available, this browser otherwise ===== */
 const DOC_PART_SIZE = 80000; // characters per database document the notes are saved in

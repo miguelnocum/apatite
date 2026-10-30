@@ -1,8 +1,8 @@
-import { ui } from '../core/helpers-and-state.js';
+import { ed, ui } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { flash, render } from '../view/page-render.js';
-import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { saveDocSoon } from '../editor/notes-document.js';
 import { edChanged } from '../editor/hydrate-and-changes.js';
 import { isDocView } from '../essays/essays.js';
 import { parseOne, refById, refs } from '../citations/references.js';

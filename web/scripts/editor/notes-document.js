@@ -1,6 +1,6 @@
-import { $, meta, pts, setCurEd, toast } from '../core/helpers-and-state.js';
+import { $, ed, meta, setCurEd, toast } from '../core/helpers-and-state.js';
 import { Store, setSave } from '../core/storage.js';
-import { fillEmpty, sanitize } from './paste-cleaning.js';
+import { fillEmpty, sanitize } from '../core/paste-cleaning.js';
 import { addBanner, markCur } from '../view/page-render.js';
 import { watchZoom } from '../view/zoom.js';
 import { hydrateExtras } from './hydrate-and-changes.js';
@@ -20,14 +20,6 @@ export function setDocHTML(value) {
   return value;
 }
 let docTimer = null;
-
-export function ed() {
-  return document.getElementById('ed');
-}
-
-export function ptById(id) {
-  return pts.find(point => point.id === id);
-}
 
 /* the notes as shown: empty lines that can take the caret, a last line, citations and the notes' own pieces drawn */
 export function hydrate(root) {

@@ -1,10 +1,9 @@
 import { KEY } from '../core/example-data.js';
-import { $, NATIVE, post } from '../core/helpers-and-state.js';
+import { $, ed, NATIVE, post } from '../core/helpers-and-state.js';
 import { inEd } from '../editor/editor-commands.js';
 import { applyTableDefaults } from '../tables/table-look.js';
 import { headerHeight } from '../view/zoom.js';
 import { postFocus } from '../view/focus-mode.js';
-import { ed } from '../editor/notes-document.js';
 import { positionCards } from '../editor/comments.js';
 import { isDocView } from '../essays/essays.js';
 import { mdTopBlock } from './writing.js';

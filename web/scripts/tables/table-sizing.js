@@ -1,5 +1,5 @@
 import { ui } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { tableGrid } from './table-grid.js';
 import { beginTableChange, changeTable, endTableChange } from './table-edits.js';
 

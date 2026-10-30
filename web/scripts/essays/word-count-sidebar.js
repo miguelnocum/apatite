@@ -1,7 +1,6 @@
-import { $, esc, ui } from '../core/helpers-and-state.js';
+import { $, ed, esc, ui } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { flash } from '../view/page-render.js';
-import { ed } from '../editor/notes-document.js';
 import { essayTotal, tagById, tagCounts, tagsChanged, wcOpts } from './word-count.js';
 import { contentsPanel } from './word-count-contents.js';
 import { closeTagPop, drawBoxes, setWcMode, tagPop } from './word-count-boxes.js';

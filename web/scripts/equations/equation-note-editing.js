@@ -1,4 +1,4 @@
-import { mk } from '../editor/paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { saveDocSoon } from '../editor/notes-document.js';
 import { annList, annNoteHTML, annSave, mathKey } from './equation-drawing.js';
 import { annLayout } from './equation-note-layout.js';

@@ -1,7 +1,6 @@
-import { toast } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { ed, toast } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
 import { closestTag, fire, tbState } from '../editor/editor-commands.js';
-import { ed } from '../editor/notes-document.js';
 import { MD, selectRange } from './writing.js';
 import { ZW } from '../editor/caret-and-keys.js';
 

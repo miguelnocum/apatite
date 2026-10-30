@@ -1,9 +1,9 @@
-import { $, NATIVE, pts, ui } from '../core/helpers-and-state.js';
+import { $, ed, NATIVE, pts, ui } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { measure, renderSide, renderSyl } from '../syllabus/syllabus-view.js';
 import { alignToolbar, closeTbMenu, headerHeight } from './zoom.js';
 import { applyFocus } from './focus-mode.js';
-import { ed, renderNotes, saveDocNow } from '../editor/notes-document.js';
+import { renderNotes, saveDocNow } from '../editor/notes-document.js';
 import { ccRefresh, citeCheck, closeCiteCheck } from '../citations/citation-check.js';
 import { renderComments } from '../editor/comments.js';
 import { closeTagPop } from '../essays/word-count-boxes.js';

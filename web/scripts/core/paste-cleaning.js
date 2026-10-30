@@ -1,5 +1,5 @@
-import { esc } from '../core/helpers-and-state.js';
-import { CALLOUTS } from './callouts.js';
+import { esc } from './helpers-and-state.js';
+import { CALLOUTS } from './callout-kinds.js';
 
 /* ===== cleaning HTML (pasted, or loaded from a file): only what notes can hold is kept, the rest unwrapped or dropped ===== */
 /* elements kept, and what they become */

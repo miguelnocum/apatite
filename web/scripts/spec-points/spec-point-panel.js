@@ -1,14 +1,13 @@
 import { STATUS } from '../core/example-data.js';
-import { $, esc, pts, toast, ui } from '../core/helpers-and-state.js';
+import { $, ed, esc, ptById, pts, toast, ui } from '../core/helpers-and-state.js';
 import { lvl } from '../syllabus/point-levels.js';
 import { Store } from '../core/storage.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { groups } from '../syllabus/model.js';
 import { ratingBarHTML, sideClosed, sideHd } from '../syllabus/syllabus-view.js';
 import { render } from '../view/page-render.js';
 import { tbMenu } from '../editor/editor-commands.js';
 import { headerHeight } from '../view/zoom.js';
-import { ed, ptById } from '../editor/notes-document.js';
 import { edBlocks } from '../essays/word-count.js';
 import { caretInto } from '../essays/essays.js';
 import { mdTopBlock, selectRange } from '../writing/writing.js';

@@ -1,8 +1,6 @@
-import { ui } from '../core/helpers-and-state.js';
-import { mk } from './paste-cleaning.js';
+import { ed, ui } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
 import { pageScale } from '../tables/table-sizing.js';
-import { ed } from './notes-document.js';
-
 /* ===== the selection drawn as Bear draws it: one even band, from where it starts to the right edge, whole lines between,
    and from the left edge to where it ends, with no gaps between lines or paragraphs. The browser's own is hidden while
    it shows: that one is ragged, a different height at each size of text, and patchy over callouts and lists ===== */

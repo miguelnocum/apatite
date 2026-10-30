@@ -1,6 +1,6 @@
-import { $ } from '../core/helpers-and-state.js';
-import { mk } from './paste-cleaning.js';
-import { ed, saveDocSoon } from './notes-document.js';
+import { $, ed } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
+import { saveDocSoon } from './notes-document.js';
 import { positionCards } from './comments.js';
 import { edBlocks } from '../essays/word-count.js';
 import { mdTopBlock, selectRange } from '../writing/writing.js';

@@ -1,4 +1,4 @@
-import { mk } from '../editor/paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { fire, tbState } from '../editor/editor-commands.js';
 import { caretInto } from '../essays/essays.js';
 import {
@@ -12,7 +12,7 @@ import {
   selectRange,
   textAfterCaret
 } from './writing.js';
-import { CALLOUTS } from '../editor/callouts.js';
+import { CALLOUTS } from '../core/callout-kinds.js';
 
 /* ===== typed shortcuts at the start of a line: "# " a heading, "- " a list, "> " a quote, "> [!NOTE] " a callout,
    "---" then a space or Return a divider; and leaving a quote ===== */

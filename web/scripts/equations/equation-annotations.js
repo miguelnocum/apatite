@@ -1,5 +1,5 @@
-import { toast } from '../core/helpers-and-state.js';
-import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { ed, toast } from '../core/helpers-and-state.js';
+import { saveDocSoon } from '../editor/notes-document.js';
 import { texInline } from './equation-tex.js';
 import { ANN_COLORS, annColor, annList, annNoteHTML, annSave, renderMath } from './equation-drawing.js';
 import { editCard } from './equation-note-editing.js';

@@ -1,5 +1,5 @@
 import { $ } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { drawImgTool, imgChanged, imgOrig, imgTool } from './image-toolbar.js';
 import { dragWithMouse } from './image-resize-move.js';
 

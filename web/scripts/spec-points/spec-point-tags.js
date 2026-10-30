@@ -1,7 +1,7 @@
-import { $, esc, ui } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { $, ed, esc, ptById, ui } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
 import { renderSide } from '../syllabus/syllabus-view.js';
-import { ed, ptById, saveDocSoon } from '../editor/notes-document.js';
+import { saveDocSoon } from '../editor/notes-document.js';
 import { positionCards } from '../editor/comments.js';
 import { edBlocks } from '../essays/word-count.js';
 import { spDrag, spTemp } from './spec-point-dragging.js';

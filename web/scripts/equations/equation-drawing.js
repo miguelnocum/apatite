@@ -1,7 +1,7 @@
-import { esc } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { ed, esc } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
 import { restoreSel } from '../view/zoom.js';
-import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { saveDocSoon } from '../editor/notes-document.js';
 import { mdTopBlock } from '../writing/writing.js';
 import { KT_OPTS, texInline, texLines, texShow } from './equation-tex.js';
 import { annCandidates, annotateTex } from './equation-parts.js';

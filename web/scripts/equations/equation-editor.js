@@ -1,6 +1,6 @@
+import { ed } from '../core/helpers-and-state.js';
 import { KEY } from '../core/example-data.js';
-import { mk } from '../editor/paste-cleaning.js';
-import { ed } from '../editor/notes-document.js';
+import { mk } from '../core/paste-cleaning.js';
 import { texLines, texShow } from './equation-tex.js';
 import { renderMath } from './equation-drawing.js';
 import { editCard } from './equation-note-editing.js';

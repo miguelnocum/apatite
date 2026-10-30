@@ -1,5 +1,5 @@
 import { NATIVE, esc, meta, post, toast, ui } from '../core/helpers-and-state.js';
-import { mk } from './paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { tableVar } from '../tables/table-sizing.js';
 import { TABLE_PADDINGS, tableTextLook } from '../tables/table-look.js';
 import { HLKEY } from './highlight-key.js';

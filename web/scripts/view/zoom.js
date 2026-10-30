@@ -1,10 +1,9 @@
 import { KEY } from '../core/example-data.js';
-import { $, ui } from '../core/helpers-and-state.js';
+import { $, ed, ui } from '../core/helpers-and-state.js';
 import { renderSide } from '../syllabus/syllabus-view.js';
 import { markCur } from './page-render.js';
 import { setTbMenu, tbMenu } from '../editor/editor-commands.js';
 import { applyFocusZoom, focusWheel, inFocus, setFocusZoom, stepFocusZoom } from './focus-mode.js';
-import { ed } from '../editor/notes-document.js';
 import { isNarrow, renderComments } from '../editor/comments.js';
 import { isDocView } from '../essays/essays.js';
 import { getPref } from '../app/settings.js';

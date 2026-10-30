@@ -1,8 +1,8 @@
-import { esc, toast } from '../core/helpers-and-state.js';
-import { mk } from './paste-cleaning.js';
+import { ed, esc, toast } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
 import { flash } from '../view/page-render.js';
 import { closestTag } from './editor-commands.js';
-import { ed, saveDocSoon } from './notes-document.js';
+import { saveDocSoon } from './notes-document.js';
 import { edChanged } from './hydrate-and-changes.js';
 import { emptyLine } from './callouts.js';
 

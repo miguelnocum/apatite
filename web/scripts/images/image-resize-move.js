@@ -1,6 +1,6 @@
-import { mk } from '../editor/paste-cleaning.js';
+import { ed } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
 import { placeBetweenLines } from '../editor/pasting-and-images.js';
-import { ed } from '../editor/notes-document.js';
 import { imgChanged, imgNode, imgSel, placeImgTool } from './image-toolbar.js';
 
 /* ===== resizing a picture from a bottom corner, and moving it between lines ===== */

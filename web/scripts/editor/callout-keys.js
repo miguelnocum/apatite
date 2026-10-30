@@ -1,8 +1,9 @@
-import { mk } from './paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { fire } from './editor-commands.js';
 import { caretInto } from '../essays/essays.js';
 import { anchorElement, mdBefore, selectRange } from '../writing/writing.js';
-import { CALLOUTS, emptyLine } from './callouts.js';
+import { emptyLine } from './callouts.js';
+import { CALLOUTS } from '../core/callout-kinds.js';
 
 /* ===== Return and Backspace in callouts ===== */
 

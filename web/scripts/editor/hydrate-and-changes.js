@@ -1,6 +1,5 @@
-import { ui } from '../core/helpers-and-state.js';
+import { ed, ui } from '../core/helpers-and-state.js';
 import { titleMarks } from './highlight-key.js';
-import { ed } from './notes-document.js';
 import { ccSoon } from '../citations/citation-check.js';
 import { renderTOC } from './contents.js';
 import { renderFootnotes } from './footnotes.js';

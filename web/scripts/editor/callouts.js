@@ -1,20 +1,11 @@
-import { mk } from './paste-cleaning.js';
+import { ed } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
+import { CALLOUTS } from '../core/callout-kinds.js';
 import { cmd, fire } from './editor-commands.js';
 import { closeTbMenu, restoreSel } from '../view/zoom.js';
-import { ed } from './notes-document.js';
 import { mdTopBlock, selectRange } from '../writing/writing.js';
 
 /* ===== callouts ===== */
-export const CALLOUTS = {
-  note: 'Note',
-  tip: 'Tip',
-  important: 'Important',
-  warning: 'Warning',
-  caution: 'Caution',
-  def: 'Definition',
-  pc: 'Advantages vs disadvantages',
-  warn: 'Warning'
-};
 const CALLOUT_TYPES = ['note', 'tip', 'important', 'warning', 'caution'];
 const SUBMENU_MARGIN = 12; // px a submenu keeps from the window's bottom
 const SUBMENU_GAP = 4; // px between a submenu and its menu

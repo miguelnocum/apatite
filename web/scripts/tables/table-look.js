@@ -1,5 +1,5 @@
 import { toast, ui } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { cellsIn, rowTag } from './table-grid.js';
 import { changeTable } from './table-edits.js';
 import { setTableVar, tableVar } from './table-sizing.js';

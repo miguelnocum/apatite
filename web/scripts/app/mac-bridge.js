@@ -1,6 +1,6 @@
-import { $, NATIVE, meta, post, pts, ui } from '../core/helpers-and-state.js';
+import { $, ed, meta, NATIVE, post, pts, ui } from '../core/helpers-and-state.js';
 import { Store, setSave, strip } from '../core/storage.js';
-import { docHTML, ed, saveDocNow } from '../editor/notes-document.js';
+import { docHTML, saveDocNow } from '../editor/notes-document.js';
 import { essays } from '../essays/essays.js';
 import { nbRefSort, nbRefs, parseOne, refs, stashRefs } from '../citations/references.js';
 import { hydrateCites } from '../citations/in-text-citations.js';

@@ -1,5 +1,5 @@
-import { $, curEd, toast, ui } from '../core/helpers-and-state.js';
-import { mk, sanitize } from './paste-cleaning.js';
+import { $, curEd, ed, toast, ui } from '../core/helpers-and-state.js';
+import { mk, sanitize } from '../core/paste-cleaning.js';
 import { noteCaretCell, rangeWithinCell } from '../tables/table-grid.js';
 import { drawTableHandles, handledTable, tableLayer } from '../tables/table-handles.js';
 import { refreshTableTab } from '../tables/table-tab.js';
@@ -7,7 +7,6 @@ import { restoreSel } from '../view/zoom.js';
 import { toggleFocus } from '../view/focus-mode.js';
 import { keyOf, titleMarks } from './highlight-key.js';
 import { openTbMenu } from './toolbar-menus.js';
-import { ed } from './notes-document.js';
 import { openCiteCheck } from '../citations/citation-check.js';
 import { insertTOC } from './contents.js';
 import { insertFootnote } from './footnotes.js';

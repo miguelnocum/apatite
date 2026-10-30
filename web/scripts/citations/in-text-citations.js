@@ -1,6 +1,6 @@
-import { NATIVE, esc, post, toast, ui } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
-import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { ed, esc, NATIVE, post, toast, ui } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
+import { saveDocSoon } from '../editor/notes-document.js';
 import { citationIds } from './citation-check.js';
 import { namePart, refById, yearLabels } from './references.js';
 import { openSources } from './sources-pane.js';

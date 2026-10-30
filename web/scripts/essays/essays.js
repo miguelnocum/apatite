@@ -1,10 +1,10 @@
 import { KEY } from '../core/example-data.js';
-import { $, NATIVE, esc, pts, setCurEd, toast, ui, uid } from '../core/helpers-and-state.js';
+import { $, ed, esc, NATIVE, ptById, pts, setCurEd, toast, ui, uid } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { renderSide, sideHd } from '../syllabus/syllabus-view.js';
 import { render } from '../view/page-render.js';
 import { watchZoom } from '../view/zoom.js';
-import { ed, hydrate, ptById } from '../editor/notes-document.js';
+import { hydrate } from '../editor/notes-document.js';
 import { essayTotal, tagCounts, wcOpts } from './word-count.js';
 import { renderWordCount, updateEssayListCounts } from './word-count-sidebar.js';
 import { closeTagPop } from './word-count-boxes.js';

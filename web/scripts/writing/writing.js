@@ -1,5 +1,4 @@
-import { ed } from '../editor/notes-document.js';
-
+import { ed } from '../core/helpers-and-state.js';
 /* ===== Bear-style writing =====
    Typed shortcuts are commands: "**word**", "# ", "- " and friends turn into formatting the moment they are complete
    and the symbols are gone, never hidden in the text. ⌘Z straight after gives back exactly what was typed. */

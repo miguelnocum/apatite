@@ -1,7 +1,6 @@
-import { $, ui } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { $, ed, ui } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
 import { headerHeight } from '../view/zoom.js';
-import { ed } from '../editor/notes-document.js';
 import { edBlocks } from '../essays/word-count.js';
 import { setWcEatClick } from '../essays/word-count-boxes.js';
 import { boxStyle, spBg, spChanged, spGeom, spLayer, spTintGeom } from './spec-point-tags.js';

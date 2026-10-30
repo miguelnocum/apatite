@@ -1,8 +1,8 @@
-import { $, esc, toast, ui } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { $, ed, esc, toast, ui } from '../core/helpers-and-state.js';
+import { mk } from '../core/paste-cleaning.js';
 import { measure } from '../syllabus/syllabus-view.js';
 import { render } from '../view/page-render.js';
-import { CITE_NAR, CITE_PAR, citeCandidates, ed, saveDocSoon } from '../editor/notes-document.js';
+import { CITE_NAR, CITE_PAR, citeCandidates, saveDocSoon } from '../editor/notes-document.js';
 import { edChanged } from '../editor/hydrate-and-changes.js';
 import { words } from '../essays/word-count.js';
 import { isDocView } from '../essays/essays.js';

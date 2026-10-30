@@ -1,6 +1,6 @@
-import { esc } from '../core/helpers-and-state.js';
+import { ed, esc } from '../core/helpers-and-state.js';
 import { headerHeight } from '../view/zoom.js';
-import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { saveDocSoon } from '../editor/notes-document.js';
 import { edChanged } from '../editor/hydrate-and-changes.js';
 import { caretInto } from '../essays/essays.js';
 import { texInline } from './equation-tex.js';

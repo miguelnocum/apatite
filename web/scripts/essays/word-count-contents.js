@@ -1,7 +1,6 @@
-import { esc, toast, ui } from '../core/helpers-and-state.js';
+import { ed, esc, toast, ui } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { flash } from '../view/page-render.js';
-import { ed } from '../editor/notes-document.js';
 import { countedIn, edBlocks, tagById, tagNamed, tagsChanged, wcOpts } from './word-count.js';
 import { curEssay } from './essays.js';
 

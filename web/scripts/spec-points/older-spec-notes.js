@@ -1,8 +1,9 @@
+import { ed, ptById } from '../core/helpers-and-state.js';
 import { KEY } from '../core/example-data.js';
 import { lvl } from '../syllabus/point-levels.js';
 import { Store } from '../core/storage.js';
-import { mk } from '../editor/paste-cleaning.js';
-import { ed, ptById, saveDocNow } from '../editor/notes-document.js';
+import { mk } from '../core/paste-cleaning.js';
+import { saveDocNow } from '../editor/notes-document.js';
 import { spShort } from './spec-point-tags.js';
 
 /* ===== older notes: spec points were headings in the text; they become tags on the notes under them ===== */

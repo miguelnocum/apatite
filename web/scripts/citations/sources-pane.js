@@ -1,6 +1,6 @@
-import { $, esc, ui } from '../core/helpers-and-state.js';
+import { $, ed, esc, ui } from '../core/helpers-and-state.js';
 import { relayout, setPaneFold } from '../view/zoom.js';
-import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { saveDocSoon } from '../editor/notes-document.js';
 import { ccSoon, citationIds } from './citation-check.js';
 import { edChanged } from '../editor/hydrate-and-changes.js';
 import { renderComments } from '../editor/comments.js';

@@ -1,7 +1,6 @@
-import { $, esc, pts, toast, ui } from '../core/helpers-and-state.js';
+import { $, ed, esc, pts, toast, ui } from '../core/helpers-and-state.js';
 import { lvl } from '../syllabus/point-levels.js';
-import { mk } from '../editor/paste-cleaning.js';
-import { ed } from '../editor/notes-document.js';
+import { mk } from '../core/paste-cleaning.js';
 import { edBlocks } from '../essays/word-count.js';
 import { mdTopBlock } from '../writing/writing.js';
 import { spChanged } from './spec-point-tags.js';

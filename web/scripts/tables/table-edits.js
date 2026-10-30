@@ -1,5 +1,5 @@
 import { toast, ui } from '../core/helpers-and-state.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { fire } from '../editor/editor-commands.js';
 import {
   cellsIn,

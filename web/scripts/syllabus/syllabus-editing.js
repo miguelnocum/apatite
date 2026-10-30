@@ -1,12 +1,12 @@
-import { $, esc, pts, setPts, toast, ui, uid } from '../core/helpers-and-state.js';
+import { $, esc, ptById, pts, setPts, toast, ui, uid } from '../core/helpers-and-state.js';
 import { kidsOf, lvl, normLevels, numberSection, setLevel } from './point-levels.js';
 import { Store, queue } from '../core/storage.js';
-import { mk } from '../editor/paste-cleaning.js';
+import { mk } from '../core/paste-cleaning.js';
 import { commit, groups } from './model.js';
 import { cfHTML, renderSide } from './syllabus-view.js';
 import { importHTML, sectionNames, suggestCode } from './syllabus-import.js';
 import { addBanner, flash, secPts } from '../view/page-render.js';
-import { inDoc, ptById } from '../editor/notes-document.js';
+import { inDoc } from '../editor/notes-document.js';
 import { setWcEatClick } from '../essays/word-count-boxes.js';
 
 /* ===== editing the syllabus in place: it looks like the syllabus, the text is editable where it stands,

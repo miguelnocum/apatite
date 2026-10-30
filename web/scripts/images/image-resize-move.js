@@ -1,3 +1,8 @@
+import { mk } from '../editor/paste-cleaning.js';
+import { placeBetweenLines } from '../editor/pasting-and-images.js';
+import { ed } from '../editor/notes-document.js';
+import { imgChanged, imgNode, imgSel, placeImgTool } from './image-toolbar.js';
+
 /* ===== resizing a picture from a bottom corner, and moving it between lines ===== */
 const MIN_IMAGE_SHARE = 0.1; // a picture is at least this share of the line wide while dragging…
 const MIN_IMAGE_PERCENT = 10; // …and kept at least this many percent
@@ -5,7 +10,7 @@ const WIDTH_STEPS_PER_LINE = 20; // widths snap to 5% of the line
 const DROP_LINE_GAP = 2; // px below a line where the drop line shows
 
 /* resize: drag a bottom corner; width snaps to 5% of the line */
-function startImgResize(e) {
+export function startImgResize(e) {
   const handle = e.target.closest('[data-rs]');
   if (!handle || !imgSel) return;
   e.preventDefault();
@@ -34,7 +39,7 @@ function snappedPercent(width, line) {
 }
 
 /* follows the mouse until it's let go */
-function dragWithMouse(onMove, onUp) {
+export function dragWithMouse(onMove, onUp) {
   const up = () => {
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup', up);
@@ -45,7 +50,7 @@ function dragWithMouse(onMove, onUp) {
 }
 
 /* move: drag from the Move button; a line shows the gap between lines (or bullets) it will go into */
-function startImgMove(e) {
+export function startImgMove(e) {
   const img = imgSel;
   if (!img) return;
   const node = imgNode(img);

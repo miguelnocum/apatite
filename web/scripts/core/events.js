@@ -1,28 +1,47 @@
+import { EXAMPLE } from './example-data.js';
+import { $, NATIVE, meta, post, pts, setCurEd, setPts, toast, ui } from './helpers-and-state.js';
+import { Store } from './storage.js';
+import { commit, planApply } from '../syllabus/model.js';
+import { cfHTML, measure, renderSide, toggleSide } from '../syllabus/syllabus-view.js';
+import { detect, renderSetup, secPrefix, sectionNames, suggestGrouping } from '../syllabus/syllabus-import.js';
+import { showStyleMatches } from '../syllabus/numbering-style.js';
+import { backToSyl, markCur, render } from '../view/page-render.js';
+import { cmd, tableState } from '../editor/editor-commands.js';
+import { closeTbMenu, stepZoom } from '../view/zoom.js';
+import { openTbMenu } from '../editor/toolbar-menus.js';
+import { hydrate, saveDocNow, saveDocSoon } from '../editor/notes-document.js';
+import { edChanged } from '../editor/hydrate-and-changes.js';
+import { curEssay, deleteEssay, isDocView, newEssay, openEssay, openPoint, renderEssaySide } from '../essays/essays.js';
+import { exportHTML } from '../editor/export.js';
+import { useRefs } from '../citations/references.js';
+import { renderWC } from '../citations/works-cited-tab.js';
+import { openSettings } from '../app/settings.js';
+
 /* ===== events: the page's own fields and buttons ===== */
 const TITLE_SAVE_DELAY = 500; // ms after the last keystroke in an essay's title before it's saved
 const NOTEBOOK_TITLE_SAVE_DELAY = 700;
 const CONFIDENCE_LEVELS = 5; // 0 (not rated) to 4
 
 /* the notes or essay being typed in */
-document.addEventListener('focusin', function (e) {
+const onEventsFocusin = function (e) {
   const notes = e.target.closest && e.target.closest('.notes');
   if (!notes) return;
-  curEd = notes;
+  setCurEd(notes);
   tableState();
-});
+};
 
 /* Works Cited: whose list is shown */
-document.addEventListener('change', function (e) {
+const onEventsChange = function (e) {
   if (e.target.id !== 'wcowner') return;
   useRefs(e.target.value);
   renderWC();
-});
+};
 
 /* ---- typing in the page's fields ---- */
-document.addEventListener('input', function (e) {
+const onEventsInput = function (e) {
   const action = PAGE_INPUTS.find(([matches]) => matches(e.target));
   if (action) action[1](e.target);
-});
+};
 
 /* [is it this field, what typing in it does] */
 const PAGE_INPUTS = [
@@ -89,11 +108,11 @@ function renameNotebook(field) {
 }
 
 /* ---- the toolbar ---- */
-document.addEventListener('mousedown', function (e) {
+const onEventsMousedown = function (e) {
   if (e.target.closest('#tb button')) e.preventDefault(); // the notes keep the selection
-});
+};
 
-$('tb').addEventListener('click', function (e) {
+const onEventsTbClick = function (e) {
   const button = e.target.closest('button');
   if (!button) return;
   if (button.dataset.menu) {
@@ -103,15 +122,15 @@ $('tb').addEventListener('click', function (e) {
   closeTbMenu();
   if (button.dataset.zoom) stepZoom(+button.dataset.zoom);
   else if (button.dataset.cmd) cmd(button.dataset.cmd);
-});
+};
 
 /* ---- the page's buttons and links ---- */
-document.addEventListener('click', function (e) {
+const onEventsClick = function (e) {
   const target = e.target.closest('button,a');
   if (!target) return;
   const action = PAGE_CLICKS.find(([matches]) => matches(target));
   if (action) action[1](target, e);
-});
+};
 
 /* [is it this button, what clicking it does] */
 const PAGE_CLICKS = [
@@ -171,7 +190,7 @@ function chooseView(tab) {
   else switchView(view);
 }
 
-function switchView(view) {
+export function switchView(view) {
   if (isDocView()) ui.lastDoc = ui.view;
   ui.scroll[ui.view] = window.scrollY;
   if (view === 'syl') ui.back = null;
@@ -319,23 +338,29 @@ function startSyllabusOver(button) {
   ui.confirmReplace = null;
   const example = button.id === 'ex';
   const gone = pts;
-  pts = [];
+  setPts([]);
   commit(example ? planApply(EXAMPLE, true).next : [], gone);
   ui.draft = null;
   showNewSyllabus(example ? 'Example loaded' : 'Empty syllabus', example);
 }
 
 /* ---- the side panel follows the scroll; the header's height is kept for layout ---- */
-window.addEventListener(
-  'scroll',
-  function () {
-    if (markCur.t) return;
-    markCur.t = requestAnimationFrame(() => {
-      markCur.t = 0;
-      if (ui.view !== 'setup') markCur();
-    });
-  },
-  { passive: true }
-);
-window.addEventListener('resize', measure);
-if (window.ResizeObserver) new ResizeObserver(measure).observe($('head'));
+const onEventsWindowScroll = function () {
+  if (markCur.t) return;
+  markCur.t = requestAnimationFrame(() => {
+    markCur.t = 0;
+    if (ui.view !== 'setup') markCur();
+  });
+};
+
+export function initEvents() {
+  document.addEventListener('focusin', onEventsFocusin);
+  document.addEventListener('change', onEventsChange);
+  document.addEventListener('input', onEventsInput);
+  document.addEventListener('mousedown', onEventsMousedown);
+  $('tb').addEventListener('click', onEventsTbClick);
+  document.addEventListener('click', onEventsClick);
+  window.addEventListener('scroll', onEventsWindowScroll, { passive: true });
+  window.addEventListener('resize', measure);
+  if (window.ResizeObserver) new ResizeObserver(measure).observe($('head'));
+}

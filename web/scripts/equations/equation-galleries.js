@@ -1,3 +1,9 @@
+import { esc, toast } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { texShowHTML } from './equation-tex.js';
+import { EQ_BUILTIN, EQ_MENUS, EQ_STRIP, EQ_SYMBOLS, eqPreview, eqStore } from './equation-menus.js';
+import { fitPreviews } from './equation-editor-parts.js';
+
 /* ===== the equation editor, part 5: the pop-up galleries — a structure's layouts, every symbol, or whole equations —
    and the strip of symbols (pinned ones first) ===== */
 const SYMBOL_PAGE = 72; // px the strip scrolls by: two rows of 34px cells and their 2px gaps
@@ -7,7 +13,7 @@ const GALLERY_SIDE_MARGIN = 6; // px a gallery keeps from the editor's sides
 const PIN_TITLE = 'Pin to the front of the strip';
 const UNPIN_TITLE = 'Unpin from the strip';
 
-class EquationGalleries {
+export class EquationGalleries {
   constructor(editor) {
     this.editor = editor;
     this.popup = editor.popup;

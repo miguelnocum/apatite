@@ -1,3 +1,16 @@
+import { KEY } from '../core/example-data.js';
+import { NATIVE, esc, post, toast, ui } from '../core/helpers-and-state.js';
+import { Store } from '../core/storage.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { ZOOMS, applyZoom, closeTbMenu } from '../view/zoom.js';
+import { HLKEY, keyOf } from '../editor/highlight-key.js';
+import { ed, saveDocNow } from '../editor/notes-document.js';
+import { essays, isDocView } from '../essays/essays.js';
+import { texShowHTML } from '../equations/equation-tex.js';
+import { eqPreview, eqStore } from '../equations/equation-menus.js';
+import { sylInfo } from '../editor/caret-and-keys.js';
+import { FONTS, THEMES, WS, WS_DEF, applyWS, saveWS, twScroll } from '../writing/typewriter-writing.js';
+
 /* ===== Settings (⌘,): which syllabus each document follows, writing, themes, the highlight key, equations, zoom, the library ===== */
 const SETTINGS_SECTIONS = [
   ['syl', 'Syllabus'],
@@ -34,7 +47,7 @@ function setPref(name, value) {
   } catch (x) {}
 }
 
-function getPref(name) {
+export function getPref(name) {
   try {
     return localStorage.getItem(KEY + '-' + name);
   } catch (x) {
@@ -43,7 +56,7 @@ function getPref(name) {
 }
 
 /* ---- the sheet ---- */
-function openSettings(section) {
+export function openSettings(section) {
   const known = SETTINGS_SECTIONS.some(([id]) => id === section);
   ui.setSec = known ? section : ui.setSec || DEFAULT_SECTION;
   closeTbMenu();
@@ -78,7 +91,7 @@ function closeSettings() {
   settingsSheet = null;
 }
 
-window.nbOpenSettings = function (section) {
+const nbOpenSettings = function (section) {
   openSettings(section || null);
 };
 
@@ -526,11 +539,16 @@ function linkOpenNotebookSyllabus(syllabusId) {
 }
 
 /* ⌘, in the web version (the Mac app's own Settings… menu item does it there) */
-document.addEventListener('keydown', function (e) {
+const onSettingsKeydown = function (e) {
   if (NATIVE) return;
   if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key === ',') {
     e.preventDefault();
     if (settingsSheet) closeSettings();
     else openSettings();
   }
-});
+};
+
+export function initSettings() {
+  window.nbOpenSettings = nbOpenSettings;
+  document.addEventListener('keydown', onSettingsKeydown);
+}

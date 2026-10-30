@@ -1,17 +1,36 @@
+import { KEY } from '../core/example-data.js';
+import { $, NATIVE, esc, pts, setCurEd, toast, ui, uid } from '../core/helpers-and-state.js';
+import { Store } from '../core/storage.js';
+import { renderSide, sideHd } from '../syllabus/syllabus-view.js';
+import { render } from '../view/page-render.js';
+import { watchZoom } from '../view/zoom.js';
+import { ed, hydrate, ptById } from '../editor/notes-document.js';
+import { essayTotal, tagCounts, wcOpts } from './word-count.js';
+import { renderWordCount, updateEssayListCounts } from './word-count-sidebar.js';
+import { closeTagPop } from './word-count-boxes.js';
+import { useRefs } from '../citations/references.js';
+import { caretToStart } from '../writing/block-shortcuts.js';
+import { shiftHeadings } from '../editor/folding.js';
+import { spGo } from '../spec-points/spec-point-panel.js';
+
 /* ===== essays: free writing on the same page, no syllabus ===== */
-let essays = [];
+export let essays = [];
+export function setEssays(value) {
+  essays = value;
+  return value;
+}
 
 /* which document the open editor holds; saving follows the editor, not the tab */
-function edEssayId() {
+export function edEssayId() {
   const editor = ed();
   return editor && editor.getAttribute('data-doc') === 'essay' ? editor.getAttribute('data-essay') : null;
 }
 
-function isDocView() {
+export function isDocView() {
   return ui.view === 'notes' || ui.view === 'essay';
 }
 
-function curEssay() {
+export function curEssay() {
   return essays.find(essay => essay.id === ui.essayId) || null;
 }
 
@@ -21,7 +40,7 @@ function rememberEssay() {
   } catch (e) {}
 }
 
-function blankEssay() {
+export function blankEssay() {
   return {
     id: uid(),
     title: '',
@@ -33,7 +52,7 @@ function blankEssay() {
   };
 }
 
-function newEssay() {
+export function newEssay() {
   const essay = blankEssay();
   essays.unshift(essay);
   Store.saveEssays();
@@ -42,7 +61,7 @@ function newEssay() {
   if (title) title.focus();
 }
 
-function openEssay(id) {
+export function openEssay(id) {
   ui.essayId = id;
   ui.delSure = false;
   rememberEssay();
@@ -55,7 +74,7 @@ function openEssay(id) {
   }
 }
 
-function deleteEssay() {
+export function deleteEssay() {
   essays = essays.filter(essay => essay.id !== ui.essayId);
   ui.delSure = false;
   Store.saveEssays();
@@ -67,7 +86,7 @@ function deleteEssay() {
 }
 
 /* the open essay (there's always one), its title above the page */
-function renderEssay() {
+export function renderEssay() {
   ui.wcMode = false;
   closeTagPop();
   const essay = openableEssay();
@@ -84,7 +103,7 @@ function renderEssay() {
     `aria-label="Essay">${essay.doc || '<p><br></p>'}</div></div></div>`;
   const editor = ed();
   hydrate(editor);
-  curEd = editor;
+  setCurEd(editor);
   watchZoom();
 }
 
@@ -102,7 +121,7 @@ function openableEssay() {
 }
 
 /* the sidebar: the essays with their word counts (on the web), the word count, and Delete */
-function renderEssaySide() {
+export function renderEssaySide() {
   if (ui.view !== 'essay') return;
   const box = $('wcbox');
   if (document.activeElement && box && box.contains(document.activeElement)) {
@@ -134,14 +153,14 @@ function essayListHTML() {
 }
 
 /* the caret at the start of a line, in the editor */
-function caretInto(line) {
+export function caretInto(line) {
   if (!line) return;
   caretToStart(line);
   ed().focus({ preventScroll: true });
 }
 
 /* point -> notes: jump to it, or add it in the right section */
-function openPoint(id) {
+export function openPoint(id) {
   if (!ptById(id)) return;
   ui.back = { scroll: window.scrollY, id };
   ui.scroll.syl = window.scrollY;
@@ -151,7 +170,7 @@ function openPoint(id) {
 }
 
 /* older notebooks kept notes on each point: they become one document, with the old spec point headings */
-function buildDocFromPoints() {
+export function buildDocFromPoints() {
   let html = '';
   let section = null;
   pts.forEach(point => {

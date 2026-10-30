@@ -1,3 +1,6 @@
+import { $, esc, ui } from '../core/helpers-and-state.js';
+import { SyllabusDetector } from './syllabus-import.js';
+
 /* ===== a pasted syllabus read by the numbering the user describes: "1" for section titles, "1a" for points, and so on.
    Each example becomes a pattern: a number matches any number, a single letter any letter of its case, a Roman numeral any
    Roman numeral, a Chinese numeral (第一课时) any Chinese numeral, a word ("Topic") itself, and punctuation itself ===== */
@@ -57,7 +60,7 @@ function unlisted(line) {
 }
 
 /* the detector for the styles typed in (or the automatic one when both are empty) */
-function detectorFor(sectionStyle, pointStyle) {
+export function detectorFor(sectionStyle, pointStyle) {
   const sectionPattern = styleToRegex(sectionStyle);
   const pointPattern = styleToRegex(pointStyle);
   return sectionPattern || pointPattern
@@ -133,12 +136,12 @@ function styleMatchSummary() {
   return 'In the pasted text: ' + counts.join(' and ') + '.';
 }
 
-function showStyleMatches() {
+export function showStyleMatches() {
   const summary = $('stylehint');
   if (summary) summary.textContent = styleMatchSummary();
 }
 
-function numberingStyleHTML() {
+export function numberingStyleHTML() {
   const box = (id, value, label, example) =>
     `<label class="stylebox">${label}<input id="${id}" value="${esc(value || '')}" placeholder="auto" spellcheck="false" ` +
     `aria-label="${label}"><span>e.g. ${example}</span></label>`;

@@ -1,6 +1,9 @@
+import { KEY } from '../core/example-data.js';
+import { texInline } from './equation-tex.js';
+
 /* ===== the equation editor's menus, as in Word: each opens a gallery of layouts (□ are boxes to type in; anything
    selected goes in the first box) in sections, ending with common ready-made ones. An item is [name, LaTeX, "w" for a wide tile]. ===== */
-var EQ_MENUS = [
+export var EQ_MENUS = [
   [
     'Fraction',
     '\\frac{x}{y}',
@@ -539,7 +542,7 @@ var EQ_MENUS = [
   ]
 ];
 /* ===== symbols: the strip shows these first (after any pinned), the full gallery all of them by kind. [LaTeX, name] ===== */
-var EQ_STRIP = [
+export var EQ_STRIP = [
   '\\pm',
   '\\infty',
   '=',
@@ -579,7 +582,7 @@ var EQ_STRIP = [
   '\\in',
   '\\ni'
 ];
-var EQ_SYMBOLS = [
+export var EQ_SYMBOLS = [
   [
     'Basic maths',
     [
@@ -841,7 +844,7 @@ var EQ_SYMBOLS = [
   ]
 ];
 /* ===== the equation gallery: ready-made equations (and the ones you save) ===== */
-var EQ_BUILTIN = [
+export var EQ_BUILTIN = [
   ['Area of a circle', 'A=\\pi r^{2}'],
   ['Binomial theorem', '(x+a)^{n}=\\sum_{k=0}^{n}\\binom{n}{k}x^{k}a^{n-k}'],
   ['Expansion of a sum', '(1+x)^{n}=1+\\frac{nx}{1!}+\\frac{n(n-1)x^{2}}{2!}+\\cdots'],
@@ -873,7 +876,7 @@ var EQ_BUILTIN = [
     '\\boldsymbol{\\phi}\\leftarrow\\boldsymbol{\\phi}-\\alpha\\frac{\\partial L}{\\partial\\boldsymbol{\\phi}}'
   ]
 ];
-function eqStore(k, v) {
+export function eqStore(k, v) {
   try {
     if (v === undefined) return JSON.parse(localStorage.getItem(KEY + '-eq' + k) || '[]');
     localStorage.setItem(KEY + '-eq' + k, JSON.stringify(v));
@@ -882,6 +885,6 @@ function eqStore(k, v) {
   }
 }
 /* a menu tile's picture: the layout with its boxes shown as □ */
-function eqPreview(t) {
+export function eqPreview(t) {
   return texInline(String(t).replace(/#[0?]/g, '\\square'));
 }

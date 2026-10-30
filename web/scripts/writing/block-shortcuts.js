@@ -1,3 +1,19 @@
+import { mk } from '../editor/paste-cleaning.js';
+import { fire, tbState } from '../editor/editor-commands.js';
+import { caretInto } from '../essays/essays.js';
+import {
+  MD,
+  anchorElement,
+  mdAscii,
+  mdBefore,
+  mdCaret,
+  mdPara,
+  mdSel,
+  selectRange,
+  textAfterCaret
+} from './writing.js';
+import { CALLOUTS } from '../editor/callouts.js';
+
 /* ===== typed shortcuts at the start of a line: "# " a heading, "- " a list, "> " a quote, "> [!NOTE] " a callout,
    "---" then a space or Return a divider; and leaving a quote ===== */
 const MD_BLOCK = [
@@ -8,9 +24,9 @@ const MD_BLOCK = [
   [/^\[x\]$/i, 'done'],
   [/^>$/, 'quote']
 ];
-const TYPED_SPACE = /[ \u00a0\u3000]$/; // a space as typed, by a keyboard or an input method
+export const TYPED_SPACE = /[ \u00a0\u3000]$/; // a space as typed, by a keyboard or an input method
 
-function mdBlock() {
+export function mdBlock() {
   const line = mdPara();
   if (!line || line.closest('[data-side]')) return false;
   const before = mdBefore(line);
@@ -52,7 +68,7 @@ function newBlock(kind, key) {
   return { block, host };
 }
 
-function caretToStart(el) {
+export function caretToStart(el) {
   const range = document.createRange();
   range.selectNodeContents(el);
   range.collapse(true);
@@ -85,7 +101,7 @@ function caretQuote(selection) {
 }
 
 /* Bear's callout syntax: "> [!NOTE] " (or TIP, IMPORTANT, WARNING, CAUTION) */
-function mdCallout() {
+export function mdCallout() {
   const selection = getSelection();
   if (!selection.rangeCount || !selection.isCollapsed) return false;
   const quote = caretQuote(selection);
@@ -130,7 +146,7 @@ function undoCallout(callout, typed) {
 
 /* "---" then a space, as in Bear: a divider (macOS may have made the first two a dash, but a dash alone isn't one) */
 const RULE_TYPED = /^(-{3,}|\*{3,}|_{3,}|[—–]-+)$/;
-function mdRuleTyped() {
+export function mdRuleTyped() {
   const line = mdPara();
   if (!line) return false;
   const text = line.textContent;
@@ -139,7 +155,7 @@ function mdRuleTyped() {
 }
 
 /* "---" then Return (or a space): a divider */
-function mdRule() {
+export function mdRule() {
   const line = mdPara();
   if (!line || !/^(-{3,}|\*{3,}|_{3,}|—-?|–-)$/.test(line.textContent.trim()) || line.closest('[data-callout]'))
     return false;
@@ -154,7 +170,7 @@ function mdRule() {
 }
 
 /* ===== quotes: Return on an empty quote line (or Backspace at its start) goes back to plain text ===== */
-function quoteExit(e, back) {
+export function quoteExit(e, back) {
   const selection = getSelection();
   if (!selection.isCollapsed || !selection.rangeCount) return false;
   const quote = caretQuote(selection);

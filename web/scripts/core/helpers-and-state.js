@@ -1,30 +1,30 @@
 /* ===== helpers ===== */
 /* inside the Mac app (WKWebView with the "nb" handler) rather than as a web artifact */
-const NATIVE = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.nb);
+export const NATIVE = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.nb);
 const TOAST_FOR = 2400; // ms a message stays up
 const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 let toastTimer = null;
 
 /* a message to the Mac app */
-function post(message) {
+export function post(message) {
   try {
     window.webkit.messageHandlers.nb.postMessage(message);
   } catch (e) {}
 }
 
-function $(id) {
+export function $(id) {
   return document.getElementById(id);
 }
 
-function esc(text) {
+export function esc(text) {
   return String(text == null ? '' : text).replace(/[&<>"]/g, c => HTML_ESCAPES[c]);
 }
 
-function uid() {
+export function uid() {
   return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-function toast(message) {
+export function toast(message) {
   const box = $('toast');
   box.textContent = message;
   box.hidden = false;
@@ -33,9 +33,17 @@ function toast(message) {
 }
 
 /* ===== state ===== */
-let meta = { title: 'My notebook' };
-let pts = [];
-const ui = {
+export let meta = { title: 'My notebook' };
+export function setMeta(value) {
+  meta = value;
+  return value;
+}
+export let pts = [];
+export function setPts(value) {
+  pts = value;
+  return value;
+}
+export const ui = {
   view: 'syl',
   status: null,
   type: null,
@@ -49,4 +57,8 @@ const ui = {
   secStyle: '', // how a pasted syllabus numbers its section titles ("1", "Topic 1"); empty: detected automatically
   ptStyle: '' // and its points ("1a", "1.1")
 };
-let curEd = null;
+export let curEd = null;
+export function setCurEd(value) {
+  curEd = value;
+  return value;
+}

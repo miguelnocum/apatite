@@ -1,8 +1,15 @@
+import { toast } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { closestTag, fire, tbState } from '../editor/editor-commands.js';
+import { ed } from '../editor/notes-document.js';
+import { MD, selectRange } from './writing.js';
+import { ZW } from '../editor/caret-and-keys.js';
+
 /* ===== inline code: the selection becomes code (or stops being code); with nothing selected, an empty piece of code
    to type in (` or Inline code again steps out of it). Built by hand: WebKit's insertHTML turns <code> into a styled span. ===== */
 
 /* the caret just after a piece of code (in a zero-width space, if nothing follows it) */
-function codeExit(code) {
+export function codeExit(code) {
   let after = code.nextSibling;
   if (!after || after.nodeType !== 3) {
     after = document.createTextNode(ZW);
@@ -15,7 +22,7 @@ function codeExit(code) {
   MD.esc = code; // WebKit would put the next letters back inside the code: they go after it
 }
 
-function inlineCode() {
+export function inlineCode() {
   const editor = ed();
   const selection = getSelection();
   if (!editor || !selection.rangeCount || !editor.contains(selection.anchorNode)) {

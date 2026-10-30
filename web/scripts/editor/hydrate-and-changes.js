@@ -1,3 +1,20 @@
+import { ui } from '../core/helpers-and-state.js';
+import { titleMarks } from './highlight-key.js';
+import { ed } from './notes-document.js';
+import { ccSoon } from '../citations/citation-check.js';
+import { renderTOC } from './contents.js';
+import { renderFootnotes } from './footnotes.js';
+import { cmtType, renderComments } from './comments.js';
+import { imgSel, placeImgTool } from '../images/image-toolbar.js';
+import { renderWordCount } from '../essays/word-count-sidebar.js';
+import { renderMath } from '../equations/equation-drawing.js';
+import { renderIMath } from '../equations/inline-equations.js';
+import { caretAnchors } from './caret-and-keys.js';
+import { upgradeCallouts } from './callouts.js';
+import { applyFolds, ensureRoom, watchFolds } from './folding.js';
+import { drawSp } from '../spec-points/spec-point-tags.js';
+import { renderSpPanel } from '../spec-points/spec-point-panel.js';
+
 /* ===== the notes' own pieces drawn (comments, pictures, contents, footnotes, callouts, equations), and what follows
    an edit ===== */
 const COMMENTS_AFTER_EDIT = 300; // ms after the last edit before the comment cards move
@@ -7,7 +24,7 @@ let edTimer = null;
 let commentsTimer = null;
 let contentsTimer = null;
 
-function hydrateExtras(root) {
+export function hydrateExtras(root) {
   root = root || ed();
   if (!root) return;
   root.querySelectorAll('span[data-cmt]').forEach(styleComment);
@@ -49,7 +66,7 @@ function hydrateEditor(root) {
 }
 
 /* after an edit: each thing that shows the notes catches up a moment after typing stops */
-function edChanged() {
+export function edChanged() {
   if (imgSel) setTimeout(placeImgTool, 0);
   ccSoon();
   clearTimeout(commentsTimer);

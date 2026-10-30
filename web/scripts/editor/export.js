@@ -1,3 +1,13 @@
+import { NATIVE, esc, meta, post, toast, ui } from '../core/helpers-and-state.js';
+import { mk } from './paste-cleaning.js';
+import { tableVar } from '../tables/table-sizing.js';
+import { TABLE_PADDINGS, tableTextLook } from '../tables/table-look.js';
+import { HLKEY } from './highlight-key.js';
+import { docHTML, saveDocNow } from './notes-document.js';
+import { orderedRefs, refHTML, yearLabels } from '../citations/references.js';
+import { citeWithPg } from '../citations/in-text-citations.js';
+import { annColor, annList } from '../equations/equation-drawing.js';
+
 /* ===== exporting the notes as a web page (Word opens it): equations as LaTeX, citations as text, a reference list ===== */
 // prettier-ignore
 const EXPORT_CSS =
@@ -18,7 +28,7 @@ const EXPORT_CSS =
   'td[data-shade="4"],th[data-shade="4"]{background:#d3eedf}td[data-shade="5"],th[data-shade="5"]{background:#d1e9ff}' +
   'td[data-shade="6"],th[data-shade="6"]{background:#e8daf4}td[data-shade="7"],th[data-shade="7"]{background:#e5e7eb}';
 
-function exportHTML() {
+export function exportHTML() {
   if (ui.view === 'notes') saveDocNow();
   const box = mk('div');
   box.innerHTML = docHTML || '';

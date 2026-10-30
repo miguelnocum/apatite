@@ -1,8 +1,18 @@
+import { ui } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { setTbMenu } from '../editor/editor-commands.js';
+import { cellsIn, clearCellSelection, tableTarget } from './table-grid.js';
+import { tableChanged } from './table-handles.js';
+import { TABLE_ICONS, TABLE_TAB_COMMANDS } from './table-tab.js';
+import { closeTbMenu } from '../view/zoom.js';
+import { ed } from '../editor/notes-document.js';
+import { caretInto } from '../essays/essays.js';
+
 /* ===== tables: the right-click menu on a cell. Right-clicking inside the selected cells keeps them selected, so they
    can be merged; anywhere else in a table, that cell becomes the one acted on ===== */
 const MENU_EDGE = 8; // px a menu keeps from the window's edges
 
-document.addEventListener('contextmenu', e => {
+const onTableMenuContextmenu = e => {
   const cell = e.target.closest && e.target.closest('#ed td, #ed th');
   if (!cell || !ed().isContentEditable) return;
   e.preventDefault();
@@ -13,7 +23,7 @@ document.addEventListener('contextmenu', e => {
   }
   const t = tableTarget();
   if (t) openTableMenu(t, e.clientX, e.clientY);
-});
+};
 
 function openTableMenu(t, x, y) {
   closeTbMenu();
@@ -23,7 +33,7 @@ function openTableMenu(t, x, y) {
   menu.kind = 'table';
   menu.innerHTML = tableMenuHTML(t);
   document.body.appendChild(menu);
-  tbMenu = menu;
+  setTbMenu(menu);
   const width = document.documentElement.clientWidth;
   const height = document.documentElement.clientHeight;
   menu.style.left = Math.max(MENU_EDGE, Math.min(x, width - menu.offsetWidth - MENU_EDGE)) + 'px';
@@ -94,4 +104,8 @@ function tableMenuClick(e) {
   const command = TABLE_TAB_COMMANDS[button.dataset.tmi];
   if (t && command) command(t);
   tableChanged();
+}
+
+export function initTableMenu() {
+  document.addEventListener('contextmenu', onTableMenuContextmenu);
 }

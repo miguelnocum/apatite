@@ -1,3 +1,11 @@
+import { esc, toast } from '../core/helpers-and-state.js';
+import { mk } from './paste-cleaning.js';
+import { flash } from '../view/page-render.js';
+import { closestTag } from './editor-commands.js';
+import { ed, saveDocSoon } from './notes-document.js';
+import { edChanged } from './hydrate-and-changes.js';
+import { emptyLine } from './callouts.js';
+
 /* ===== table of contents: every heading, indented by level, kept up to date; click to jump ===== */
 function tocHeadings(root) {
   return [...root.querySelectorAll('h1,h2,h3,h4,h5,h6')].filter(
@@ -9,7 +17,7 @@ function tocHeadings(root) {
   );
 }
 
-function renderTOC(root) {
+export function renderTOC(root) {
   root = root || ed();
   if (!root) return;
   const navs = root.querySelectorAll('nav[data-toc]');
@@ -31,7 +39,7 @@ function contentsListHTML(headings) {
 }
 
 /* after the line the caret is on (or at the top); one per document */
-function insertTOC() {
+export function insertTOC() {
   const editor = ed();
   if (!editor) return;
   const existing = editor.querySelector('nav[data-toc]');
@@ -59,10 +67,14 @@ function topBlockAtCaret(editor) {
   return block;
 }
 
-document.addEventListener('click', e => {
+const onContentsClick = e => {
   const item = e.target.closest && e.target.closest('#ed nav[data-toc] li[data-toci]');
   const heading = item && tocHeadings(ed())[+item.dataset.toci];
   if (!heading) return;
   heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
   flash(heading);
-});
+};
+
+export function initContents() {
+  document.addEventListener('click', onContentsClick);
+}

@@ -1,8 +1,15 @@
+import { mk } from './paste-cleaning.js';
+import { fire, tbState } from './editor-commands.js';
+import { ed } from './notes-document.js';
+import { edBlocks } from '../essays/word-count.js';
+import { hydrateCites } from '../citations/in-text-citations.js';
+import { mdTopBlock } from '../writing/writing.js';
+
 /* ===== Body / heading: the whole of every block the selection touches changes, citations and all
    (WebKit's formatBlock stops at locked pieces such as citations and splits the line there) ===== */
 const KEPT_BLOCK_ATTRIBUTES = ['data-sp', 'data-wct', 'data-fold']; // (data-fold only on headings)
 
-function setBlockType(tag) {
+export function setBlockType(tag) {
   const selection = getSelection();
   const range = ed() && selection.rangeCount ? selection.getRangeAt(0) : null;
   const targets = range ? blocksToChange(range, tag) : [];

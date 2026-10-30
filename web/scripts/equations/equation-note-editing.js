@@ -1,9 +1,15 @@
+import { mk } from '../editor/paste-cleaning.js';
+import { saveDocSoon } from '../editor/notes-document.js';
+import { annList, annNoteHTML, annSave, mathKey } from './equation-drawing.js';
+import { annLayout } from './equation-note-layout.js';
+import { mathEd } from './equation-editor-parts.js';
+
 /* ===== the note boxes are written in where they stand: click one to type in it (Return or Esc to finish) =====
    A box is written in as a plain text field laid over its words: selecting, dragging and ⌘A stay inside it
    (an editable box nested in the editable notes lets a drag run off across the page). `at` is where it was clicked. */
 const NOTE_EDIT_MIN_WIDTH = 190; // px a box is at least, while it's written in
 
-function editCard(el, i, at) {
+export function editCard(el, i, at) {
   const card = el.querySelector('.mcard[data-ai="' + i + '"]');
   const note = annList(el)[i];
   if (!card || !note) return;
@@ -68,20 +74,6 @@ function annEditing(target) {
   return target && target.closest ? target.closest('#ed .mcard textarea') : null;
 }
 
-['keydown', 'keypress', 'keyup', 'beforeinput', 'input', 'paste', 'cut', 'drop'].forEach(type => {
-  window.addEventListener(
-    type,
-    e => {
-      const field = annEditing(e.target);
-      if (!field) return;
-      e.stopPropagation();
-      if (type === 'keydown') noteKey(e, field);
-      else if (type === 'input') noteTyped(field);
-    },
-    true
-  );
-});
-
 /* Return (without ⇧) or Esc finishes */
 function noteKey(e, field) {
   if (e.isComposing || !(e.key === 'Escape' || (e.key === 'Enter' && !e.shiftKey))) return;
@@ -103,4 +95,20 @@ function noteTyped(field) {
   annGrow(field);
   cancelAnimationFrame(card.__lay);
   card.__lay = requestAnimationFrame(() => annLayout(el));
+}
+
+export function initEquationNoteEditing() {
+  ['keydown', 'keypress', 'keyup', 'beforeinput', 'input', 'paste', 'cut', 'drop'].forEach(type => {
+    window.addEventListener(
+      type,
+      e => {
+        const field = annEditing(e.target);
+        if (!field) return;
+        e.stopPropagation();
+        if (type === 'keydown') noteKey(e, field);
+        else if (type === 'input') noteTyped(field);
+      },
+      true
+    );
+  });
 }

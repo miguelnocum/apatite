@@ -1,3 +1,11 @@
+import { $, esc, ui } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { renderSide } from '../syllabus/syllabus-view.js';
+import { ed, ptById, saveDocSoon } from '../editor/notes-document.js';
+import { positionCards } from '../editor/comments.js';
+import { edBlocks } from '../essays/word-count.js';
+import { spDrag, spTemp } from './spec-point-dragging.js';
+
 /* ===== spec points: a side panel, and parts of the notes tagged with them =====
    A paragraph (or list, table, picture…) carries data-sp="<point id>". Consecutive blocks with the same point show
    as one bracket in the left margin; drag down the margin to tag, drag a bracket's ends to resize it. */
@@ -11,13 +19,13 @@ const GUTTER_MIN = 20; // px the margin to drag in is at least this wide
 const GUTTER_GAP = 38; // px between the margin to drag in and the text
 
 /* the point a block is tagged with, if that point still exists */
-function spOf(block) {
+export function spOf(block) {
   const id = block && block.getAttribute && block.getAttribute('data-sp');
   return id && ptById(id) ? id : null;
 }
 
 /* runs of consecutive blocks tagged with the same point: { id, b: blocks } */
-function spRuns() {
+export function spRuns() {
   const editor = ed();
   const runs = [];
   let run = null;
@@ -33,7 +41,7 @@ function spRuns() {
   return runs;
 }
 
-function spShort(text) {
+export function spShort(text) {
   const words = String(text || '')
     .trim()
     .split(/\s+/);
@@ -41,7 +49,7 @@ function spShort(text) {
 }
 
 /* the visible part of a run of blocks, in the page's own pixels */
-function spGeom(blocks) {
+export function spGeom(blocks) {
   const visible = blocks.filter(block => block.offsetHeight > 0);
   if (!visible.length) return null;
   const first = visible[0];
@@ -54,7 +62,7 @@ function spGeom(blocks) {
 }
 
 /* the tinted box behind a run: its top, height, left and width */
-function spTintGeom(place) {
+export function spTintGeom(place) {
   const editor = ed();
   return {
     top: place.top - TINT_PAD,
@@ -79,15 +87,15 @@ function pageLayer(id, putFirst) {
 }
 
 /* the tinted boxes sit behind the text; brackets and handles in front */
-function spBg() {
+export function spBg() {
   return pageLayer('spbg', true);
 }
 
-function spLayer() {
+export function spLayer() {
   return pageLayer('splayer', false);
 }
 
-function drawSp() {
+export function drawSp() {
   const layer = spLayer();
   if (!layer) return;
   const behind = spBg();
@@ -113,7 +121,7 @@ function runLook(run) {
   return { point, color: '--c:var(--s' + (point.status || 0) + ')', cur: ui.spCur === run.id ? ' cur' : '' };
 }
 
-function boxStyle(place) {
+export function boxStyle(place) {
   return `top:${place.top}px;height:${place.h}px;left:${place.left}px;width:${place.w}px`;
 }
 
@@ -138,7 +146,7 @@ function bracketHTML(place, run, i) {
   );
 }
 
-function spChanged() {
+export function spChanged() {
   saveDocSoon();
   drawSp();
   renderSide();

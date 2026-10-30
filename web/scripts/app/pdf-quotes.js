@@ -1,3 +1,15 @@
+import { ui } from '../core/helpers-and-state.js';
+import { Store } from '../core/storage.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { flash, render } from '../view/page-render.js';
+import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { edChanged } from '../editor/hydrate-and-changes.js';
+import { isDocView } from '../essays/essays.js';
+import { parseOne, refById, refs } from '../citations/references.js';
+import { hydrateCites } from '../citations/in-text-citations.js';
+import { selectRange } from '../writing/writing.js';
+import { emptyLine } from '../editor/callouts.js';
+
 /* ===== quotes and comments from the PDF reader, put in the notes or the open essay ===== */
 
 /* Notes (or the open essay) showing, the PDF's source in this document's list, and the selection where the caret last
@@ -60,7 +72,7 @@ function pdfCitation(o, withAnchor) {
 }
 
 /* a quote from the PDF reader: "text" (Author, Year, p. N) at the cursor in Notes or the open essay */
-window.nbInsertQuote = o => {
+const nbInsertQuote = o => {
   const range = pdfInsertRange(o);
   if (!range) return false;
   const start = range.startContainer;
@@ -81,7 +93,7 @@ window.nbInsertQuote = o => {
 };
 
 /* a comment from a PDF: “quote” (Author, Year, p. N) — the comment; or the comment and its citation */
-window.nbInsertNote = o => {
+const nbInsertNote = o => {
   const range = pdfInsertRange(o);
   if (!range) return false;
   const citation = o.refId ? pdfCitation(o, false) : null;
@@ -110,4 +122,9 @@ function pdfNotePieces(quote, note, citation) {
     ...(citation ? [citation] : []),
     ...(note ? [text(' — ' + note)] : [])
   ];
+}
+
+export function initPdfQuotes() {
+  window.nbInsertQuote = nbInsertQuote;
+  window.nbInsertNote = nbInsertNote;
 }

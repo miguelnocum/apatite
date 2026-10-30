@@ -1,10 +1,36 @@
+import { KEY } from '../core/example-data.js';
+import { esc, toast, ui } from '../core/helpers-and-state.js';
+import { Store, setSave, track } from '../core/storage.js';
+import { docHTML, ed, serializeDoc } from '../editor/notes-document.js';
+import { edEssayId, essays } from '../essays/essays.js';
+
 /* ===== the references of a Works Cited, and how they're kept ===== */
 /* every notebook and essay keeps its own Works Cited; `refs` is always the open list */
-let refs = [];
-let refSort = 'auto';
-let nbRefs = null;
-let nbRefSort = 'auto';
-let refOwner = 'notes';
+export let refs = [];
+export function setRefs(value) {
+  refs = value;
+  return value;
+}
+export let refSort = 'auto';
+export function setRefSort2(value) {
+  refSort = value;
+  return value;
+}
+export let nbRefs = null;
+export function setNbRefs(value) {
+  nbRefs = value;
+  return value;
+}
+export let nbRefSort = 'auto';
+export function setNbRefSort(value) {
+  nbRefSort = value;
+  return value;
+}
+export let refOwner = 'notes';
+export function setRefOwner(value) {
+  refOwner = value;
+  return value;
+}
 const MIN_REFERENCE_LENGTH = 4; // shorter pasted lines aren't references
 const LIST_MARKER = /^(\[\d+\]|\d+[.)]|[-•*])\s+/; // "[1] ", "1. ", "• " before a reference
 const ET_AL_FROM = 3; // this many authors and more are cited as "First et al."
@@ -15,7 +41,7 @@ function ownerEssay(owner) {
 }
 
 /* the open list is put back where it belongs (the notebook, or its essay) */
-function stashRefs() {
+export function stashRefs() {
   if (refOwner === 'notes') {
     nbRefs = refs;
     nbRefSort = refSort;
@@ -27,7 +53,7 @@ function stashRefs() {
   essay.refSort = refSort;
 }
 
-function useRefs(owner) {
+export function useRefs(owner) {
   if (owner !== 'notes' && !ownerEssay(owner)) owner = 'notes';
   if (owner === refOwner) return;
   stashRefs();
@@ -46,7 +72,7 @@ function useRefs(owner) {
 }
 
 /* the open list's document, as HTML (for "cited 3 times" and delete warnings) */
-function ownerDoc() {
+export function ownerDoc() {
   const essayId = edEssayId();
   const open = ed() ? serializeDoc() : null;
   if (refOwner === 'notes') {
@@ -57,7 +83,7 @@ function ownerDoc() {
 }
 
 /* ---- storage ---- */
-Store.saveEssays = () => {
+const storeSaveEssays = () => {
   try {
     localStorage.setItem(KEY + '-essays', JSON.stringify(essays));
   } catch (e) {
@@ -66,7 +92,7 @@ Store.saveEssays = () => {
   setSave();
 };
 
-Store.loadEssays = () => {
+const storeLoadEssays = () => {
   try {
     return Promise.resolve(JSON.parse(localStorage.getItem(KEY + '-essays') || '[]'));
   } catch (e) {
@@ -75,7 +101,7 @@ Store.loadEssays = () => {
 };
 
 /* an essay's list is saved with the essay; the notebook's on its own */
-Store.saveRefs = () => {
+const storeSaveRefs = () => {
   stashRefs();
   if (refOwner !== 'notes') {
     Store.saveEssays();
@@ -102,7 +128,7 @@ function saveRefsToDatabase(data) {
   Store.refChain = track((Store.refChain || Promise.resolve()).then(() => db.doc('refs/main').set(data)));
 }
 
-Store.loadRefs = () => {
+const storeLoadRefs = () => {
   const normalize = data => ({ items: (data && data.items) || [], sort: (data && data.sort) || 'auto' });
   if (Store.db)
     return Store.db
@@ -117,12 +143,12 @@ Store.loadRefs = () => {
   }
 };
 
-function refById(id) {
+export function refById(id) {
   return refs.find(r => r.id === id);
 }
 
 /* ---- reading a Harvard reference: its year, and the surnames its in-text citation uses ---- */
-function parseOne(raw, html) {
+export function parseOne(raw, html) {
   raw = raw.replace(/\s+/g, ' ').trim().replace(LIST_MARKER, '');
   const found =
     /\((\d{4}[a-z]?|n\.\s?d\.?)\)/i.exec(raw) || /(?:^|[\s,.])(\d{4}[a-z]?|n\.\s?d\.)(?=[\s.,;:)]|$)/i.exec(raw);
@@ -213,7 +239,7 @@ class ReferenceSplitter {
   }
 }
 
-function splitRich(html) {
+export function splitRich(html) {
   const splitter = new ReferenceSplitter();
   splitter.walk(new DOMParser().parseFromString(html, 'text/html').body);
   splitter.flush();
@@ -221,25 +247,25 @@ function splitRich(html) {
 }
 
 /* ---- ordering, counting and naming ---- */
-function sortedRefs() {
+export function sortedRefs() {
   return refs.slice().sort((a, b) => a.raw.localeCompare(b.raw, undefined, { sensitivity: 'base' }));
 }
 
-function orderedRefs() {
+export function orderedRefs() {
   return refSort === 'manual' ? refs.slice() : sortedRefs();
 }
 
-function refHTML(r) {
+export function refHTML(r) {
   return r.html || esc(r.raw);
 }
 
 /* how many citations in a document's HTML name this reference */
-function citeCount(id, src) {
+export function citeCount(id, src) {
   const citations = new RegExp('data-cite="[^"]*' + id, 'g');
   return ((src || '').match(citations) || []).length;
 }
 
-function namePart(r) {
+export function namePart(r) {
   const authors = r.authors || [];
   if (authors.length >= ET_AL_FROM) return authors[0] + ' et al.';
   if (authors.length === 2) return authors[0] + ' & ' + authors[1];
@@ -247,7 +273,7 @@ function namePart(r) {
 }
 
 /* each reference's year as cited: 2020a and 2020b when one author has two from the same year */
-function yearLabels() {
+export function yearLabels() {
   const groups = {};
   const labels = {};
   sortedRefs().forEach(r => {
@@ -261,4 +287,11 @@ function yearLabels() {
     });
   });
   return labels;
+}
+
+export function initReferences() {
+  Store.saveEssays = storeSaveEssays;
+  Store.loadEssays = storeLoadEssays;
+  Store.saveRefs = storeSaveRefs;
+  Store.loadRefs = storeLoadRefs;
 }

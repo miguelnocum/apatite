@@ -1,3 +1,10 @@
+import { KEY } from '../core/example-data.js';
+import { lvl } from '../syllabus/point-levels.js';
+import { Store } from '../core/storage.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { ed, ptById, saveDocNow } from '../editor/notes-document.js';
+import { spShort } from './spec-point-tags.js';
+
 /* ===== older notes: spec points were headings in the text; they become tags on the notes under them ===== */
 const OLD_SPEC_MARKUP = /data-sec=|<h3 data-pt=|data-pick=/;
 
@@ -10,7 +17,7 @@ function isOldSpecHeading(node) {
 }
 
 /* the notes as tags, or null when there's nothing to convert */
-function convertSpecHeadings(html) {
+export function convertSpecHeadings(html) {
   if (!html || !OLD_SPEC_MARKUP.test(html)) return null;
   const box = mk('div');
   box.innerHTML = html;
@@ -51,11 +58,15 @@ function hasNotesUnder(heading) {
 }
 
 /* leaving the page saves the notes, and whether the example syllabus is showing */
-window.addEventListener('pagehide', () => {
+const onOlderSpecNotesWindowPagehide = () => {
   try {
     if (ed()) saveDocNow();
   } catch (e) {}
   try {
     localStorage.setItem(KEY + '-ex', Store.example ? '1' : '0');
   } catch (e) {}
-});
+};
+
+export function initOlderSpecNotes() {
+  window.addEventListener('pagehide', onOlderSpecNotesWindowPagehide);
+}

@@ -1,3 +1,9 @@
+import { $, esc, toast } from '../core/helpers-and-state.js';
+import { mk } from './paste-cleaning.js';
+import { ed, saveDocSoon } from './notes-document.js';
+import { edChanged, hydrateExtras } from './hydrate-and-changes.js';
+import { selectRange } from '../writing/writing.js';
+
 /* ===== footnotes: a marker in the text, the numbered notes under the page; click one to write it ===== */
 const FOOTNOTE_POPUP_MARGIN = 12; // px the footnote box keeps from the window's edges
 const FOOTNOTE_POPUP_GAP = 8; // px between the box and its marker
@@ -5,9 +11,9 @@ const FOOTNOTE_POPUP_SHIFT = 20; // px the box sits left of its marker
 const FOOTNOTE_POPUP_HTML =
   '<textarea placeholder="Write the footnote"></textarea>' +
   '<div class="row"><button class="del" data-fnact="del">Delete footnote</button><button data-fnact="done">Done</button></div>';
-let fnPop = null;
+export let fnPop = null;
 
-function renderFootnotes() {
+export function renderFootnotes() {
   const editor = ed();
   if (!editor) return;
   const markers = [...editor.querySelectorAll('.fn')];
@@ -31,7 +37,7 @@ function footnoteItemHTML(marker, i) {
 }
 
 /* a marker after the selection, its box open to write in */
-function insertFootnote() {
+export function insertFootnote() {
   const editor = ed();
   const selection = getSelection();
   if (!editor || !selection.rangeCount || !editor.contains(selection.anchorNode)) {
@@ -59,14 +65,14 @@ function putFootnoteMarker(range, editor) {
   return marker;
 }
 
-function closeFn() {
+export function closeFn() {
   if (!fnPop) return;
   if (fnPop.target) fnPop.target.classList.remove('sel');
   fnPop.remove();
   fnPop = null;
 }
 
-function openFn(marker) {
+export function openFn(marker) {
   closeFn();
   const number = [...ed().querySelectorAll('.fn')].indexOf(marker) + 1;
   const pop = mk('div');

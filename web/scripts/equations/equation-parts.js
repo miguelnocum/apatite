@@ -1,3 +1,6 @@
+import { texOK, texTokens } from './equation-tex.js';
+import { annColor } from './equation-drawing.js';
+
 /* ===== the parts of an equation: coloured where explained, clickable to explain in annotation mode ===== */
 /* big operators: limits above and below (\sum, lim, argmin) or beside (integrals) */
 const ANN_LIMOP =
@@ -11,7 +14,7 @@ const MARKED_SYMBOL_TOKENS = 4; // \hat { y }
 
 /* the LaTeX with every place each explained part appears wrapped in its colour; in annotation mode the other symbols are
    wrapped too, so a click on one can explain it (a wrap that would break the equation is skipped) */
-function annotateTex(source, list, candidates) {
+export function annotateTex(source, list, candidates) {
   if (!window.katex || (!list.length && !(candidates && candidates.length))) return source;
   const tokens = texTokens(source);
   const spans = [];
@@ -61,7 +64,7 @@ function wrapPart(source, span) {
 }
 
 /* the symbols of an equation that can be explained, each once, in the order they appear */
-function annCandidates(source) {
+export function annCandidates(source) {
   const tokens = texTokens(source);
   const found = new Set();
   for (let i = 0; i < tokens.length; i++) {

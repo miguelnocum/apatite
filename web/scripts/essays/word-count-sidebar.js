@@ -1,7 +1,16 @@
+import { $, esc, ui } from '../core/helpers-and-state.js';
+import { Store } from '../core/storage.js';
+import { flash } from '../view/page-render.js';
+import { ed } from '../editor/notes-document.js';
+import { essayTotal, tagById, tagCounts, tagsChanged, wcOpts } from './word-count.js';
+import { contentsPanel } from './word-count-contents.js';
+import { closeTagPop, drawBoxes, setWcMode, tagPop } from './word-count-boxes.js';
+import { curEssay, edEssayId, essays } from './essays.js';
+
 /* ===== the word count in the essay's sidebar: the total, each tag's count and settings, the contents, the options ===== */
 const PERCENT = 100;
 
-function renderWordCount() {
+export function renderWordCount() {
   const box = $('wcbox');
   const essay = curEssay();
   const editor = ed();
@@ -130,7 +139,7 @@ function setWc(change) {
 }
 
 /* each essay's total, in the list of essays */
-function updateEssayListCounts() {
+export function updateEssayListCounts() {
   document.querySelectorAll('#side .esl a[data-essay]').forEach(link => {
     const essay = essays.find(x => x.id === link.dataset.essay);
     if (!essay) return;
@@ -149,7 +158,7 @@ const WORD_COUNT_CLICKS = [
 ];
 
 /* anything else closes the menu for naming a box */
-document.addEventListener('click', e => {
+const onWordCountSidebarClick = e => {
   const target = e.target;
   if (target.id === 'wcmodebtn') {
     setWcMode(!ui.wcMode);
@@ -159,7 +168,7 @@ document.addEventListener('click', e => {
     target.closest && WORD_COUNT_CLICKS.map(([selector, act]) => [target.closest(selector), act]).find(([el]) => el);
   if (hit) hit[1](hit[0], e);
   else if (tagPop && !target.closest('.tagpop')) closeTagPop();
-});
+};
 
 /* clicking a box's label: the tag's settings in the sidebar, opened, its name ready to change */
 function openTagSettings(id) {
@@ -219,13 +228,18 @@ const WORD_COUNT_CHANGES = [
   [(field, data) => data.wcname, (field, data) => renameTag(data.wcname, field.value.trim())]
 ];
 
-document.addEventListener('change', e => {
+const onWordCountSidebarChange = e => {
   const field = e.target;
   const data = field.dataset || {};
   const change = WORD_COUNT_CHANGES.find(([matches]) => matches(field, data));
   if (change) change[1](field, data);
-});
+};
 
 function renameTag(id, name) {
   if (name) setTag(id, tag => (tag.name = name));
+}
+
+export function initWordCountSidebar() {
+  document.addEventListener('click', onWordCountSidebarClick);
+  document.addEventListener('change', onWordCountSidebarChange);
 }

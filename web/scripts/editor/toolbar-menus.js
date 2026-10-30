@@ -1,3 +1,20 @@
+import { $, NATIVE, curEd, esc, toast, ui } from '../core/helpers-and-state.js';
+import { mk } from './paste-cleaning.js';
+import { applyHL, closestTag, cmd, fire, setTbMenu, tbMenu, tbState } from './editor-commands.js';
+import { ZOOMS, closeTbMenu, restoreSel, setZoom } from '../view/zoom.js';
+import { keyLabel, keyShown } from './highlight-key.js';
+import {
+  CMT_TYPES,
+  addComment,
+  cmtAnchors,
+  commentsShowing,
+  isNarrow,
+  renderComments,
+  unfoldForComments
+} from './comments.js';
+import { wireCalloutSub } from './callouts.js';
+import { openSettings } from '../app/settings.js';
+
 /* ===== the toolbar's menus: headings, lists, insert, highlight colour, zoom, comments, and the link box ===== */
 const MENU_GAP = 6; // px between a toolbar button and its menu
 const MENU_SIDE_MARGIN = 12; // px a menu keeps from the window's sides
@@ -14,7 +31,7 @@ const HEADING_STYLES = [
 ];
 
 /* opens a toolbar button's menu (the same button again closes it) */
-function openTbMenu(button, kind) {
+export function openTbMenu(button, kind) {
   const wasOpen = tbMenu && tbMenu.kind === kind;
   closeTbMenu();
   if (wasOpen) return;
@@ -25,7 +42,7 @@ function openTbMenu(button, kind) {
   menu.kind = kind;
   menu.innerHTML = MENU_HTML[kind] ? MENU_HTML[kind]() : '';
   document.body.appendChild(menu);
-  tbMenu = menu;
+  setTbMenu(menu);
   if (kind === 'list') wireCalloutSub(menu);
   positionMenu(menu, button);
   wireMenu(menu);
@@ -247,9 +264,13 @@ function wireLinkBox(menu) {
 }
 
 /* a press anywhere else closes the menu (but not on the toolbar, whose buttons open and close menus themselves) */
-document.addEventListener('mousedown', function (e) {
+const onToolbarMenusMousedown = function (e) {
   if (!tbMenu || tbMenu.contains(e.target)) return;
   if (tbMenu.sub && tbMenu.sub.contains(e.target)) return;
   if (!e.target.closest('#tb')) closeTbMenu();
-});
-window.addEventListener('resize', closeTbMenu);
+};
+
+export function initToolbarMenus() {
+  document.addEventListener('mousedown', onToolbarMenusMousedown);
+  window.addEventListener('resize', closeTbMenu);
+}

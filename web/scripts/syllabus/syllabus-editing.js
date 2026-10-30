@@ -1,3 +1,14 @@
+import { $, esc, pts, setPts, toast, ui, uid } from '../core/helpers-and-state.js';
+import { kidsOf, lvl, normLevels, numberSection, setLevel } from './point-levels.js';
+import { Store, queue } from '../core/storage.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { commit, groups } from './model.js';
+import { cfHTML, renderSide } from './syllabus-view.js';
+import { importHTML, sectionNames, suggestCode } from './syllabus-import.js';
+import { addBanner, flash, secPts } from '../view/page-render.js';
+import { inDoc, ptById } from '../editor/notes-document.js';
+import { setWcEatClick } from '../essays/word-count-boxes.js';
+
 /* ===== editing the syllabus in place: it looks like the syllabus, the text is editable where it stands,
    and the cards themselves drag (a point brings its sub-points; nudge a card right or left to change its level) ===== */
 const SECTION_RENAME_DELAY = 400; // ms after typing a section's title before the side panel shows it
@@ -15,7 +26,7 @@ function newPoint(section, level) {
 
 /* ---- the table: the same table as the syllabus itself, column for column, so nothing moves when editing starts: the text
    becomes editable where it stands, and the tools (renumber, delete) float over the rows instead of taking room ---- */
-function renderEdit() {
+export function renderEdit() {
   const sections = groups();
   ui.secMap = {};
   sections.forEach(g => (ui.secMap[g.idx] = g.all.map(p => p.id)));
@@ -88,14 +99,14 @@ function focusSyllabusField(selector) {
 }
 
 /* ---- typing in place ---- */
-document.addEventListener('input', function (e) {
+const onSyllabusEditingInput = function (e) {
   const field = e.target;
   const data = field.dataset || {};
   if (!field.closest || !field.closest('.syled')) return;
   const id = data.yc || data.yt || data.yg;
   if (id) pointTyped(ptById(id), data, field.textContent);
   else if (data.ysname != null) sectionRenamed(data.ysname, field.textContent.trim());
-});
+};
 
 function pointTyped(point, data, value) {
   if (!point) return;
@@ -130,7 +141,7 @@ function addPointAfter(point) {
 }
 
 /* Esc leaves a field; Return adds a point below (in a section title, goes to its first point); ⌘] and ⌘[ change the level */
-document.addEventListener('keydown', function (e) {
+const onSyllabusEditingKeydown = function (e) {
   const field = e.target;
   const data = field.dataset || {};
   if (!field.closest || !field.closest('.syled')) return;
@@ -139,7 +150,7 @@ document.addEventListener('keydown', function (e) {
     e.preventDefault();
     returnInSyllabus(field, data);
   } else if ((e.metaKey || e.ctrlKey) && (e.key === ']' || e.key === '[')) changeLevelByKey(e, field, data);
-});
+};
 
 function returnInSyllabus(field, data) {
   if (data.ysname != null) {
@@ -162,15 +173,15 @@ function changeLevelByKey(e, field, data) {
 }
 
 /* pasted into a field: plain text, on one line */
-document.addEventListener('paste', function (e) {
+const onSyllabusEditingPaste = function (e) {
   if (!e.target.closest || !e.target.closest('.syled [contenteditable]')) return;
   e.preventDefault();
   const text = (e.clipboardData.getData('text/plain') || '').replace(/\s*\n\s*/g, ' ');
   document.execCommand('insertText', false, text);
-});
+};
 
 /* ---- the table's buttons ---- */
-document.addEventListener('click', function (e) {
+const onSyllabusEditingClick = function (e) {
   const button = e.target.closest && e.target.closest('.syled .yb,.syled .ynum,[data-yaddsec]');
   if (!button) return;
   e.preventDefault();
@@ -180,7 +191,7 @@ document.addEventListener('click', function (e) {
   else if (data.yaddpt != null) addPointToSection(data.yaddpt);
   else if (data.ynum != null) renumberSection(data.ynum);
   else if (data.yaddsec) addSection();
-});
+};
 
 /* a point with notes or a rating asks first */
 function deletePoint(id) {
@@ -192,7 +203,7 @@ function deletePoint(id) {
     return;
   }
   ui.confirm = null;
-  pts = pts.filter(p => p !== point);
+  setPts(pts.filter(p => p !== point));
   Store.delPoint(point.id);
   normLevels();
   numberSection(point.sec, true);
@@ -209,7 +220,7 @@ function deleteSection(index) {
   const points = secPts(index);
   ui.confirm = null;
   points.forEach(p => Store.delPoint(p.id));
-  pts = pts.filter(p => !points.includes(p));
+  setPts(pts.filter(p => !points.includes(p)));
   syllabusEdited(false);
 }
 
@@ -250,7 +261,7 @@ function addSection() {
 /* ---- the green + line: hover just under a row to add a point exactly there ---- */
 let yIns = null; // the row the + line is under
 
-document.addEventListener('mousemove', function (e) {
+const onSyllabusEditingMousemove = function (e) {
   const line = $('yins');
   if (!line || !ui.edit || ui.view !== 'syl') return;
   if (yd && yd.on) {
@@ -269,7 +280,7 @@ document.addEventListener('mousemove', function (e) {
     line.style.top = row.getBoundingClientRect().bottom - area.top + 'px';
   }
   followPointer(line.firstElementChild, e.clientX - area.left, area.width);
-});
+};
 
 /* the + slides along its line under the pointer, kept inside the table */
 function followPointer(plus, x, width) {
@@ -287,16 +298,12 @@ function rowAboveInsertLine(e, table) {
   return above && e.clientY - box.top <= INSERT_LINE_TOP_REACH ? above : null;
 }
 
-document.addEventListener(
-  'mousedown',
-  function (e) {
-    if (!e.target.closest || !e.target.closest('#yins') || !yIns) return;
-    e.preventDefault();
-    e.stopPropagation();
-    addPointAtInsertLine(yIns);
-  },
-  true
-);
+const onSyllabusEditingMousedown = function (e) {
+  if (!e.target.closest || !e.target.closest('#yins') || !yIns) return;
+  e.preventDefault();
+  e.stopPropagation();
+  addPointAtInsertLine(yIns);
+};
 
 function addPointAtInsertLine(row) {
   const spot = insertSpot(row);
@@ -352,14 +359,14 @@ function yAnimate(move) {
   });
 }
 
-document.addEventListener('mousedown', function (e) {
+const onSyllabusEditingMousedown2 = function (e) {
   if (e.button !== 0 || !ui.edit || ui.view !== 'syl') return;
   const row = e.target.closest && e.target.closest('#syledb tr');
   if (!row || e.target.closest('.yb')) return;
   const field = e.target.closest('[contenteditable]');
   if (field && document.activeElement === field) return; // already editing: drag selects text
   yd = { tr: row, x: e.clientX, y: e.clientY, on: false };
-});
+};
 
 /* a section brings its points; a point brings its sub-points */
 function dragFamily(row) {
@@ -420,7 +427,7 @@ function dragImage(family, table, box) {
   return floating;
 }
 
-document.addEventListener('mousemove', function (e) {
+const onSyllabusEditingMousemove2 = function (e) {
   if (!yd) return;
   if (!yd.on) {
     if (Math.abs(e.clientX - yd.x) + Math.abs(e.clientY - yd.y) < DRAG_START) return;
@@ -432,7 +439,7 @@ document.addEventListener('mousemove', function (e) {
   yd.fl.style.transform = `translate(${sideways}px,${e.clientY - yd.y}px) rotate(.4deg)`;
   moveCardsTo(dropBefore(e.clientY));
   if (yd.single) nudgeLevel(dx);
-});
+};
 
 /* the row the dragged cards would land before (null: the end) */
 function dropBefore(y) {
@@ -471,7 +478,7 @@ function nudgeLevel(dx) {
   yd.fl.querySelector('tr').classList.toggle('sub', level === 3);
 }
 
-document.addEventListener('mouseup', function () {
+const onSyllabusEditingMouseup = function () {
   if (!yd) return;
   const drag = yd;
   yd = null;
@@ -479,10 +486,10 @@ document.addEventListener('mouseup', function () {
   document.body.classList.remove('ydragging');
   drag.fl.remove();
   drag.grp.forEach(r => r.classList.remove('yghost'));
-  wcEatClick = true; // the click that ends a drag isn't a click on what's under it
-  setTimeout(() => (wcEatClick = false), 200);
+  setWcEatClick(true); // the click that ends a drag isn't a click on what's under it
+  setTimeout(() => setWcEatClick(false), 200);
   saveDraggedOrder(drag);
-});
+};
 
 /* the new order, read from the table: each point takes the section it now sits in */
 function saveDraggedOrder(drag) {
@@ -522,4 +529,16 @@ function finishDrag(drag, list, touched) {
   const id = drag.grp[0].dataset.yid;
   const row = id ? document.querySelector(`[data-yid="${id}"]`) : null;
   if (row) flash(row);
+}
+
+export function initSyllabusEditing() {
+  document.addEventListener('input', onSyllabusEditingInput);
+  document.addEventListener('keydown', onSyllabusEditingKeydown);
+  document.addEventListener('paste', onSyllabusEditingPaste);
+  document.addEventListener('click', onSyllabusEditingClick);
+  document.addEventListener('mousemove', onSyllabusEditingMousemove);
+  document.addEventListener('mousedown', onSyllabusEditingMousedown, true);
+  document.addEventListener('mousedown', onSyllabusEditingMousedown2);
+  document.addEventListener('mousemove', onSyllabusEditingMousemove2);
+  document.addEventListener('mouseup', onSyllabusEditingMouseup);
 }

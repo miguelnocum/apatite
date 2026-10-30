@@ -1,8 +1,31 @@
+import { KEY } from '../core/example-data.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { ed } from '../editor/notes-document.js';
+import { texLines, texShow } from './equation-tex.js';
+import { renderMath } from './equation-drawing.js';
+import { editCard } from './equation-note-editing.js';
+import { renderIMath } from './inline-equations.js';
+import { EQ_BOXES } from './math-field-look.js';
+import {
+  caretAfterMath,
+  closeMathEditor,
+  editorHTML,
+  enableGripDrag,
+  fitPreviews,
+  mathAttr,
+  mathEd,
+  placeEditor,
+  setMathEd
+} from './equation-editor-parts.js';
+import { EquationLines, focusFieldAt } from './equation-lines.js';
+import { EquationGalleries } from './equation-galleries.js';
+import { AnnotationPanel } from './equation-annotations.js';
+
 /* ===== the equation editor, part 7: the editor itself — typing boxes the way Word does it, with the LaTeX behind them
    shown on request, galleries of structures, symbols and equations, and annotation ===== */
 const ACCENT_TARGET = /^\s*([A-Za-z0-9]|\\[a-zA-Z]+)\s*$/; // what an accent can go on: one letter or command
 
-function openMathEditor(el, isNew) {
+export function openMathEditor(el, isNew) {
   closeMathEditor();
   new MathEditor(el, isNew); // (it makes itself the open editor)
 }
@@ -19,7 +42,7 @@ class MathEditor {
     this.annotations = new AnnotationPanel(this);
     this.lines = new EquationLines(this);
     this.galleries = new EquationGalleries(this);
-    mathEd = this; // the open editor from here on: drawing the equation asks it to re-place itself
+    setMathEd(this); // the open editor from here on: drawing the equation asks it to re-place itself
     this.listen();
     this.start(isNew);
   }
@@ -376,7 +399,7 @@ function latexError(latex) {
 }
 
 /* ---- presses on block equations in the page ---- */
-document.addEventListener('mousedown', function (e) {
+const onEquationEditorMousedown = function (e) {
   const equation = e.target.closest && e.target.closest('#ed [data-math]');
   if (equation) {
     pressOnEquation(e, equation);
@@ -384,7 +407,7 @@ document.addEventListener('mousedown', function (e) {
   }
   const inEditorMenus = e.target.closest && e.target.closest('[class*="ML__"],.ui-menu-container,math-field');
   if (mathEd && !mathEd.contains(e.target) && !inEditorMenus) closeMathEditor();
-});
+};
 
 /* a press on an equation: on a note's box or a coloured part, that note opens; in annotation mode, a symbol is explained;
    otherwise the equation's editor opens */
@@ -416,4 +439,8 @@ function explainClickedSymbol(target, equation) {
   if (!symbol || !equation.__cands) return;
   const i = (/mcand(\d+)/.exec(symbol.getAttribute('class')) || [])[1];
   if (i != null && equation.__cands[+i] != null) mathEd.addNote(equation.__cands[+i]);
+}
+
+export function initEquationEditor() {
+  document.addEventListener('mousedown', onEquationEditorMousedown);
 }

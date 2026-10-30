@@ -1,3 +1,10 @@
+import { esc, toast, ui } from '../core/helpers-and-state.js';
+import { Store } from '../core/storage.js';
+import { flash } from '../view/page-render.js';
+import { ed } from '../editor/notes-document.js';
+import { countedIn, edBlocks, tagById, tagNamed, tagsChanged, wcOpts } from './word-count.js';
+import { curEssay } from './essays.js';
+
 /* ===== tagging from the contents: a heading and everything under it, down to the next heading at its level ===== */
 function headingLevel(el) {
   const match = /^H([1-6])$/.exec(el.tagName || '');
@@ -43,7 +50,7 @@ function rangeTag(options, blocks) {
   return blocks.every(block => block.getAttribute('data-wct') === tagId) ? tagById(options, tagId) : null;
 }
 
-function contentsPanel(editor, options) {
+export function contentsPanel(editor, options) {
   const ranges = headingRanges(editor);
   const head = `<details class="wctoc"${ui.wcTocOpen !== false ? ' open' : ''}><summary>Contents</summary>`;
   if (!ranges.length)
@@ -116,7 +123,7 @@ function contentsRowClicked(row) {
   flash(range.el);
 }
 
-document.addEventListener('click', e => {
+const onWordCountContentsClick = e => {
   const target = e.target;
   if (!target.closest) return;
   if (target.closest('[data-wctocall]')) {
@@ -131,12 +138,13 @@ document.addEventListener('click', e => {
   }
   const row = target.closest('[data-wctoc]');
   if (row) contentsRowClicked(row);
-});
+};
 
-document.addEventListener(
-  'toggle',
-  e => {
-    if (e.target.classList && e.target.classList.contains('wctoc')) ui.wcTocOpen = e.target.open;
-  },
-  true
-);
+const onWordCountContentsToggle = e => {
+  if (e.target.classList && e.target.classList.contains('wctoc')) ui.wcTocOpen = e.target.open;
+};
+
+export function initWordCountContents() {
+  document.addEventListener('click', onWordCountContentsClick);
+  document.addEventListener('toggle', onWordCountContentsToggle, true);
+}

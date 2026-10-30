@@ -1,17 +1,10 @@
 /* ===== the equation editor, part 1: the typing boxes (MathLive) and how they look =====
    Each line of a block equation is its own box; Return adds a line. Without MathLive (the web version) it's the LaTeX text box. */
-const EQ_BOXES = !!(window.MathfieldElement && window.customElements && customElements.get('math-field'));
-if (EQ_BOXES) {
-  try {
-    MathfieldElement.soundsDirectory = null;
-    MathfieldElement.plonkSound = null;
-    MathfieldElement.keypressSound = null;
-  } catch (x) {}
-}
+export const EQ_BOXES = !!(window.MathfieldElement && window.customElements && customElements.get('math-field'));
 
 /* the empty boxes: a square that centres under an accent, drawn light and a little larger, as in Word
    (MathLive gives them no class of its own, so they're found by their character as it draws them) */
-const EMPTY_BOX_CHAR = '□';
+export const EMPTY_BOX_CHAR = '□';
 const EMPTY_BOX_ONLY = /^\\placeholder(\[[^\]]*\])?\{\}$/;
 
 /* styles added inside each box (MathLive draws in its own shadow DOM, out of reach of the page's styles) */
@@ -41,7 +34,7 @@ const BAND_JOIN_GAP = 8;
 const BAND_RADIUS = '4px';
 
 /* the box's styles, the shaded empty boxes, and its selection drawn as one band */
-function styleMathField(field) {
+export function styleMathField(field) {
   const root = field.shadowRoot;
   if (!root) return;
   const style = document.createElement('style');
@@ -118,4 +111,14 @@ function bandCorners(startsBand, endsBand) {
   const start = startsBand ? BAND_RADIUS : '0';
   const end = endsBand ? BAND_RADIUS : '0';
   return start + ' ' + end + ' ' + end + ' ' + start;
+}
+
+export function initMathFieldLook() {
+  if (EQ_BOXES) {
+    try {
+      MathfieldElement.soundsDirectory = null;
+      MathfieldElement.plonkSound = null;
+      MathfieldElement.keypressSound = null;
+    } catch (x) {}
+  }
 }

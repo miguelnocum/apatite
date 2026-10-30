@@ -1,11 +1,16 @@
+import { KEY } from './example-data.js';
+import { $, meta, pts, toast } from './helpers-and-state.js';
+import { SUB_POINT } from '../syllabus/point-levels.js';
+import { sanitize } from '../editor/paste-cleaning.js';
+
 /* ===== storage: artifact database when available, this browser otherwise ===== */
 const DOC_PART_SIZE = 80000; // characters per database document the notes are saved in
 const POINT_SAVE_DELAY = 700; // ms after the last change to a point's notes before they're saved
-const Store = { db: null, mode: 'local', chain: {}, pending: 0 };
+export const Store = { db: null, mode: 'local', chain: {}, pending: 0 };
 const timers = {};
 
 /* what's saved of a point */
-function strip(point) {
+export function strip(point) {
   const saved = {
     order: point.order,
     sec: point.sec,
@@ -19,7 +24,7 @@ function strip(point) {
   return saved;
 }
 
-Store.init = () => {
+const storeInit = () => {
   if (!(window.claude && claude.use)) return Promise.resolve();
   return claude.use('db').then(
     db => {
@@ -31,7 +36,7 @@ Store.init = () => {
 };
 
 /* the notebook's title and points (from this browser, if the database can't be read) */
-Store.load = () => {
+const storeLoad = () => {
   if (!Store.db) return Promise.resolve(Store.loadLocal());
   return Promise.all([Store.db.doc('nb/main').get(), Store.db.collection('points').get()])
     .then(([metaDoc, points]) => ({
@@ -45,7 +50,7 @@ Store.load = () => {
     });
 };
 
-Store.loadLocal = () => {
+const storeLoadLocal = () => {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
     return saved ? { meta: saved.meta, pts: saved.pts || [] } : { meta: null, pts: [] };
@@ -54,7 +59,7 @@ Store.loadLocal = () => {
   }
 };
 
-Store.saveLocal = () => {
+const storeSaveLocal = () => {
   try {
     localStorage.setItem(
       KEY,
@@ -64,7 +69,7 @@ Store.saveLocal = () => {
 };
 
 /* a database save counted while it's under way (and a failure remembered), for the save indicator */
-function track(promise) {
+export function track(promise) {
   Store.pending++;
   setSave();
   return promise.then(
@@ -85,7 +90,7 @@ function chainPointSave(id, write) {
   Store.chain[id] = track((Store.chain[id] || Promise.resolve()).then(write));
 }
 
-Store.savePoint = point => {
+const storeSavePoint = point => {
   if (!Store.db) {
     Store.saveLocal();
     return;
@@ -95,7 +100,7 @@ Store.savePoint = point => {
   chainPointSave(id, () => Store.db.collection('points').doc(id).set(data));
 };
 
-Store.delPoint = id => {
+const storeDelPoint = id => {
   if (!Store.db) {
     Store.saveLocal();
     return;
@@ -103,19 +108,15 @@ Store.delPoint = id => {
   chainPointSave(id, () => Store.db.collection('points').doc(id).delete());
 };
 
-Store.saveMeta = () => {
+const storeSaveMeta = () => {
   if (!Store.db) {
     Store.saveLocal();
     return;
   }
   track(Store.db.doc('nb/main').set({ title: meta.title }));
-};
+}; /* ---- the notes document: in this browser, or in the database in parts (only the parts that changed are written) ---- */
 
-/* ---- the notes document: in this browser, or in the database in parts (only the parts that changed are written) ---- */
-Store.parts = [];
-Store.docChain = Promise.resolve();
-
-Store.saveDoc = html => {
+const storeSaveDoc = html => {
   if (!Store.db) {
     saveDocLocally(html);
     return;
@@ -151,7 +152,7 @@ function writeDocParts(db, parts, previous) {
   return chain;
 }
 
-Store.loadDoc = () => {
+const storeLoadDoc = () => {
   if (Store.db)
     return Store.db
       .collection('nbdoc')
@@ -176,12 +177,12 @@ function joinDocParts(query) {
 }
 
 /* the save indicator (where it saves is in Settings ▸ Library) */
-function setSave() {
+export function setSave() {
   $('save').textContent = Store.pending ? 'saving…' : Store.err ? 'save failed, retry by editing' : '';
 }
 
 /* a point's notes saved a moment after the last change */
-function queue(point) {
+export function queue(point) {
   clearTimeout(timers[point.id]);
   setSave();
   $('save').textContent = 'editing…';
@@ -192,4 +193,18 @@ function queue(point) {
     }
     Store.savePoint(point);
   }, POINT_SAVE_DELAY);
+}
+
+export function initStorage() {
+  Store.init = storeInit;
+  Store.load = storeLoad;
+  Store.loadLocal = storeLoadLocal;
+  Store.saveLocal = storeSaveLocal;
+  Store.savePoint = storeSavePoint;
+  Store.delPoint = storeDelPoint;
+  Store.saveMeta = storeSaveMeta;
+  Store.parts = [];
+  Store.docChain = Promise.resolve();
+  Store.saveDoc = storeSaveDoc;
+  Store.loadDoc = storeLoadDoc;
 }

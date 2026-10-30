@@ -1,7 +1,16 @@
+import { toast } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { restoreSel } from '../view/zoom.js';
+import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { texShow } from './equation-tex.js';
+import { caretAfterMath, mathEd } from './equation-editor-parts.js';
+import { openMathEditor } from './equation-editor.js';
+import { caretAnchors } from '../editor/caret-and-keys.js';
+
 /* ===== inline equations: <span data-imath="LaTeX"> in a line of text ===== */
 const INLINE_KATEX_OPTIONS = { displayMode: false, throwOnError: false, strict: 'ignore' };
 
-function renderIMath(root) {
+export function renderIMath(root) {
   (root || ed()).querySelectorAll('[data-imath]').forEach(drawInlineEquation);
 }
 
@@ -25,7 +34,7 @@ function drawInlineEquation(el) {
 }
 
 /* an inline equation where the caret is: the selected text becomes its LaTeX, or an empty one opens to be written */
-function insertIMath() {
+export function insertIMath() {
   const editor = ed();
   if (!editor) return;
   restoreSel();
@@ -53,14 +62,14 @@ function replaceWithInlineEquation(range, tex) {
 }
 
 /* a press on an inline equation opens its editor (it's never edited as text) */
-document.addEventListener(
-  'mousedown',
-  function (e) {
-    const equation = e.target.closest && e.target.closest('#ed [data-imath]');
-    if (!equation || e.button !== 0) return;
-    e.preventDefault();
-    e.stopPropagation();
-    if (!mathEd || mathEd.el !== equation) openMathEditor(equation, false);
-  },
-  true
-);
+const onInlineEquationsMousedown = function (e) {
+  const equation = e.target.closest && e.target.closest('#ed [data-imath]');
+  if (!equation || e.button !== 0) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if (!mathEd || mathEd.el !== equation) openMathEditor(equation, false);
+};
+
+export function initInlineEquations() {
+  document.addEventListener('mousedown', onInlineEquationsMousedown, true);
+}

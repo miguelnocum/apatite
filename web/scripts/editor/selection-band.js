@@ -1,15 +1,16 @@
+import { ui } from '../core/helpers-and-state.js';
+import { mk } from './paste-cleaning.js';
+import { pageScale } from '../tables/table-sizing.js';
+import { ed } from './notes-document.js';
+
 /* ===== the selection drawn as Bear draws it: one even band, from where it starts to the right edge, whole lines between,
    and from the left edge to where it ends, with no gaps between lines or paragraphs. The browser's own is hidden while
    it shows: that one is ragged, a different height at each size of text, and patchy over callouts and lists ===== */
 const BAND_BLEED = 10; // px the band reaches into the left margin
 let bandFrame = 0;
 
-document.addEventListener('selectionchange', queueBand);
-document.addEventListener('input', queueBand);
-window.addEventListener('resize', queueBand);
-
 /* drawn once per frame, however often the selection changes in it */
-function queueBand() {
+export function queueBand() {
   if (bandFrame) return;
   bandFrame = requestAnimationFrame(() => {
     bandFrame = 0;
@@ -126,4 +127,10 @@ function edgeText(range, atStart) {
   while (end.lastChild) end = end.lastChild;
   walker.currentNode = end;
   return end.nodeType === 3 && selected(end) ? end : walker.previousNode();
+}
+
+export function initSelectionBand() {
+  document.addEventListener('selectionchange', queueBand);
+  document.addEventListener('input', queueBand);
+  window.addEventListener('resize', queueBand);
 }

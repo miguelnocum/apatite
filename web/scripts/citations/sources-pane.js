@@ -1,5 +1,15 @@
+import { $, esc, ui } from '../core/helpers-and-state.js';
+import { relayout, setPaneFold } from '../view/zoom.js';
+import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { ccSoon, citationIds } from './citation-check.js';
+import { edChanged } from '../editor/hydrate-and-changes.js';
+import { renderComments } from '../editor/comments.js';
+import { isDocView } from '../essays/essays.js';
+import { namePart, orderedRefs, refById, refHTML, refs, yearLabels } from './references.js';
+import { hydrateCites, insertCitation } from './in-text-citations.js';
+
 /* ===== the Sources pane beside the notes: cite a source, or choose a citation's sources ===== */
-function openSources(target) {
+export function openSources(target) {
   ui.refsOpen = true;
   document.querySelectorAll('#ed .cite.sel').forEach(citation => citation.classList.remove('sel'));
   ui.citeTarget = target || null;
@@ -15,7 +25,7 @@ function liveCiteTarget() {
 }
 
 /* parenthetical or narrative, for the citation being chosen for */
-document.addEventListener('click', e => {
+const onSourcesPaneClick = e => {
   const button = e.target.closest && e.target.closest('[data-citeform]');
   if (!button || button.disabled) return;
   const target = ui.citeTarget;
@@ -26,9 +36,9 @@ document.addEventListener('click', e => {
   saveDocSoon();
   if (typeof edChanged === 'function') edChanged();
   renderRefs();
-});
+};
 
-function endChoosing() {
+export function endChoosing() {
   ccSoon();
   if (ui.citeTarget) ui.citeTarget.classList.remove('sel');
   ui.citeTarget = null;
@@ -36,7 +46,7 @@ function endChoosing() {
 }
 
 /* the pane shows in the notes and essays when it's open; opening it unfolds a page folded by zoom */
-function renderRefs() {
+export function renderRefs() {
   const pane = $('refs');
   const open = !!(isDocView() && ui.refsOpen);
   showRefsPane(pane, open);
@@ -121,15 +131,15 @@ function sourceHTML(r, labels, chosen) {
 }
 
 /* ---- the pane's buttons and search ---- */
-$('refs').addEventListener('mousedown', e => {
+const onSourcesPaneRefsMousedown = e => {
   if (e.target.closest('button')) e.preventDefault();
-});
+};
 
-$('refs').addEventListener('input', e => {
+const onSourcesPaneRefsInput = e => {
   if (e.target.id !== 'refq') return;
   ui.refQ = e.target.value;
   drawRefList();
-});
+};
 
 const REFS_PANE_ACTIONS = [
   [
@@ -144,12 +154,12 @@ const REFS_PANE_ACTIONS = [
   [data => data.refpick, (data, e) => pickSource(data.refpick, e.shiftKey || e.metaKey || e.ctrlKey)]
 ];
 
-$('refs').addEventListener('click', e => {
+const onSourcesPaneRefsClick = e => {
   const button = e.target.closest('button');
   if (!button) return;
   const action = REFS_PANE_ACTIONS.find(([matches]) => matches(button.dataset));
   if (action) action[1](button.dataset, e);
-});
+};
 
 function removeChosenCitation() {
   const citation = ui.citeTarget;
@@ -207,4 +217,11 @@ function caretAfter(node) {
   ed().focus({ preventScroll: true });
   selection.removeAllRanges();
   selection.addRange(range);
+}
+
+export function initSourcesPane() {
+  document.addEventListener('click', onSourcesPaneClick);
+  $('refs').addEventListener('mousedown', onSourcesPaneRefsMousedown);
+  $('refs').addEventListener('input', onSourcesPaneRefsInput);
+  $('refs').addEventListener('click', onSourcesPaneRefsClick);
 }

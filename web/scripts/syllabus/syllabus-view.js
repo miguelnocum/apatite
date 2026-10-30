@@ -1,3 +1,14 @@
+import { KEY, STATUS } from '../core/example-data.js';
+import { $, esc, ui } from '../core/helpers-and-state.js';
+import { kidsOf, lvl } from './point-levels.js';
+import { groups } from './model.js';
+import { renderEdit } from './syllabus-editing.js';
+import { addBanner, markCur } from '../view/page-render.js';
+import { applyZoom, relayout } from '../view/zoom.js';
+import { isNarrow } from '../editor/comments.js';
+import { renderEssaySide } from '../essays/essays.js';
+import { renderSpPanel } from '../spec-points/spec-point-panel.js';
+
 /* ===== the syllabus as a table, and its side panel of sections ===== */
 const RATING_ORDER = [4, 3, 2, 1, 0]; // a section's bar shows its ratings, most confident first
 const CONFIDENT = 4;
@@ -8,7 +19,7 @@ const SYLLABUS_HINT =
   '1 = I’ve never seen this, 2 = I know about 30%, 3 = I forgot some bits, 4 = I’m confident.</p>';
 
 /* a point's confidence circle */
-function cfHTML(point) {
+export function cfHTML(point) {
   const rating = point.status || 0;
   const title =
     esc(rating ? rating + ': ' + STATUS[rating] : 'Not rated') + ' (click for next, shift-click for previous)';
@@ -24,7 +35,7 @@ function ratingCounts(points) {
 }
 
 /* a bar of a section's ratings, each as wide as its share */
-function ratingBarHTML(points) {
+export function ratingBarHTML(points) {
   const counts = ratingCounts(points);
   return RATING_ORDER.map(rating =>
     counts[rating] ? `<span style="width:${(counts[rating] / points.length) * 100}%;--c:var(--s${rating})"></span>` : ''
@@ -32,18 +43,18 @@ function ratingBarHTML(points) {
 }
 
 /* the header's height, for the page to sit under it (none in focus mode, where the bar floats at the bottom) */
-function measure() {
+export function measure() {
   const root = document.documentElement;
   root.style.setProperty('--hh', (root.classList.contains('focus') ? 0 : $('head').offsetHeight) + 'px');
 }
 
-function sideClosed() {
+export function sideClosed() {
   const wrap = $('bodywrap');
   return wrap.classList.contains('nosd') || wrap.classList.contains('zfold');
 }
 
 /* the side panel's heading, with its button to hide or show it */
-function sideHd(title) {
+export function sideHd(title) {
   const closed = sideClosed();
   const label = closed ? 'Show contents' : 'Hide contents';
   return (
@@ -54,7 +65,7 @@ function sideHd(title) {
 }
 
 /* in a narrow window the panel is a drawer that closes; folded by zooming, opening it keeps the panes out for this zoom */
-function toggleSide() {
+export function toggleSide() {
   if (isNarrow()) {
     $('side').classList.remove('open');
     return;
@@ -74,12 +85,8 @@ function toggleSide() {
   markCur();
 }
 
-try {
-  if (localStorage.getItem(KEY + '-sd') === '0') $('bodywrap').classList.add('nosd');
-} catch (e) {}
-
 /* the essays, the spec points, or (in the syllabus) its sections with how confident you are in each */
-function renderSide() {
+export function renderSide() {
   if (ui.view === 'essay') renderEssaySide();
   else if (ui.view === 'notes') renderSpPanel();
   else {
@@ -99,7 +106,7 @@ function sectionLinkHTML(section) {
   );
 }
 
-function renderSyl() {
+export function renderSyl() {
   if (ui.edit) {
     renderEdit();
     return;
@@ -127,4 +134,10 @@ function sectionRowsHTML(section) {
     );
   });
   return heading + rows.join('');
+}
+
+export function initSyllabusView() {
+  try {
+    if (localStorage.getItem(KEY + '-sd') === '0') $('bodywrap').classList.add('nosd');
+  } catch (e) {}
 }

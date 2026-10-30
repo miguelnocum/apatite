@@ -1,8 +1,13 @@
+import { ui } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { closestTag, inEd } from '../editor/editor-commands.js';
+import { refreshTableTab } from './table-tab.js';
+
 /* ===== tables, Word-style: the grid behind a table, where a merged cell takes several places, and the cells selected in it.
    A rect is { r0, r1, c0, c1 }: rows r0 to r1 and columns c0 to c1 of the grid, both ends included ===== */
 
 /* the table's grid: map[r][c] is the cell at row r, column c; at holds each cell's own place and spans */
-function tableGrid(table) {
+export function tableGrid(table) {
   const rows = [...table.rows];
   const map = rows.map(() => []);
   const at = new Map();
@@ -22,7 +27,7 @@ function tableGrid(table) {
 }
 
 /* a row short of cells (pasted from elsewhere) is filled out, so every place in the grid has a cell */
-function squareTable(table) {
+export function squareTable(table) {
   const grid = tableGrid(table);
   grid.rows.forEach((row, r) => {
     for (let c = 0; c < grid.width; c++) if (!grid.map[r][c]) row.appendChild(emptyCell(rowTag(row)));
@@ -30,25 +35,25 @@ function squareTable(table) {
   return tableGrid(table);
 }
 
-function emptyCell(tag) {
+export function emptyCell(tag) {
   const cell = mk(tag);
   cell.innerHTML = '<br>';
   return cell;
 }
 
 /* a header row (all th) takes header cells; any other row ordinary ones */
-function rowTag(row) {
+export function rowTag(row) {
   const cells = [...row.cells];
   return cells.length && cells.every(cell => cell.tagName === 'TH') ? 'th' : 'td';
 }
 
-function cellRect(grid, cell) {
+export function cellRect(grid, cell) {
   const span = grid.at.get(cell);
   return { r0: span.r, r1: span.r + span.rs - 1, c0: span.c, c1: span.c + span.cs - 1 };
 }
 
 /* the cells in a rect, each once */
-function cellsIn(grid, rect) {
+export function cellsIn(grid, rect) {
   const cells = new Set();
   for (let r = rect.r0; r <= rect.r1; r++) for (let c = rect.c0; c <= rect.c1; c++) cells.add(grid.map[r][c]);
   cells.delete(undefined);
@@ -56,7 +61,7 @@ function cellsIn(grid, rect) {
 }
 
 /* a rect grown until no merged cell sticks out of it */
-function wholeRect(grid, rect) {
+export function wholeRect(grid, rect) {
   const out = Object.assign({}, rect);
   let grew = true;
   while (grew) {
@@ -72,7 +77,7 @@ function wholeRect(grid, rect) {
   return out;
 }
 
-function joinRects(a, b) {
+export function joinRects(a, b) {
   return {
     r0: Math.min(a.r0, b.r0),
     r1: Math.max(a.r1, b.r1),
@@ -82,17 +87,17 @@ function joinRects(a, b) {
 }
 
 /* a merged cell crosses the line above row b (or left of column c) */
-function crossesRowLine(grid, b) {
+export function crossesRowLine(grid, b) {
   return [...grid.at.values()].some(span => span.r < b && span.r + span.rs > b);
 }
 
-function crossesColumnLine(grid, b) {
+export function crossesColumnLine(grid, b) {
   return [...grid.at.values()].some(span => span.c < b && span.c + span.cs > b);
 }
 
 /* ---- a text selection kept to one cell: WebKit often ends one at the very start of the next cell, and wrapping
    that (in a comment or highlight) would copy pieces of both cells into the first ---- */
-function rangeWithinCell(range) {
+export function rangeWithinCell(range) {
   const start = cellOf(range.startContainer);
   const end = cellOf(range.endContainer);
   if (start === end) return range;
@@ -112,7 +117,7 @@ function cellOf(node) {
 }
 
 /* ---- the selected cells: ui.tsel is { table, rect } while more than the caret's cell is selected ---- */
-function selectCells(table, rect) {
+export function selectCells(table, rect) {
   clearCellSelection();
   const grid = tableGrid(table);
   const whole = wholeRect(grid, rect);
@@ -122,7 +127,7 @@ function selectCells(table, rect) {
   refreshTableTab();
 }
 
-function clearCellSelection() {
+export function clearCellSelection() {
   if (!ui.tsel) return;
   const table = ui.tsel.table;
   ui.tsel = null;
@@ -135,18 +140,18 @@ function clearCellSelection() {
 }
 
 /* the whole of rows r0…r1 (or columns c0…c1, or the table) selected */
-function selectRows(table, r0, r1) {
+export function selectRows(table, r0, r1) {
   const grid = tableGrid(table);
   selectCells(table, { r0: Math.min(r0, r1), r1: Math.max(r0, r1), c0: 0, c1: grid.width - 1 });
 }
 
-function selectColumns(table, c0, c1) {
+export function selectColumns(table, c0, c1) {
   const grid = tableGrid(table);
   selectCells(table, { r0: 0, r1: grid.rows.length - 1, c0: Math.min(c0, c1), c1: Math.max(c0, c1) });
 }
 
 /* what the selection covers: 'table', 'rows', 'columns' or 'cells' */
-function selectionKind(grid, rect) {
+export function selectionKind(grid, rect) {
   const allRows = rect.r0 === 0 && rect.r1 === grid.rows.length - 1;
   const allColumns = rect.c0 === 0 && rect.c1 === grid.width - 1;
   if (allRows && allColumns) return 'table';
@@ -156,7 +161,7 @@ function selectionKind(grid, rect) {
 }
 
 /* ---- what a table command acts on: the selected cells, or the cell the caret is in ---- */
-function tableTarget() {
+export function tableTarget() {
   const cell = ui.tblCell && ui.tblCell.isConnected ? ui.tblCell : null;
   const table = ui.tsel && ui.tsel.table.isConnected ? ui.tsel.table : cell && cell.closest('table');
   if (!table) return null;
@@ -167,7 +172,7 @@ function tableTarget() {
 }
 
 /* the cell the caret is in, kept for the table tab's boxes (which take the focus from the notes) */
-function noteCaretCell() {
+export function noteCaretCell() {
   if (!inEd()) return;
   const cell = closestTag('td,th');
   ui.tblCell = cell && cell.closest('.notes') ? cell : null;

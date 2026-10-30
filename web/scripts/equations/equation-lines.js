@@ -1,17 +1,21 @@
+import { texLines, texTidy } from './equation-tex.js';
+import { EMPTY_BOX_CHAR, EQ_BOXES } from './math-field-look.js';
+import { enhanceMathField } from './math-field-selection.js';
+
 /* ===== the equation editor, part 4: the lines of the equation, each a typing box on the whiteboard ===== */
 
 /* typing argmin gives argmin, not "arg min" (MathLive only takes this once the box is on the page) */
 const EXTRA_SHORTCUTS = { argmin: '\\operatorname*{argmin}_{#?}', argmax: '\\operatorname*{argmax}_{#?}' };
 
 /* puts the caret in a typing box, at its 'start' or 'end' */
-function focusFieldAt(field, where) {
+export function focusFieldAt(field, where) {
   field.focus();
   try {
     field.executeCommand(where === 'start' ? 'moveToMathfieldStart' : 'moveToMathfieldEnd');
   } catch (x) {}
 }
 
-class EquationLines {
+export class EquationLines {
   constructor(editor) {
     this.editor = editor;
     this.box = editor.popup.querySelector('.mp-fields');

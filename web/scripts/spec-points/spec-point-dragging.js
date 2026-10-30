@@ -1,3 +1,13 @@
+import { $, ui } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { headerHeight } from '../view/zoom.js';
+import { ed } from '../editor/notes-document.js';
+import { edBlocks } from '../essays/word-count.js';
+import { setWcEatClick } from '../essays/word-count-boxes.js';
+import { boxStyle, spBg, spChanged, spGeom, spLayer, spTintGeom } from './spec-point-tags.js';
+import { closeSpPick, openSpPick } from './spec-point-picker.js';
+import { spGo } from './spec-point-panel.js';
+
 /* ===== dragging in the margin to tag notes with a spec point (the page scrolls along when you reach the edge) ===== */
 const AUTOSCROLL_EDGE = 70; // px from the window's top (below the header) or bottom where the page starts scrolling
 const AUTOSCROLL_MAX = 24; // px per frame at most
@@ -5,7 +15,11 @@ const AUTOSCROLL_EASE = 2.5; // the speed grows by 1px per this many px further 
 const AUTOSCROLL_MIN = 2; // px per frame at least, once scrolling
 const DRAG_CLICK_EATEN_FOR = 250; // ms after a drag in which its click is swallowed
 
-let spDrag = null;
+export let spDrag = null;
+export function setSpDrag(value) {
+  spDrag = value;
+  return value;
+}
 let spY = 0;
 let spScrollRaf = 0;
 
@@ -34,7 +48,7 @@ function spRange(drag) {
 }
 
 /* the bracket and box being dragged out */
-function spTemp() {
+export function spTemp() {
   const layer = spLayer();
   if (!layer || !spDrag) return;
   const range = spRange(spDrag);
@@ -96,7 +110,7 @@ function dragTo(block) {
 }
 
 /* a bracket's label goes to its point; its handles resize it; the margin starts a new one */
-document.addEventListener('mousedown', e => {
+const onSpecPointDraggingMousedown = e => {
   if (ui.view !== 'notes' || !ui.spMode || e.button !== 0 || !ed()) return;
   const label = e.target.closest && e.target.closest('[data-splab]');
   if (label) {
@@ -111,7 +125,7 @@ document.addEventListener('mousedown', e => {
   closeSpPick();
   spY = e.clientY;
   spTemp();
-});
+};
 
 function startSpDrag(e) {
   const handle = e.target.closest && e.target.closest('[data-sprs]');
@@ -131,22 +145,22 @@ function resizeSpDrag(handle) {
   return { anchor: end === 'top' ? last : first, cur: end === 'top' ? first : last, id: run.id, old: run.b.slice() };
 }
 
-document.addEventListener('mousemove', e => {
+const onSpecPointDraggingMousemove = e => {
   if (!spDrag) return;
   spY = e.clientY;
   dragTo(spBlockAt(e.clientY));
   if (!spScrollRaf) spScrollRaf = requestAnimationFrame(spAutoScroll);
-});
+};
 
 /* a new bracket asks which point; a resized one moves its tag to the new range */
-document.addEventListener('mouseup', () => {
+const onSpecPointDraggingMouseup = () => {
   if (!spDrag) return;
   const drag = spDrag;
   spDrag = null;
   cancelAnimationFrame(spScrollRaf);
   spScrollRaf = 0;
-  wcEatClick = true;
-  setTimeout(() => (wcEatClick = false), DRAG_CLICK_EATEN_FOR);
+  setWcEatClick(true);
+  setTimeout(() => setWcEatClick(false), DRAG_CLICK_EATEN_FOR);
   const range = spRange(drag);
   if (!drag.id) {
     openSpPick(range);
@@ -158,4 +172,10 @@ document.addEventListener('mouseup', () => {
   range.forEach(block => block.setAttribute('data-sp', drag.id));
   closeSpPick();
   spChanged();
-});
+};
+
+export function initSpecPointDragging() {
+  document.addEventListener('mousedown', onSpecPointDraggingMousedown);
+  document.addEventListener('mousemove', onSpecPointDraggingMousemove);
+  document.addEventListener('mouseup', onSpecPointDraggingMouseup);
+}

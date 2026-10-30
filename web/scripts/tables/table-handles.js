@@ -1,3 +1,32 @@
+import { ui } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { inEd } from '../editor/editor-commands.js';
+import {
+  cellRect,
+  clearCellSelection,
+  joinRects,
+  selectCells,
+  selectColumns,
+  selectRows,
+  selectionKind,
+  squareTable,
+  tableGrid,
+  tableTarget
+} from './table-grid.js';
+import { deleteSelection, moveColumnBlock, moveRowBlock } from './table-edits.js';
+import {
+  columnEdges,
+  dragColumnBorder,
+  dragRowBorder,
+  endResize,
+  pageScale,
+  startColumnResize,
+  startRowResize
+} from './table-sizing.js';
+import { refreshTableTab } from './table-tab.js';
+import { ed } from '../editor/notes-document.js';
+import { caretInto } from '../essays/essays.js';
+
 /* ===== tables: handles over the table the pointer (or caret) is in. A grip above each column and beside each row selects
    it (⇧ adds the ones between) and drags it somewhere else; a column's or row's border drags to resize it; dragging
    across cells selects them; Delete then deletes the rows or columns selected (or empties the cells) ===== */
@@ -7,7 +36,7 @@ const BORDER_REACH = 3; // px either side of a border that drags it
 const DRAG_THRESHOLD = 4; // px the pointer moves before a grip is dragged rather than clicked
 
 /* the layer over the page the handles are drawn in (outside the notes, so they're never saved) */
-function tableLayer(editor) {
+export function tableLayer(editor) {
   const page = editor && editor.closest('.doc');
   if (!page) return null;
   let layer = page.querySelector(':scope>.tbllayer');
@@ -20,13 +49,13 @@ function tableLayer(editor) {
 }
 
 /* the table to show handles on: the one pointed at, else the one being worked in */
-function handledTable() {
+export function handledTable() {
   const editor = ed();
   const candidates = [ui.thover, ui.tsel && ui.tsel.table, ui.tblCell && ui.tblCell.closest('table')];
   return candidates.find(t => t && t.isConnected && editor && editor.contains(t)) || null;
 }
 
-function drawTableHandles() {
+export function drawTableHandles() {
   const editor = ed();
   const layer = editor && tableLayer(editor);
   if (!layer) return;
@@ -36,7 +65,7 @@ function drawTableHandles() {
 }
 
 /* everything changed after a table command: handles and tab drawn again */
-function tableChanged() {
+export function tableChanged() {
   drawTableHandles();
   refreshTableTab();
 }
@@ -119,17 +148,13 @@ function selectedLines(table) {
 }
 
 /* ---- the pointer ---- */
-document.addEventListener(
-  'mousedown',
-  e => {
-    if (e.button !== 0 || !e.target.closest) return;
-    if (e.target.closest('.tbllayer .tgrip')) gripDown(e);
-    else if (e.target.closest('.tbllayer .trz')) borderDown(e);
-    else if (e.target.closest('#ed td, #ed th')) cellDown(e);
-    else if (!e.target.closest('#tbltab, .tbmenu')) clearCellSelection();
-  },
-  true
-);
+const onTableHandlesMousedown = e => {
+  if (e.button !== 0 || !e.target.closest) return;
+  if (e.target.closest('.tbllayer .tgrip')) gripDown(e);
+  else if (e.target.closest('.tbllayer .trz')) borderDown(e);
+  else if (e.target.closest('#ed td, #ed th')) cellDown(e);
+  else if (!e.target.closest('#tbltab, .tbmenu')) clearCellSelection();
+};
 
 function gripDown(e) {
   e.preventDefault();
@@ -170,7 +195,7 @@ function selectFromTo(table, from, to) {
   ui.tsel.anchor = from;
 }
 
-document.addEventListener('mousemove', e => {
+const onTableHandlesMousemove = e => {
   if (ui.tresize) {
     if (ui.tresize.kind === 'c') dragColumnBorder(ui.tresize, e.clientX);
     else dragRowBorder(ui.tresize, e.clientY);
@@ -178,7 +203,7 @@ document.addEventListener('mousemove', e => {
   } else if (ui.tgrip) gripMove(e);
   else if (ui.tcellDrag && e.buttons & 1) cellDragMove(e);
   else hoverTable(e);
-});
+};
 
 /* the handles follow the pointer from table to table (they stay while it's on them) */
 function hoverTable(e) {
@@ -244,13 +269,13 @@ function showTableDropLine(grip) {
   }
 }
 
-document.addEventListener('mouseup', () => {
+const onTableHandlesMouseup = () => {
   if (ui.tresize) endResize();
   if (ui.tgrip) gripUp(ui.tgrip);
   if (ui.tcellDrag && ui.tsel) caretInto(ui.tcellDrag.anchor);
   ui.tgrip = null;
   ui.tcellDrag = null;
-});
+};
 
 /* a grip let go: clicked, it selects its row or column (⇧: from the one selected to it); dragged, it moves them */
 function gripUp(grip) {
@@ -286,26 +311,31 @@ function moveByGrip(t, grip) {
 }
 
 /* ---- keys, while cells are selected: Delete deletes them, Escape lets go, typing goes into the first ---- */
-document.addEventListener(
-  'keydown',
-  e => {
-    if (!ui.tsel || !inEd() || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      const t = tableTarget();
-      if (t) deleteSelection(t);
-    } else if (e.key === 'Escape' || e.key.length === 1 || e.key === 'Enter') {
-      clearCellSelection();
-      drawTableHandles();
-    }
-  },
-  true
-);
+const onTableHandlesKeydown = e => {
+  if (!ui.tsel || !inEd() || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'Backspace' || e.key === 'Delete') {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const t = tableTarget();
+    if (t) deleteSelection(t);
+  } else if (e.key === 'Escape' || e.key.length === 1 || e.key === 'Enter') {
+    clearCellSelection();
+    drawTableHandles();
+  }
+};
 
 /* the handles move with the table as it's typed in and as the window changes */
-document.addEventListener('input', e => {
+const onTableHandlesInput = e => {
   const layer = e.target && e.target.id === 'ed' && tableLayer(ed());
   if (layer && layer._table) requestAnimationFrame(drawTableHandles);
-});
-window.addEventListener('resize', () => requestAnimationFrame(drawTableHandles));
+};
+const onTableHandlesWindowResize = () => requestAnimationFrame(drawTableHandles);
+
+export function initTableHandles() {
+  document.addEventListener('mousedown', onTableHandlesMousedown, true);
+  document.addEventListener('mousemove', onTableHandlesMousemove);
+  document.addEventListener('mouseup', onTableHandlesMouseup);
+  document.addEventListener('keydown', onTableHandlesKeydown, true);
+  document.addEventListener('input', onTableHandlesInput);
+  window.addEventListener('resize', onTableHandlesWindowResize);
+}

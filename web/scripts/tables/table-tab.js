@@ -1,7 +1,52 @@
+import { KEY } from '../core/example-data.js';
+import { $, ui } from '../core/helpers-and-state.js';
+import { inEd } from '../editor/editor-commands.js';
+import { cellsIn, rowTag, selectCells, selectColumns, selectRows, tableTarget } from './table-grid.js';
+import {
+  clearCells,
+  deleteColumns,
+  deleteRows,
+  deleteTable,
+  insertColumns,
+  insertRows,
+  mergeCells,
+  moveColumns,
+  moveRows,
+  splitCells
+} from './table-edits.js';
+import {
+  columnShares,
+  equalColumns,
+  fitColumnsToText,
+  setAllRowsHeight,
+  setSelectedColumnWidth,
+  setSelectedRowHeight,
+  setShares,
+  tableVar
+} from './table-sizing.js';
+import {
+  CELL_SHADES,
+  TABLE_LINE_SPACINGS,
+  TABLE_PADDINGS,
+  TABLE_STYLES,
+  alignCells,
+  makeTableTextDefault,
+  setTableLineSpacing,
+  setTablePadding,
+  setTableStyle,
+  setTableTextSize,
+  shadeCells,
+  tableTextLook,
+  toggleHeaderRow,
+  toggleTableFlag
+} from './table-look.js';
+import { tableChanged } from './table-handles.js';
+import { caretInto, isDocView } from '../essays/essays.js';
+
 /* ===== the table tab: under the toolbar while working in a table. Like an inspector, it has panes (Table, Rows &
    Columns, Cell, Text), one row of controls each: segmented buttons, steppers, style and colour swatches. It acts on the
    selected cells, or the caret's ===== */
-const TABLE_ICONS = {
+export const TABLE_ICONS = {
   rowabove: '<rect x="4" y="11" width="16" height="9" rx="1.5"/><path d="M4 15.5h16M12 3v6M9 6h6"/>',
   rowbelow: '<rect x="4" y="4" width="16" height="9" rx="1.5"/><path d="M4 8.5h16M12 15v6M9 18h6"/>',
   colleft: '<rect x="11" y="4" width="9" height="16" rx="1.5"/><path d="M15.5 4v16M3 12h6M6 9v6"/>',
@@ -27,7 +72,7 @@ const TABLE_ICONS = {
 };
 
 /* [command, what it does to the target] */
-const TABLE_TAB_COMMANDS = {
+export const TABLE_TAB_COMMANDS = {
   selrow: t => selectRows(t.table, t.rect.r0, t.rect.r1),
   selcol: t => selectColumns(t.table, t.rect.c0, t.rect.c1),
   seltable: t => selectCells(t.table, { r0: 0, r1: t.grid.rows.length - 1, c0: 0, c1: t.grid.width - 1 }),
@@ -96,8 +141,6 @@ const STYLE_SWATCHES = {
   minimal: ['', 0, 0, 0, 0],
   plain: ['', 0, 0, 0, 0]
 };
-
-ui.ttab = savedTablePane();
 
 function savedTablePane() {
   try {
@@ -312,7 +355,7 @@ function shadeSwatchHTML([value, name]) {
 }
 
 /* ---- showing it, and showing what's set for the table it's working on ---- */
-function refreshTableTab() {
+export function refreshTableTab() {
   const tab = $('tbltab');
   if (!tab) return;
   const t = isDocView() ? tableTarget() : null;
@@ -392,11 +435,11 @@ function setField(id, value) {
 }
 
 /* ---- using it ---- */
-document.addEventListener('mousedown', e => {
+const onTableTabMousedown = e => {
   if (e.target.closest && e.target.closest('#tbltab button')) e.preventDefault(); // the notes keep the caret
-});
+};
 
-document.addEventListener('click', e => {
+const onTableTabClick = e => {
   const button = e.target.closest && e.target.closest('#tbltab button');
   if (!button || button.disabled) return;
   if (button.dataset.tpane) {
@@ -409,7 +452,7 @@ document.addEventListener('click', e => {
   else if (button.dataset.tset) applyTableSet(t, button.dataset.tset);
   else if (button.dataset.tstep) stepTableField(t, button.dataset.tstep, +button.dataset.by);
   tableChanged();
-});
+};
 
 function chooseTablePane(pane) {
   ui.ttab = pane;
@@ -433,25 +476,34 @@ function stepTableField(t, id, by) {
   TABLE_TAB_FIELDS[id](t, String(value));
 }
 
-document.addEventListener('change', e => {
+const onTableTabChange = e => {
   const box = e.target;
   if (!box.closest || !box.closest('#tbltab')) return;
   const t = tableTarget();
   const apply = TABLE_TAB_FIELDS[box.id];
   if (t && apply) apply(t, box.value);
   tableChanged();
-});
+};
 
 /* Return in a box applies it (as the box loses the focus) and goes back to the table; Escape goes back without */
-document.addEventListener('focusin', e => {
+const onTableTabFocusin = e => {
   if (e.target.closest && e.target.closest('#tbltab input')) e.target.dataset.was = e.target.value;
-});
+};
 
-document.addEventListener('keydown', e => {
+const onTableTabKeydown = e => {
   const box = e.target;
   if (!box.closest || !box.closest('#tbltab input')) return;
   if (e.key !== 'Enter' && e.key !== 'Escape') return;
   e.preventDefault();
   if (e.key === 'Escape') box.value = box.dataset.was || '';
   if (ui.tblCell) caretInto(ui.tblCell);
-});
+};
+
+export function initTableTab() {
+  ui.ttab = savedTablePane();
+  document.addEventListener('mousedown', onTableTabMousedown);
+  document.addEventListener('click', onTableTabClick);
+  document.addEventListener('change', onTableTabChange);
+  document.addEventListener('focusin', onTableTabFocusin);
+  document.addEventListener('keydown', onTableTabKeydown);
+}

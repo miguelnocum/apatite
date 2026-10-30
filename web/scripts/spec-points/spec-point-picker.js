@@ -1,8 +1,16 @@
+import { $, esc, pts, toast, ui } from '../core/helpers-and-state.js';
+import { lvl } from '../syllabus/point-levels.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { ed } from '../editor/notes-document.js';
+import { edBlocks } from '../essays/word-count.js';
+import { mdTopBlock } from '../writing/writing.js';
+import { spChanged } from './spec-point-tags.js';
+
 /* ===== choosing the spec point for the blocks just marked ===== */
 const PICKER_MARGIN = 12; // px the picker keeps from the window's edges
-let spPick = null;
+export let spPick = null;
 
-function closeSpPick() {
+export function closeSpPick() {
   if (spPick) {
     spPick.remove();
     spPick = null;
@@ -117,7 +125,7 @@ class SpecPointPicker {
   }
 }
 
-function openSpPick(range) {
+export function openSpPick(range) {
   closeSpPick();
   if (!range.length) return;
   const picker = new SpecPointPicker(range);
@@ -129,12 +137,12 @@ function openSpPick(range) {
 }
 
 /* a press anywhere else closes it */
-document.addEventListener('mousedown', e => {
+const onSpecPointPickerMousedown = e => {
   if (spPick && !spPick.contains(e.target)) closeSpPick();
-});
+};
 
 /* the Heading menu's "Tag with spec point…": the top-level blocks the selection touches */
-function spTagSelection() {
+export function spTagSelection() {
   const editor = ed();
   const selection = getSelection();
   const range = editor && selection.rangeCount ? selection.getRangeAt(0) : null;
@@ -157,4 +165,8 @@ function spApply(range, id) {
   range.forEach(block => block.setAttribute('data-sp', id));
   ui.spCur = id;
   spChanged();
+}
+
+export function initSpecPointPicker() {
+  document.addEventListener('mousedown', onSpecPointPickerMousedown);
 }

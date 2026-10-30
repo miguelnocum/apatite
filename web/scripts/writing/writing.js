@@ -1,12 +1,14 @@
+import { ed } from '../editor/notes-document.js';
+
 /* ===== Bear-style writing =====
    Typed shortcuts are commands: "**word**", "# ", "- " and friends turn into formatting the moment they are complete
    and the symbols are gone, never hidden in the text. ⌘Z straight after gives back exactly what was typed. */
 /* last: how to undo the last conversion; esc: the formatting just made, which the next letter typed steps out of;
    at: when the last conversion happened */
-const MD = { last: null, esc: null, at: 0 };
+export const MD = { last: null, esc: null, at: 0 };
 
 /* places where typing stays literal */
-function mdOff(node) {
+export function mdOff(node) {
   const el = node && (node.nodeType === 3 ? node.parentNode : node);
   return (
     !el || !el.closest || !!el.closest('code,.fn,.cite,span[data-cite],nav[data-toc],h2[data-sec],h3[data-pt],.ref')
@@ -14,21 +16,21 @@ function mdOff(node) {
 }
 
 /* the selection set to a node's offsets (a caret, when there's no end) */
-function mdSel(node, start, end) {
+export function mdSel(node, start, end) {
   const range = document.createRange();
   range.setStart(node, start);
   range.setEnd(node, end == null ? start : end);
   selectRange(range);
 }
 
-function selectRange(range) {
+export function selectRange(range) {
   const selection = getSelection();
   selection.removeAllRanges();
   selection.addRange(range);
 }
 
 /* the caret, when it's in a text node: the node, its offset, and the text before it */
-function mdCaret() {
+export function mdCaret() {
   const selection = getSelection();
   if (!selection.rangeCount || !selection.isCollapsed) return null;
   const node = selection.anchorNode;
@@ -37,7 +39,7 @@ function mdCaret() {
 }
 
 /* the editor's child that holds a node */
-function mdTopBlock(node) {
+export function mdTopBlock(node) {
   const editor = ed();
   if (!editor || !node) return null;
   if (node.nodeType === 3) node = node.parentNode;
@@ -46,13 +48,13 @@ function mdTopBlock(node) {
 }
 
 /* the element a selection's anchor is in */
-function anchorElement(selection) {
+export function anchorElement(selection) {
   const node = selection.anchorNode;
   return node && (node.nodeType === 3 ? node.parentNode : node);
 }
 
 /* the plain paragraph the caret is in (not a heading, list item, table cell, caption…) */
-function mdPara() {
+export function mdPara() {
   const selection = getSelection();
   if (!selection.rangeCount || !selection.isCollapsed || !selection.anchorNode) return null;
   const el = anchorElement(selection);
@@ -62,7 +64,7 @@ function mdPara() {
 }
 
 /* the text from the start of an element to the caret */
-function mdBefore(el) {
+export function mdBefore(el) {
   const selection = getSelection();
   const range = document.createRange();
   range.setStart(el, 0);
@@ -71,7 +73,7 @@ function mdBefore(el) {
 }
 
 /* the text from the caret to the end of an element */
-function textAfterCaret(el) {
+export function textAfterCaret(el) {
   const selection = getSelection();
   const range = document.createRange();
   range.setStart(selection.anchorNode, selection.anchorOffset);
@@ -82,7 +84,7 @@ function textAfterCaret(el) {
 const FULL_WIDTH_OFFSET = 0xfee0; // ＃ is # plus this
 
 /* input methods (Pinyin and others) can type full-width marks: ＃ ＞ － ＊ ［ ］ １． */
-function mdAscii(text) {
+export function mdAscii(text) {
   return String(text)
     .replace(/[！-～]/g, c => String.fromCharCode(c.charCodeAt(0) - FULL_WIDTH_OFFSET))
     .replace(/[。．]/g, '.')

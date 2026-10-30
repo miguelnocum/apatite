@@ -1,5 +1,5 @@
 /* ===== example data: topic 2 of the attached Biology file ===== */
-var EXAMPLE = `# 2.1 Molecules to metabolism
+export var EXAMPLE = `# 2.1 Molecules to metabolism
 2.1.U1 | Molecular biology explains living processes in terms of the chemical substances involved.
 2.1.U2 | Carbon atoms can form four covalent bonds allowing a diversity of stable compounds to exist.
 2.1.U3 | Life is based on carbon compounds including carbohydrates, lipids, proteins and nucleic acids. | Sugars include monosaccharides and disaccharides. Only one saturated fat is expected and its specific name is not necessary. The variable radical of amino acids can be shown as R. The structure of individual R-groups does not need to be memorized.
@@ -89,5 +89,5 @@ var EXAMPLE = `# 2.1 Molecules to metabolism
 2.9.S2 | Design of experiments to investigate the effect of limiting factors on photosynthesis. | Water free of dissolved carbon dioxide can be produced by boiling and cooling water.
 2.9.S3 | Separation of photosynthetic pigments by chromatography. (Practical 4) | Paper chromatography can be used, but thin layer chromatography gives better results.`;
 
-var STATUS = ['Not rated', "I've never seen this", 'I know about 30%', 'I forgot some bits', "I'm confident"];
-var KEY = 'syllabus-notebook-v1';
+export var STATUS = ['Not rated', "I've never seen this", 'I know about 30%', 'I forgot some bits', "I'm confident"];
+export var KEY = 'syllabus-notebook-v1';

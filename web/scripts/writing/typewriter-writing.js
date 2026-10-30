@@ -1,10 +1,22 @@
+import { KEY } from '../core/example-data.js';
+import { $, NATIVE, post } from '../core/helpers-and-state.js';
+import { inEd } from '../editor/editor-commands.js';
+import { applyTableDefaults } from '../tables/table-look.js';
+import { headerHeight } from '../view/zoom.js';
+import { postFocus } from '../view/focus-mode.js';
+import { ed } from '../editor/notes-document.js';
+import { positionCards } from '../editor/comments.js';
+import { isDocView } from '../essays/essays.js';
+import { mdTopBlock } from './writing.js';
+import { drawFolds, revealInEd } from '../editor/folding.js';
+
 /* ===== typewriter scrolling: the line you're on stays in the middle of the window ===== */
 const TYPEWRITER_LINE = 0.45; // the caret's line sits this far down the space below the header
 const TYPEWRITER_SLACK = 3; // px off that line before the page scrolls
 const LAYOUT_SETTLE_DELAY = 30; // ms after a change of font or size before the folds and comment cards move
 let typewriterFrame = 0;
 
-function twScroll() {
+export function twScroll() {
   if (!WS.tw || !inEd()) return;
   const caret = caretBox();
   if (!caret) return;
@@ -33,7 +45,7 @@ function caretBox() {
 }
 
 /* the caret moving: typewriter scrolling follows it, and a fold it lands in opens */
-document.addEventListener('selectionchange', () => {
+const onTypewriterWritingSelectionchange = () => {
   if (!isDocView()) return;
   if (WS.tw) {
     cancelAnimationFrame(typewriterFrame);
@@ -44,10 +56,10 @@ document.addEventListener('selectionchange', () => {
   if (!(selection.rangeCount && selection.isCollapsed && editor && editor.contains(selection.anchorNode))) return;
   const block = mdTopBlock(selection.anchorNode);
   if (block && block.classList && block.classList.contains('fh')) revealInEd(block);
-});
+};
 
 /* ===== writing settings: theme, font, size, spacing ===== */
-const FONTS = {
+export const FONTS = {
   serif: ['Source Serif', '"Source Serif 4",Georgia,serif'],
   ny: ['New York', 'ui-serif,"New York",Georgia,serif'],
   charter: ['Charter', 'Charter,"Bitstream Charter",Georgia,serif'],
@@ -58,7 +70,7 @@ const FONTS = {
   avenir: ['Avenir Next', '"Avenir Next",Avenir,system-ui,sans-serif'],
   mono: ['IBM Plex Mono', '"IBM Plex Mono",ui-monospace,monospace']
 };
-const THEMES = {
+export const THEMES = {
   graphite: ['System', 'Light or dark, following your Mac', '#ffffff', '#18222c', '#192027'],
   paper: ['Paper', 'Warm cream page', '#fbf7ef', '#3b3026'],
   night: ['Night', 'Soft dark', '#1f242d', '#d6dbe4'],
@@ -102,7 +114,7 @@ const ALWAYS_DARK_THEMES = new Set(['night', 'ink', 'macchiato', 'jazz', 'lofi',
 const ALWAYS_LIGHT_THEMES = new Set(['paper', 'latte', 'evlight', 'rosedawn', 'tokyolight', 'gruvbox', 'nordlight', 'notes', 'ayu',
   'gandalf', 'olivedunk', 'dboring', 'duolight', 'duosnow', 'duoheat']);
 /* tfs, tlh, tpad: every table's text size (px), line spacing and cell room, unless a table has its own */
-const WS_DEF = {
+export const WS_DEF = {
   theme: 'graphite',
   font: 'serif',
   size: 15.5,
@@ -113,7 +125,7 @@ const WS_DEF = {
   tlh: '',
   tpad: ''
 };
-const WS = loadWritingSettings();
+export let WS;
 
 /* the saved settings, each one missing (or a theme or font no longer offered) at its default */
 function loadWritingSettings() {
@@ -128,13 +140,13 @@ function loadWritingSettings() {
   return settings;
 }
 
-function saveWS() {
+export function saveWS() {
   try {
     localStorage.setItem(KEY + '-write', JSON.stringify(WS));
   } catch (x) {}
 }
 
-function applyWS() {
+export function applyWS() {
   const root = document.documentElement;
   root.setAttribute('data-skin', WS.theme);
   if (ALWAYS_LIGHT_THEMES.has(WS.theme)) root.setAttribute('data-theme', 'light');
@@ -172,4 +184,8 @@ function postTheme(root) {
   });
 }
 
-applyWS();
+export function initTypewriterWriting() {
+  document.addEventListener('selectionchange', onTypewriterWritingSelectionchange);
+  WS = loadWritingSettings();
+  applyWS();
+}

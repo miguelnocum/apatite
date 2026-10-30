@@ -1,3 +1,11 @@
+import { ui } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { keyOf, titleMarks } from '../editor/highlight-key.js';
+import { saveDocSoon } from '../editor/notes-document.js';
+import { MD, mdCaret, mdOff, mdSel } from './writing.js';
+import { renderIMath } from '../equations/inline-equations.js';
+import { ZW } from '../editor/caret-and-keys.js';
+
 /* ===== typed shortcuts inside a line: **bold**, *italic*, ==highlight==, ~~strike~~, `code`, $math$, dashes, arrows =====
    each conversion records how to put back exactly what was typed (⌘Z straight after) */
 const MD_PRE = '(^|[\\s(\\[{"\'“‘—–/-])'; // what may come just before an opening mark
@@ -49,7 +57,7 @@ function undoToText(el, typed, normalize) {
   };
 }
 
-function mdInline() {
+export function mdInline() {
   const caret = shortcutCaret();
   if (!caret) return false;
   for (const { re, tag } of MD_INLINE) {
@@ -83,7 +91,7 @@ function highlightColour(text) {
 }
 
 /* "$x^2$" in a line: an inline equation (no space just inside the dollars, so "$5 and $10" stays as it is) */
-function mdIMath() {
+export function mdIMath() {
   const caret = shortcutCaret();
   const match = caret && /(^|[^$\\\w])\$([^$\s](?:[^$]*?[^$\s\\])?)\$$/.exec(caret.before);
   if (!match) return false;
@@ -101,7 +109,7 @@ function mdIMath() {
 }
 
 /* "word -- word" -> "word – word" */
-function mdDash() {
+export function mdDash() {
   const caret = shortcutCaret();
   if (!caret || !/\S[ \u00a0]--[ \u00a0]$/.test(caret.before)) return false;
   const { node, off } = caret;
@@ -131,7 +139,7 @@ const MD_ARROWS = [
   [/⇐>$/, '⇔']
 ];
 
-function mdArrow() {
+export function mdArrow() {
   const caret = shortcutCaret();
   if (!caret) return false;
   const found = MD_ARROWS.map(([re, arrow]) => [re.exec(caret.before), arrow]).find(([match]) => match);

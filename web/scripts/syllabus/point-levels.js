@@ -1,8 +1,16 @@
+import { pts, toast, ui } from '../core/helpers-and-state.js';
+import { Store } from '../core/storage.js';
+import { renderSide } from './syllabus-view.js';
+import { renderEdit } from './syllabus-editing.js';
+import { secPrefix } from './syllabus-import.js';
+import { flash, render } from '../view/page-render.js';
+import { ptById } from '../editor/notes-document.js';
+
 /* ===== three levels: the section is the chapter (1), points are headings (1.1), sub-points sit under the point above (1.1.1) ===== */
-const SUB_POINT = 3;
+export const SUB_POINT = 3;
 const POINT = 2;
 
-function lvl(point) {
+export function lvl(point) {
   return point && point.lvl === SUB_POINT ? SUB_POINT : POINT;
 }
 
@@ -24,7 +32,7 @@ function eachSection(list, visit) {
 }
 
 /* levels from codes: in each section the shallowest codes are points and deeper ones sub-points */
-function inferLevels(list) {
+export function inferLevels(list) {
   eachSection(list, section => {
     const depths = section.map(point => codeDepth(point.code)).filter(Boolean);
     const shallowest = depths.length ? Math.min(...depths) : 0;
@@ -34,14 +42,14 @@ function inferLevels(list) {
 }
 
 /* a section never starts with a sub-point */
-function normLevels(list) {
+export function normLevels(list) {
   eachSection(list || pts, section => {
     if (section[0] && section[0].lvl === SUB_POINT) section[0].lvl = POINT;
   });
 }
 
 /* the sub-points right under a point */
-function kidsOf(point) {
+export function kidsOf(point) {
   const at = pts.indexOf(point);
   const kids = [];
   if (at < 0 || lvl(point) === SUB_POINT) return kids;
@@ -50,7 +58,7 @@ function kidsOf(point) {
 }
 
 /* renumber a section 1.1, 1.1.1 … when its codes are plain numbers (textbook style); other schemes are left alone */
-function numberSection(section, quiet) {
+export function numberSection(section, quiet) {
   const list = pts.filter(point => point.sec === section);
   if (!list.length) return false;
   const prefix = sectionNumber(section, list);
@@ -87,7 +95,7 @@ function sectionNumber(section, list) {
 }
 
 /* a point made a sub-point (or back); its section renumbered if it's numbered plainly */
-function setLevel(id, to) {
+export function setLevel(id, to) {
   const point = ptById(id);
   if (!point) return;
   const at = pts.indexOf(point);

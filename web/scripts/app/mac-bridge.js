@@ -1,3 +1,11 @@
+import { $, NATIVE, meta, post, pts, ui } from '../core/helpers-and-state.js';
+import { Store, setSave, strip } from '../core/storage.js';
+import { docHTML, ed, saveDocNow } from '../editor/notes-document.js';
+import { essays } from '../essays/essays.js';
+import { nbRefSort, nbRefs, parseOne, refs, stashRefs } from '../citations/references.js';
+import { hydrateCites } from '../citations/in-text-citations.js';
+import { renderWC } from '../citations/works-cited-tab.js';
+
 /* ===== Mac app bridge: local files instead of the artifact database ===== */
 const NATIVE_SAVE_DELAY = 400; // ms after the last change before the notebook is sent to the app to save
 const NATIVE_SAVES = ['savePoint', 'delPoint', 'saveMeta', 'saveDoc', 'saveRefs', 'saveEssays', 'saveLocal'];
@@ -35,9 +43,6 @@ function nativeSave() {
   }, NATIVE_SAVE_DELAY);
 }
 
-/* in the app, the notebook comes with the page (window.__NB__) and every save sends the whole of it back */
-if (NATIVE) useNativeStore(window.__NB__ || {});
-
 function useNativeStore(notebook) {
   const copies = list => (list || []).map(item => Object.assign({}, item));
   Store.mode = 'native';
@@ -50,7 +55,7 @@ function useNativeStore(notebook) {
 }
 
 /* the app asks for the notebook now (closing, switching) */
-window.nbFlush = () => {
+const nbFlush = () => {
   try {
     if (ed()) saveDocNow();
   } catch (e) {}
@@ -60,7 +65,7 @@ window.nbFlush = () => {
 };
 
 /* a source added from the app (the PDF reader) */
-window.nbAddRef = raw => {
+const nbAddRef = raw => {
   const r = parseOne(String(raw));
   refs.push(r);
   Store.saveRefs();
@@ -71,3 +76,10 @@ window.nbAddRef = raw => {
     refs: refs.map(x => ({ id: x.id, raw: x.raw, authors: x.authors, year: x.year }))
   });
 };
+
+export function initMacBridge() {
+  /* in the app, the notebook comes with the page (window.__NB__) and every save sends the whole of it back */
+  if (NATIVE) useNativeStore(window.__NB__ || {});
+  window.nbFlush = nbFlush;
+  window.nbAddRef = nbAddRef;
+}

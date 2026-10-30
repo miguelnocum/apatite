@@ -1,3 +1,9 @@
+import { mk } from './paste-cleaning.js';
+import { fire } from './editor-commands.js';
+import { caretInto } from '../essays/essays.js';
+import { anchorElement, mdBefore, selectRange } from '../writing/writing.js';
+import { CALLOUTS, emptyLine } from './callouts.js';
+
 /* ===== Return and Backspace in callouts ===== */
 
 /* the callout the caret is in, and the element the caret is in */
@@ -12,7 +18,7 @@ function hasContent(el) {
 }
 
 /* Return on an empty last line leaves the callout (in pros and cons, the first one moves you across to the cons) */
-function calloutEnter(e) {
+export function calloutEnter(e) {
   const selection = getSelection();
   const at = selection.isCollapsed ? caretCallout(selection) : null;
   if (!at) return false;
@@ -76,7 +82,7 @@ function leaveCalloutLine(e, line, callout) {
 }
 
 /* Backspace in an empty callout turns it back into a plain line */
-function calloutBackspace(e) {
+export function calloutBackspace(e) {
   const selection = getSelection();
   const at = selection.isCollapsed ? caretCallout(selection) : null;
   if (!at) return false;

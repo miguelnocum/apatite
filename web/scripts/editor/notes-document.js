@@ -1,19 +1,36 @@
+import { $, meta, pts, setCurEd, toast } from '../core/helpers-and-state.js';
+import { Store, setSave } from '../core/storage.js';
+import { fillEmpty, sanitize } from './paste-cleaning.js';
+import { addBanner, markCur } from '../view/page-render.js';
+import { watchZoom } from '../view/zoom.js';
+import { hydrateExtras } from './hydrate-and-changes.js';
+import { edEssayId, essays, renderEssaySide } from '../essays/essays.js';
+import { refs, useRefs, yearLabels } from '../citations/references.js';
+import { hydrateCites } from '../citations/in-text-citations.js';
+import { emptyLine } from './callouts.js';
+import { shiftHeadings } from './folding.js';
+import { convertSpecHeadings } from '../spec-points/older-spec-notes.js';
+
 /* ===== notes document: one Word-style page; spec points tag its paragraphs (see the side panel below) ===== */
 const SAVE_AFTER_TYPING = 900; // ms after the last change before the notes are saved
 const CONVERTED_TOAST_DELAY = 300;
-let docHTML = null;
+export let docHTML = null;
+export function setDocHTML(value) {
+  docHTML = value;
+  return value;
+}
 let docTimer = null;
 
-function ed() {
+export function ed() {
   return document.getElementById('ed');
 }
 
-function ptById(id) {
+export function ptById(id) {
   return pts.find(point => point.id === id);
 }
 
 /* the notes as shown: empty lines that can take the caret, a last line, citations and the notes' own pieces drawn */
-function hydrate(root) {
+export function hydrate(root) {
   root = root || ed();
   if (!root) return;
   const selection = getSelection();
@@ -24,7 +41,7 @@ function hydrate(root) {
 }
 
 /* the open document as saved: cleaned, citations without their drawn text */
-function serializeDoc() {
+export function serializeDoc() {
   const editor = ed();
   if (!editor) return docHTML || '';
   const copy = editor.cloneNode(true);
@@ -32,14 +49,14 @@ function serializeDoc() {
   return sanitize(copy.innerHTML, false);
 }
 
-function saveDocSoon() {
+export function saveDocSoon() {
   clearTimeout(docTimer);
   $('save').textContent = 'editing…';
   docTimer = setTimeout(saveDocNow, SAVE_AFTER_TYPING);
 }
 
 /* the open document saved, if it changed: an essay with the essays, the notes on their own */
-function saveDocNow() {
+export function saveDocNow() {
   clearTimeout(docTimer);
   docTimer = null;
   if (!ed()) return;
@@ -65,11 +82,11 @@ function saveEssayDoc(essayId, html) {
   renderEssaySide();
 }
 
-function inDoc(id) {
+export function inDoc(id) {
   return !!docHTML && docHTML.indexOf('data-sp="' + id + '"') >= 0;
 }
 
-function renderNotes() {
+export function renderNotes() {
   useRefs('notes');
   upgradeOldNotes();
   $('main').innerHTML =
@@ -79,7 +96,7 @@ function renderNotes() {
     '</div></div></div>';
   const editor = ed();
   hydrate(editor);
-  curEd = editor;
+  setCurEd(editor);
   watchZoom();
   addBanner();
   markCur();
@@ -110,8 +127,8 @@ function upgradeOldNotes() {
 const CITE_NAME = "(?:(?:van|von|de|da|del|der|di|du|la|le|st\\.)\\s+)?\\p{Lu}[\\p{L}'’\\-]+";
 const CITE_AUTH = CITE_NAME + '(?:\\s*(?:&|and)\\s*' + CITE_NAME + '|\\s+et\\s+al\\.?)?';
 const CITE_TAIL = '(\\d{4}[a-z]?|n\\.d\\.)(?:,\\s*(?:pp?\\.\\s*)?(\\d+(?:\\s*[–\\-]\\s*\\d+)?))?';
-const CITE_NAR = new RegExp('(' + CITE_AUTH + ')\\s+\\(' + CITE_TAIL + '\\)', 'gu');
-const CITE_PAR = new RegExp('\\((' + CITE_AUTH + '),?\\s+' + CITE_TAIL + '\\)', 'gu');
+export const CITE_NAR = new RegExp('(' + CITE_AUTH + ')\\s+\\(' + CITE_TAIL + '\\)', 'gu');
+export const CITE_PAR = new RegExp('\\((' + CITE_AUTH + '),?\\s+' + CITE_TAIL + '\\)', 'gu');
 
 /* a name compared without accents, case or curly apostrophes */
 function plainKey(text) {
@@ -124,7 +141,7 @@ function plainKey(text) {
 }
 
 /* which Works Cited entries fit "Whatmore & Braun" + "2009a" (fewest authors first) */
-function citeCandidates(who, year) {
+export function citeCandidates(who, year) {
   const labels = yearLabels();
   const etAl = /\set\s+al\.?$/i.test(who);
   const names = who

@@ -1,10 +1,30 @@
+import { STATUS } from '../core/example-data.js';
+import { $, esc, pts, toast, ui } from '../core/helpers-and-state.js';
+import { lvl } from '../syllabus/point-levels.js';
+import { Store } from '../core/storage.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { groups } from '../syllabus/model.js';
+import { ratingBarHTML, sideClosed, sideHd } from '../syllabus/syllabus-view.js';
+import { render } from '../view/page-render.js';
+import { tbMenu } from '../editor/editor-commands.js';
+import { headerHeight } from '../view/zoom.js';
+import { ed, ptById } from '../editor/notes-document.js';
+import { edBlocks } from '../essays/word-count.js';
+import { caretInto } from '../essays/essays.js';
+import { mdTopBlock, selectRange } from '../writing/writing.js';
+import { sylInfo } from '../editor/caret-and-keys.js';
+import { revealInEd, solidBlock } from '../editor/folding.js';
+import { drawSp, spChanged, spOf, spRuns, spShort } from './spec-point-tags.js';
+import { setSpDrag } from './spec-point-dragging.js';
+import { closeSpPick, spPick } from './spec-point-picker.js';
+
 /* ===== the spec points panel, and going to a point's notes ===== */
 const FLASH_FOR = 1400; // ms a point's notes stay lit after going to them
 const SCROLL_BELOW_HEADER = 24; // px between the header and a point's notes, gone to
 const RATINGS = 5; // ratings run 0 (not rated) to 4
 
 /* each click moves on to the next place the point is tagged; a point not in the notes yet gets a place */
-function spGo(id, fromMargin) {
+export function spGo(id, fromMargin) {
   const point = ptById(id);
   if (!point) return;
   if (ui.view !== 'notes') {
@@ -120,7 +140,7 @@ function spMarkPanel(scroll) {
   });
 }
 
-document.addEventListener('selectionchange', () => {
+const onSpecPointPanelSelectionchange = () => {
   if (ui.view !== 'notes' || !ed()) return;
   const selection = getSelection();
   if (!selection.rangeCount || !ed().contains(selection.anchorNode)) return;
@@ -129,10 +149,10 @@ document.addEventListener('selectionchange', () => {
   if (!id || id === ui.spCur) return;
   ui.spCur = id;
   spMarkPanel(true);
-});
+};
 
 /* hovering a point in the panel lights up its notes */
-document.addEventListener('mouseover', e => {
+const onSpecPointPanelMouseover = e => {
   const row = e.target.closest && e.target.closest('#side .spi');
   const id = row && row.dataset.spgo;
   if (id === ui.spHover) return;
@@ -144,10 +164,10 @@ document.addEventListener('mouseover', e => {
   editor.querySelectorAll('[data-sp="' + id + '"]').forEach(block => {
     if (block.parentNode === editor) block.classList.add('sphover');
   });
-});
+};
 
 /* ---- the panel: the points by section, each with its rating and how often it's in the notes ---- */
-function renderSpPanel() {
+export function renderSpPanel() {
   const current = sylInfo().cur;
   const head = sideHd(current && current.title ? esc(current.title) : 'Syllabus');
   const sections = sideClosed() ? null : groups();
@@ -211,26 +231,22 @@ function spPointRowHTML(point, count) {
 }
 
 /* ---- the panel's clicks: a rating, tagging mode, a point ---- */
-document.addEventListener(
-  'click',
-  e => {
-    const target = e.target.closest ? e.target : null;
-    const rating = target && target.closest('[data-spcyc]');
-    const modeButton = target && target.closest('[data-spmode]');
-    const row = target && target.closest('#side .spi');
-    if (rating) {
-      e.stopPropagation();
-      cycleRating(rating.dataset.spcyc, e.shiftKey);
-    } else if (modeButton) {
-      e.stopPropagation();
-      setSpMode(!ui.spMode);
-    } else if (row) {
-      e.preventDefault();
-      spGo(row.dataset.spgo);
-    }
-  },
-  true
-);
+const onSpecPointPanelClick = e => {
+  const target = e.target.closest ? e.target : null;
+  const rating = target && target.closest('[data-spcyc]');
+  const modeButton = target && target.closest('[data-spmode]');
+  const row = target && target.closest('#side .spi');
+  if (rating) {
+    e.stopPropagation();
+    cycleRating(rating.dataset.spcyc, e.shiftKey);
+  } else if (modeButton) {
+    e.stopPropagation();
+    setSpMode(!ui.spMode);
+  } else if (row) {
+    e.preventDefault();
+    spGo(row.dataset.spgo);
+  }
+};
 
 /* the next rating (⇧: the one before), round from 4 to not rated */
 function cycleRating(id, back) {
@@ -247,12 +263,19 @@ function setSpMode(on) {
   ui.spMode = !!on;
   if (!on) {
     closeSpPick();
-    spDrag = null;
+    setSpDrag(null);
   }
   drawSp();
   renderSpPanel();
 }
 
-document.addEventListener('keydown', e => {
+const onSpecPointPanelKeydown = e => {
   if (e.key === 'Escape' && ui.spMode && !spPick && ui.view === 'notes' && !tbMenu) setSpMode(false);
-});
+};
+
+export function initSpecPointPanel() {
+  document.addEventListener('selectionchange', onSpecPointPanelSelectionchange);
+  document.addEventListener('mouseover', onSpecPointPanelMouseover);
+  document.addEventListener('click', onSpecPointPanelClick, true);
+  document.addEventListener('keydown', onSpecPointPanelKeydown);
+}

@@ -1,3 +1,8 @@
+import { $ } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { drawImgTool, imgChanged, imgOrig, imgTool } from './image-toolbar.js';
+import { dragWithMouse } from './image-resize-move.js';
+
 /* ===== crop: drag the frame's edges and corners, then Done (or Return; Escape or a click elsewhere cancels). The
    frame follows the picture as the notes scroll or the window changes ===== */
 const CROP_MIN = 24; // px the crop frame is at least, each way
@@ -146,11 +151,11 @@ function movedStart(start, size, delta) {
   return [moved, size + (start - moved)];
 }
 
-function openCrop(img) {
+export function openCrop(img) {
   new Cropper(img).open();
 }
 
 /* cropping stops, without cropping (a click elsewhere, the picture's toolbar closing) */
-function cancelCrop() {
+export function cancelCrop() {
   if (cropping) cropping.close();
 }

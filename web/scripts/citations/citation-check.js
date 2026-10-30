@@ -1,3 +1,15 @@
+import { $, esc, toast, ui } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { measure } from '../syllabus/syllabus-view.js';
+import { render } from '../view/page-render.js';
+import { CITE_NAR, CITE_PAR, citeCandidates, ed, saveDocSoon } from '../editor/notes-document.js';
+import { edChanged } from '../editor/hydrate-and-changes.js';
+import { words } from '../essays/word-count.js';
+import { isDocView } from '../essays/essays.js';
+import { namePart, refById, yearLabels } from './references.js';
+import { hydrateCites, insertCitation } from './in-text-citations.js';
+import { openSources } from './sources-pane.js';
+
 /* ===== citation check: step through problems like Find & Replace =====
    Three kinds: citations typed as text but not linked to a source; quotations with no citation; and linked citations
    that are incomplete (no source chosen, the source removed, or a quotation's citation without a page number). */
@@ -7,15 +19,12 @@ const CHECKED_BLOCKS = 'p,li,blockquote,h1,h2,h3,h4,h5,h6,td,th,figcaption';
 const MIN_QUOTE_WORDS = 4; // shorter quoted words aren't quotations to cite
 const LEADING_CITATION_REACH = 4; // characters into the next paragraph a block quote's citation can start
 const QUOTATION = /“([^”]+)”|"([^"]+)"/g;
-const CITE_CHECK_TYPING_DELAY = 500; // ms after typing before the list is checked again
-/* the citation forms typed as text: [pattern, form ('p' in parentheses, 'n' in the sentence)] */
-const TYPED_CITATIONS = [
-  [CITE_PAR, 'p'],
-  [CITE_NAR, 'n']
-];
+const CITE_CHECK_TYPING_DELAY = 500; // ms after typing before the list is checked again/* the citation forms typed as text: [pattern, form ('p' in parentheses, 'n' in the sentence)] */
+
+let TYPED_CITATIONS;
 
 /* the check that's open: { items, i (the one shown), filter ('all' or a kind) }, or null */
-let citeCheck = null;
+export let citeCheck = null;
 
 /* ---- reading the notes ---- */
 
@@ -77,7 +86,7 @@ function ccSentence(text, a, b) {
 }
 
 /* ---- finding the problems ---- */
-function ccScan() {
+export function ccScan() {
   const editor = ed();
   if (!editor) return [];
   const years = yearLabels();
@@ -179,7 +188,7 @@ function incompleteCitation(map, cite, problem) {
   };
 }
 
-function citationIds(el) {
+export function citationIds(el) {
   return (el.getAttribute('data-cite') || '').split(',').filter(Boolean);
 }
 
@@ -251,7 +260,7 @@ function ccKey(issue) {
 }
 
 /* ---- the bar ---- */
-function openCiteCheck() {
+export function openCiteCheck() {
   if (!isDocView() || !ed()) {
     toast('Open your notes or an essay first');
     return;
@@ -261,7 +270,7 @@ function openCiteCheck() {
   ccRefresh(0);
 }
 
-function closeCiteCheck() {
+export function closeCiteCheck() {
   citeCheck = null;
   const bar = $('citebar');
   if (bar) {
@@ -276,7 +285,7 @@ function ccVisible() {
 }
 
 /* checks again and shows issue number i (kept in range); quiet: the bar is updated without moving your cursor */
-function ccRefresh(i, quiet) {
+export function ccRefresh(i, quiet) {
   if (!citeCheck) return;
   citeCheck.items = ccScan();
   const visible = ccVisible();
@@ -482,17 +491,17 @@ function addPageNumber(issue) {
 }
 
 /* ---- the bar's buttons ---- */
-document.addEventListener('mousedown', function (e) {
+const onCitationCheckMousedown = function (e) {
   if (e.target.closest && e.target.closest('#citebar button')) e.preventDefault(); // the notes keep the selection
-});
+};
 
-document.addEventListener('click', function (e) {
+const onCitationCheckClick = function (e) {
   const button = e.target.closest && e.target.closest('#citebar [data-cc],#citebar [data-ccgo],#citebar [data-ccf]');
   if (!button || !citeCheck) return;
   if (button.dataset.ccf) showFilter(button.dataset.ccf);
   else if (button.dataset.ccgo) stepCiteCheck(+button.dataset.ccgo);
   else ccAct(button.dataset.cc);
-});
+};
 
 function showFilter(filter) {
   citeCheck.filter = filter;
@@ -511,10 +520,19 @@ function stepCiteCheck(by) {
 }
 
 /* typing elsewhere, choosing a source, switching documents: the list is kept current */
-function ccSoon() {
+export function ccSoon() {
   if (!citeCheck) return;
   clearTimeout(ccSoon.t);
   ccSoon.t = setTimeout(() => {
     if (citeCheck && ed()) ccRefresh(citeCheck.i, true);
   }, CITE_CHECK_TYPING_DELAY);
+}
+
+export function initCitationCheck() {
+  TYPED_CITATIONS = [
+    [CITE_PAR, 'p'],
+    [CITE_NAR, 'n']
+  ];
+  document.addEventListener('mousedown', onCitationCheckMousedown);
+  document.addEventListener('click', onCitationCheckClick);
 }

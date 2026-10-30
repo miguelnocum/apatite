@@ -1,6 +1,12 @@
+import { toast } from '../core/helpers-and-state.js';
+import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { texInline } from './equation-tex.js';
+import { ANN_COLORS, annColor, annList, annNoteHTML, annSave, renderMath } from './equation-drawing.js';
+import { editCard } from './equation-note-editing.js';
+
 /* ===== the equation editor, part 6: annotation mode — symbols in the equation can be clicked, and their notes are listed
    in the editor ===== */
-class AnnotationPanel {
+export class AnnotationPanel {
   constructor(editor) {
     this.editor = editor;
     this.popup = editor.popup;

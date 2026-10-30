@@ -1,14 +1,27 @@
+import { $, NATIVE, pts, ui } from '../core/helpers-and-state.js';
+import { Store } from '../core/storage.js';
+import { measure, renderSide, renderSyl } from '../syllabus/syllabus-view.js';
+import { alignToolbar, closeTbMenu, headerHeight } from './zoom.js';
+import { applyFocus } from './focus-mode.js';
+import { ed, renderNotes, saveDocNow } from '../editor/notes-document.js';
+import { ccRefresh, citeCheck, closeCiteCheck } from '../citations/citation-check.js';
+import { renderComments } from '../editor/comments.js';
+import { closeTagPop } from '../essays/word-count-boxes.js';
+import { isDocView, renderEssay } from '../essays/essays.js';
+import { renderRefs } from '../citations/sources-pane.js';
+import { renderWC } from '../citations/works-cited-tab.js';
+
 /* ===== drawing the page for the view that's open ===== */
 const CURRENT_SECTION_SLACK = 40; // px below the header a section's top can be and still count as the one being read
 const CITATION_CHECK_REFRESH_DELAY = 50;
 
 /* the points of a section, by its index in the syllabus being edited */
-function secPts(index) {
+export function secPts(index) {
   const ids = (ui.secMap && ui.secMap[index]) || [];
   return pts.filter(p => ids.includes(p.id));
 }
 
-function render() {
+export function render() {
   if (ed()) saveDocNow();
   closeTbMenu();
   if (ui.view === 'setup') ui.view = 'syl';
@@ -69,7 +82,7 @@ function renderViewContent() {
 }
 
 /* the side panel marks the section being read (the last one whose top has scrolled up past the header) */
-function markCur() {
+export function markCur() {
   const header = headerHeight();
   let current = null;
   document.querySelectorAll('[data-secidx]').forEach(section => {
@@ -79,7 +92,7 @@ function markCur() {
 }
 
 /* a brief highlight, to show where something is (restarted if it's already running) */
-function flash(el) {
+export function flash(el) {
   if (!el) return;
   el.classList.remove('flash');
   void el.offsetWidth;
@@ -87,7 +100,7 @@ function flash(el) {
 }
 
 /* "Back to syllabus" from a point's notes: to where the syllabus was, the point flashed */
-function backToSyl() {
+export function backToSyl() {
   if (ed()) saveDocNow();
   const back = ui.back;
   ui.back = null;
@@ -98,7 +111,7 @@ function backToSyl() {
 }
 
 /* the example syllabus says so; shown while editing too (without its button), so the table stays where it was */
-function addBanner() {
+export function addBanner() {
   if (!Store.example) return;
   $('main').insertAdjacentHTML(
     'afterbegin',

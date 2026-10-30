@@ -1,17 +1,38 @@
+import { toast, ui } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { fire } from '../editor/editor-commands.js';
+import {
+  cellsIn,
+  clearCellSelection,
+  crossesColumnLine,
+  crossesRowLine,
+  emptyCell,
+  rowTag,
+  selectColumns,
+  selectRows,
+  selectionKind,
+  tableGrid,
+  wholeRect
+} from './table-grid.js';
+import { columnInserted, columnsDeleted, columnsMoved } from './table-sizing.js';
+import { tableChanged } from './table-handles.js';
+import { caretInto } from '../essays/essays.js';
+import { MD } from '../writing/writing.js';
+
 /* ===== tables: rows and columns added, deleted and moved, cells merged and split; every change undoable with ⌘Z ===== */
 const TABLE_UNDO_LIMIT = 50;
 const tableUndos = []; // { table, copy, parent, next }: each table as it was before a change, newest last
 const tableUndoHook = { undo: undoTableChange };
 
 /* a change to a table: the table as it was kept for ⌘Z, the notes saved, the handles and tab redrawn */
-function changeTable(table, change) {
+export function changeTable(table, change) {
   beginTableChange(table);
   change();
   endTableChange();
 }
 
 /* (a drag begins the change when it starts and ends it when it's let go) */
-function beginTableChange(table) {
+export function beginTableChange(table) {
   if (MD.last !== tableUndoHook) tableUndos.length = 0;
   const copy = table.cloneNode(true);
   copy.classList.remove('tselecting');
@@ -20,7 +41,7 @@ function beginTableChange(table) {
   if (tableUndos.length > TABLE_UNDO_LIMIT) tableUndos.shift();
 }
 
-function endTableChange() {
+export function endTableChange() {
   MD.last = tableUndoHook;
   fire();
   tableChanged();
@@ -51,7 +72,7 @@ function caretToCell(table, r, c) {
 
 /* ---- rows ---- */
 /* count new rows before grid row `at` (at the end, when at is the number of rows); a merged cell across the spot grows */
-function insertRows(t, at, count) {
+export function insertRows(t, at, count) {
   changeTable(t.table, () => {
     for (let i = 0; i < count; i++) insertRowAt(t.table, at);
   });
@@ -76,7 +97,7 @@ function insertRowAt(table, at) {
   else grid.rows[grid.rows.length - 1].after(row);
 }
 
-function deleteRows(t) {
+export function deleteRows(t) {
   const { r0, r1 } = t.rect;
   if (r0 === 0 && r1 === t.grid.rows.length - 1) {
     deleteTable(t);
@@ -103,7 +124,7 @@ function deleteRowsAt(table, r0, r1) {
 }
 
 /* rows r0…r1 (and any merged with them) moved up or down past the row (or merged rows) next to them */
-function moveRows(t, step) {
+export function moveRows(t, step) {
   const grid = t.grid;
   const rect = wholeRect(grid, { r0: t.rect.r0, r1: t.rect.r1, c0: 0, c1: grid.width - 1 });
   t = Object.assign({}, t, { rect: rect });
@@ -114,7 +135,7 @@ function moveRows(t, step) {
 }
 
 /* rows r0…r1 put before grid row `to` (the end, when to is the number of rows) */
-function moveRowBlock(t, to) {
+export function moveRowBlock(t, to) {
   const { grid, rect, table } = t;
   if (crossesRowLine(grid, rect.r0) || crossesRowLine(grid, rect.r1 + 1) || crossesRowLine(grid, to)) {
     toast('Unmerge the cells across these rows first');
@@ -130,7 +151,7 @@ function moveRowBlock(t, to) {
 }
 
 /* ---- columns ---- */
-function insertColumns(t, at, count) {
+export function insertColumns(t, at, count) {
   changeTable(t.table, () => {
     for (let i = 0; i < count; i++) insertColumnAt(t.table, at);
   });
@@ -153,7 +174,7 @@ function insertColumnAt(table, at) {
   columnInserted(table, at);
 }
 
-function deleteColumns(t) {
+export function deleteColumns(t) {
   const { c0, c1 } = t.rect;
   if (c0 === 0 && c1 === t.grid.width - 1) {
     deleteTable(t);
@@ -172,7 +193,7 @@ function deleteColumns(t) {
   caretToCell(t.table, t.rect.r0, c0);
 }
 
-function moveColumns(t, step) {
+export function moveColumns(t, step) {
   const grid = t.grid;
   const rect = wholeRect(grid, { r0: 0, r1: grid.rows.length - 1, c0: t.rect.c0, c1: t.rect.c1 });
   t = Object.assign({}, t, { rect: rect });
@@ -183,7 +204,7 @@ function moveColumns(t, step) {
 }
 
 /* columns c0…c1 put before grid column `to`: each row's cells put in the new order */
-function moveColumnBlock(t, to) {
+export function moveColumnBlock(t, to) {
   const { grid, rect, table } = t;
   if (crossesColumnLine(grid, rect.c0) || crossesColumnLine(grid, rect.c1 + 1) || crossesColumnLine(grid, to)) {
     toast('Unmerge the cells across these columns first');
@@ -214,7 +235,7 @@ function movedOrder(width, c0, c1, to) {
 }
 
 /* ---- the whole table ---- */
-function deleteTable(t) {
+export function deleteTable(t) {
   const table = t.table;
   const after = table.nextElementSibling;
   clearCellSelection();
@@ -226,7 +247,7 @@ function deleteTable(t) {
 
 /* ---- merging and splitting ---- */
 /* the selected cells become one: the first keeps its place, the others' text follows it, a line each */
-function mergeCells(t) {
+export function mergeCells(t) {
   const cells = cellsIn(t.grid, t.rect);
   if (cells.length < 2) {
     toast('Select two or more cells to merge (drag across them)');
@@ -256,7 +277,7 @@ function cellHasContent(cell) {
 }
 
 /* each merged cell selected (or the caret's) split back into single cells, the new ones empty */
-function splitCells(t) {
+export function splitCells(t) {
   const merged = cellsIn(t.grid, t.rect).filter(cell => t.grid.at.get(cell).rs > 1 || t.grid.at.get(cell).cs > 1);
   if (!merged.length) {
     toast('Only merged cells can be split');
@@ -283,12 +304,12 @@ function splitCell(grid, cell) {
 }
 
 /* ---- the selected cells' contents cleared (Delete on cells that aren't whole rows or columns) ---- */
-function clearCells(t) {
+export function clearCells(t) {
   changeTable(t.table, () => cellsIn(t.grid, t.rect).forEach(cell => (cell.innerHTML = '<br>')));
 }
 
 /* Delete or Backspace on a selection: whole rows or columns go, the whole table goes, otherwise the cells are emptied */
-function deleteSelection(t) {
+export function deleteSelection(t) {
   const kind = selectionKind(t.grid, t.rect);
   if (kind === 'table') deleteTable(t);
   else if (kind === 'rows') deleteRows(t);

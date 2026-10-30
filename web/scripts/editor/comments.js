@@ -1,5 +1,15 @@
+import { $, esc, toast, ui, uid } from '../core/helpers-and-state.js';
+import { mk } from './paste-cleaning.js';
+import { blockOf } from './pasting-and-images.js';
+import { rangeWithinCell } from '../tables/table-grid.js';
+import { relayout, setPaneFold } from '../view/zoom.js';
+import { inFocus } from '../view/focus-mode.js';
+import { ed, saveDocSoon } from './notes-document.js';
+import { edChanged, hydrateExtras } from './hydrate-and-changes.js';
+import { isDocView } from '../essays/essays.js';
+
 /* ===== comments on text in notes and essays, in styles ===== */
-const CMT_TYPES = [
+export const CMT_TYPES = [
   { id: 'note', label: 'Comment', icon: '\u{1F4AC}', c: '#6f7d8c' },
   { id: 'q', label: 'Question', icon: '?', c: '#8a5cf6' },
   { id: 'explain', label: 'Explanation', icon: 'i', c: '#1c9ea6' },
@@ -11,14 +21,12 @@ const QUOTE_LENGTH = 80; // characters of the commented text a card shows
 const CARD_GAP = 8; // px between cards
 const CARD_RAISE = 6; // px a card sits above its text's top
 const FOCUS_DELAY = 30; // ms before an opened card's field takes the focus
-ui.cmtOpen = true;
-ui.cmtFilter = null;
 
-function cmtType(id) {
+export function cmtType(id) {
   return CMT_TYPES.find(type => type.id === id) || CMT_TYPES[0];
 }
 
-function cmtAnchors() {
+export function cmtAnchors() {
   const editor = ed();
   return editor ? [...editor.querySelectorAll('span[data-cmt]')] : [];
 }
@@ -28,12 +36,12 @@ function cmtAnchor(id) {
 }
 
 /* comments as a drawer over the page, rather than a column beside it */
-function isNarrow() {
+export function isNarrow() {
   return inFocus() || matchMedia(NARROW_WINDOW).matches;
 }
 
 /* the selected text gets a comment of this style (within one paragraph), and its card opens */
-function addComment(type) {
+export function addComment(type) {
   const editor = ed();
   const selection = getSelection();
   const range = commentRange(editor, selection);
@@ -87,7 +95,7 @@ function focusOpenCard() {
 }
 
 /* the column of cards, each level with its text; cards never overlap */
-function renderComments(keepFocus) {
+export function renderComments(keepFocus) {
   const box = $('cmts');
   if (!box) return;
   const list = isDocView() ? cmtAnchors() : [];
@@ -209,7 +217,7 @@ function closedNoteHTML(note) {
 }
 
 /* each card level with its text, pushed down below the one before (in a narrow window: the open card scrolled to) */
-function positionCards() {
+export function positionCards() {
   const box = $('cmts');
   const layer = box && box.querySelector('.cmtlayer');
   if (!layer) return;
@@ -236,9 +244,9 @@ function stackCards(layer) {
   layer.style.height = next + 'px';
 }
 
-window.addEventListener('resize', () => {
+const onCommentsWindowResize = () => {
   if (!inFocus()) renderComments(true); // (hidden in focus mode: resizing stays light)
-});
+};
 
 /* ---- clicks: on commented text, and in the column ---- */
 const COMMENT_CLICKS = [
@@ -249,14 +257,14 @@ const COMMENT_CLICKS = [
   ['.cmtcard', card => openCard(card)]
 ];
 
-document.addEventListener('click', e => {
+const onCommentsClick = e => {
   const target = e.target;
   const anchor = target.closest && target.closest('#ed span[data-cmt]');
   if (anchor && (ui.cmtActive !== anchor.getAttribute('data-cmt') || !ui.cmtDrawer)) openFromText(anchor);
   if (!target.closest || !target.closest('#cmts')) return;
   const hit = COMMENT_CLICKS.map(([selector, act]) => [target.closest(selector), act]).find(([el]) => el);
   if (hit) hit[1](hit[0]);
-});
+};
 
 function openFromText(anchor) {
   unfoldForComments();
@@ -265,14 +273,14 @@ function openFromText(anchor) {
 }
 
 /* the comments are wanted: if zooming in had folded the panes away, they come back (as when the column first opens) */
-function unfoldForComments() {
+export function unfoldForComments() {
   if (!$('bodywrap').classList.contains('zfold')) return;
   ui.zfoldOff = true;
   setPaneFold(false);
 }
 
 /* the comments can be seen: open (the drawer, where they're one), and not folded away by zooming */
-function commentsShowing() {
+export function commentsShowing() {
   if (isNarrow()) return !!(ui.cmtOpen && ui.cmtDrawer && cmtAnchors().length);
   return ui.cmtOpen && !$('bodywrap').classList.contains('zfold');
 }
@@ -317,7 +325,7 @@ function openCard(card) {
 }
 
 /* ---- writing a note, and changing a comment's style ---- */
-document.addEventListener('input', e => {
+const onCommentsInput = e => {
   const field = e.target.closest && e.target.closest('[data-cmtnote]');
   const anchor = field && cmtAnchor(field.dataset.cmtnote);
   if (!anchor) return;
@@ -325,9 +333,9 @@ document.addEventListener('input', e => {
   anchor.title = cmtType(anchor.getAttribute('data-ct')).label + (field.value ? ': ' + field.value : '');
   saveDocSoon();
   positionCards();
-});
+};
 
-document.addEventListener('change', e => {
+const onCommentsChange = e => {
   const menu = e.target.closest && e.target.closest('[data-cmttype]');
   const anchor = menu && cmtAnchor(menu.dataset.cmttype);
   if (!anchor) return;
@@ -335,4 +343,13 @@ document.addEventListener('change', e => {
   hydrateExtras(ed());
   saveDocSoon();
   renderComments();
-});
+};
+
+export function initComments() {
+  ui.cmtOpen = true;
+  ui.cmtFilter = null;
+  window.addEventListener('resize', onCommentsWindowResize);
+  document.addEventListener('click', onCommentsClick);
+  document.addEventListener('input', onCommentsInput);
+  document.addEventListener('change', onCommentsChange);
+}

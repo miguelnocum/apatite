@@ -1,5 +1,11 @@
+import { mk } from './paste-cleaning.js';
+import { cmd, fire } from './editor-commands.js';
+import { closeTbMenu, restoreSel } from '../view/zoom.js';
+import { ed } from './notes-document.js';
+import { mdTopBlock, selectRange } from '../writing/writing.js';
+
 /* ===== callouts ===== */
-const CALLOUTS = {
+export const CALLOUTS = {
   note: 'Note',
   tip: 'Tip',
   important: 'Important',
@@ -21,7 +27,7 @@ const CALLOUT_SUBMENU_HTML = () =>
   'Advantages vs disadvantages</button>';
 
 /* ---- the List menu's Callout submenu: opens on hover (or click); the menu's other items close it ---- */
-function wireCalloutSub(menu) {
+export function wireCalloutSub(menu) {
   const trigger = menu.querySelector('[data-sub="callout"]');
   if (!trigger) return;
   const open = () => {
@@ -72,7 +78,7 @@ function placeSubmenu(submenu, box) {
 }
 
 /* older callouts get a title line, as Bear's have */
-function upgradeCallouts(root) {
+export function upgradeCallouts(root) {
   (root || ed()).querySelectorAll('[data-callout]').forEach(callout => {
     let kind = callout.getAttribute('data-callout');
     if (kind === 'warn') {
@@ -91,14 +97,14 @@ function calloutTitle(kind) {
   return title;
 }
 
-function emptyLine(tag = 'p') {
+export function emptyLine(tag = 'p') {
   const line = mk(tag);
   line.innerHTML = '<br>';
   return line;
 }
 
 /* ---- a new callout where the caret is ---- */
-function insertCallout(kind) {
+export function insertCallout(kind) {
   const editor = ed();
   if (!editor) return;
   restoreSel();

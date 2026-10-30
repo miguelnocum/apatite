@@ -1,3 +1,8 @@
+import { $, esc, pts, toast, ui } from '../core/helpers-and-state.js';
+import { Store } from '../core/storage.js';
+import { detectorFor, numberingStyleHTML } from './numbering-style.js';
+import { render } from '../view/page-render.js';
+
 /* ===== a whole syllabus pasted in: its sections and points detected, reviewed as a draft, then added ===== */
 const SPEC_CODE_LINE =
   /^(?:spec(?:ification)?\.?\s*point\s*)?(\d+(?:\.[0-9A-Za-z]+)+|\d+(?=[.)]\s))[:.)\s–—-]+\s*(.+)$/i;
@@ -20,14 +25,14 @@ function titleCase(text) {
     );
 }
 
-function detect(text) {
+export function detect(text) {
   return detectorFor(ui.secStyle, ui.ptStyle).read(text);
 }
 
 /* reads a pasted syllabus line by line. Each kind of line is tried in turn: a "# heading", "Specification point 1.1" on its
    own (its statement on the next line), "code | statement | guidance", "1.1 Statement", an all-capitals title, "Topic 2: …",
    a bullet (guidance for the point before it, or a point of its own), a line continuing the one before, or a plain point */
-class SyllabusDetector {
+export class SyllabusDetector {
   constructor() {
     this.groups = [];
     this.current = null; // the section being read
@@ -188,7 +193,7 @@ function groupByParagraph(points) {
 }
 
 /* ---- "Suggest grouping with Claude": the points, grouped into titled sections ---- */
-function suggestGrouping() {
+export function suggestGrouping() {
   const draft = ui.draft || detect($('paste') ? $('paste').value : '');
   const points = draft.flatMap(g => g.items);
   if (points.length < 2) {
@@ -254,7 +259,7 @@ function suggestedGroups(sections, points) {
 }
 
 /* ---- sections and their numbering: a section titled "2.1 Water" numbers its points 2.1.1, 2.1.2, ... ---- */
-function sectionNames() {
+export function sectionNames() {
   const names = [];
   pts.forEach(p => {
     if (!names.includes(p.sec)) names.push(p.sec);
@@ -262,7 +267,7 @@ function sectionNames() {
   return names;
 }
 
-function secPrefix(section) {
+export function secPrefix(section) {
   const m = /^\s*(\d+(?:\.\d+)*)(?=[\s.:)\-–—]|$)/.exec(section || '');
   return m ? m[1] : '';
 }
@@ -274,7 +279,7 @@ function bump(code) {
 }
 
 /* the number a point would have: one after the last numbered point before it, or the first in its section */
-function suggestCode(point) {
+export function suggestCode(point) {
   let previous = null;
   for (let i = 0; i < pts.length && pts[i] !== point; i++) {
     if (pts[i].sec === point.sec && (pts[i].code || '').trim()) previous = pts[i];
@@ -330,7 +335,7 @@ function draftModeHTML() {
 }
 
 /* the paste box (open while there's something in it), the draft, and the example and empty-syllabus buttons */
-function importHTML() {
+export function importHTML() {
   return (
     pasteBoxHTML() +
     (ui.draft ? draftCard() : '') +
@@ -360,6 +365,6 @@ function savedWhere() {
   return 'Saved in this browser only.';
 }
 
-function renderSetup() {
+export function renderSetup() {
   render();
 }

@@ -1,3 +1,7 @@
+import { pts, setPts, uid } from '../core/helpers-and-state.js';
+import { inferLevels, normLevels } from './point-levels.js';
+import { Store } from '../core/storage.js';
+
 /* ===== the syllabus: reading it from text, merging a new version into the points, saving ===== */
 const NUMBERED_POINT = /^(\d+(?:\.\w+)+)\s+(.+)$/; // "2.1.U1 Statement", without a | between
 
@@ -28,7 +32,7 @@ function pointKey(point) {
 
 /* the points after applying a syllabus (text or parsed): matching points keep their ratings and notes; with replace,
    the others go, otherwise new ones are added after the old */
-function planApply(text, replace) {
+export function planApply(text, replace) {
   const parsed = typeof text === 'string' ? parseSyllabus(text) : text;
   inferLevels(parsed);
   const old = {};
@@ -53,17 +57,17 @@ function matchedPoint(point, old, used) {
 }
 
 /* the points saved in this order (and those removed deleted) */
-function commit(list, removed) {
+export function commit(list, removed) {
   normLevels(list);
   list.forEach((point, i) => (point.order = i + 1));
-  pts = list;
+  setPts(list);
   (removed || []).forEach(point => Store.delPoint(point.id));
   Store.saveLocal();
   pts.forEach(point => Store.savePoint(point));
 }
 
 /* the points, section by section (idx counts every section, in order) */
-function groups() {
+export function groups() {
   const sections = [];
   let section = null;
   pts.forEach(point => {

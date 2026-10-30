@@ -1,3 +1,10 @@
+import { ui, uid } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { ed, saveDocNow } from '../editor/notes-document.js';
+import { renderWordCount, updateEssayListCounts } from './word-count-sidebar.js';
+import { drawBoxes } from './word-count-boxes.js';
+import { hydrateCites } from '../citations/in-text-citations.js';
+
 /* ===== an essay's word count: what's counted, and tags that group paragraphs into sections ===== */
 const WC_DEFAULT = { figures: false, footnotes: true, citations: true, untagged: true, limit: null, tags: [] };
 const TAG_COLORS = ['#4f7fe8', '#2f9e5b', '#e0872a', '#9b5fd6', '#d6455d', '#1c9ea6', '#b8961a', '#6b7a8c'];
@@ -6,14 +13,14 @@ const WC_EXCLUDE_RE =
   /^(abstract|references?|reference list|bibliography|works cited|appendix|appendices|contents|table of contents|acknowledg(e)?ments?|list of .*)\b/i;
 
 /* an essay's options, copied (so they can be changed and saved back) */
-function wcOpts(essay) {
+export function wcOpts(essay) {
   const options = Object.assign({}, WC_DEFAULT, (essay && essay.wc) || {});
   options.tags = (options.tags || []).map(tag => Object.assign({}, tag));
   return options;
 }
 
 /* a word has at least one letter or digit */
-function words(text) {
+export function words(text) {
   return String(text || '')
     .split(/\s+/)
     .filter(word => /[\p{L}\p{N}]/u.test(word)).length;
@@ -58,19 +65,19 @@ function counted(counts, options) {
   );
 }
 
-function countedIn(blocks, options) {
+export function countedIn(blocks, options) {
   return blocks.reduce((total, block) => total + counted(blockCounts(block), options), 0);
 }
 
 /* the editor's blocks, without the footnote list and the table of contents */
-function edBlocks(root) {
+export function edBlocks(root) {
   return [...root.children].filter(
     block => block.id !== 'fnlist' && !(block.matches && block.matches('nav[data-toc]'))
   );
 }
 
 /* totals per tag, untagged, and the counted total (tags marked "not counted" are left out) */
-function tagCounts(root, options) {
+export function tagCounts(root, options) {
   const totals = { by: {}, untagged: 0, total: 0 };
   const tags = {};
   options.tags.forEach(tag => {
@@ -88,19 +95,19 @@ function tagCounts(root, options) {
 }
 
 /* a saved essay's total, counted from its HTML */
-function essayTotal(essay) {
+export function essayTotal(essay) {
   const box = mk('div');
   box.innerHTML = essay.doc || '';
   hydrateCites(box);
   return tagCounts(box, wcOpts(essay)).total;
 }
 
-function tagById(options, id) {
+export function tagById(options, id) {
   return options.tags.find(tag => tag.id === id);
 }
 
 /* the essay's tag with this name, made if there isn't one */
-function tagNamed(options, name) {
+export function tagNamed(options, name) {
   const found = options.tags.find(tag => tag.name.toLowerCase() === name.toLowerCase());
   if (found) return found;
   const tag = {
@@ -115,7 +122,7 @@ function tagNamed(options, name) {
 }
 
 /* the paragraphs' tags changed: saved (the text is unlocked for that), and everything that shows counts redrawn */
-function tagsChanged() {
+export function tagsChanged() {
   const editor = ed();
   editor.setAttribute('contenteditable', 'true');
   saveDocNow();

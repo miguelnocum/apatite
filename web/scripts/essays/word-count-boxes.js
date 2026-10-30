@@ -1,10 +1,18 @@
+import { $, esc, ui } from '../core/helpers-and-state.js';
+import { Store } from '../core/storage.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { ed } from '../editor/notes-document.js';
+import { countedIn, edBlocks, tagById, tagCounts, tagNamed, tagsChanged, wcOpts } from './word-count.js';
+import { renderWordCount } from './word-count-sidebar.js';
+import { curEssay } from './essays.js';
+
 /* ===== word count mode: the text is locked and boxes can be drawn down the left margin to tag paragraphs ===== */
 const BOX_PADDING = 8; // px a box reaches above and below its paragraphs
 const BOX_OUTSET = 18; // px a box reaches past each side of the text
 const EAT_CLICK_FOR = 250; // ms after a drag in which its click is swallowed
 const POPUP_MARGIN = 12; // px the naming menu keeps from the window's edges
 
-function setWcMode(on) {
+export function setWcMode(on) {
   const editor = ed();
   ui.wcMode = !!on && ui.view === 'essay' && !!editor;
   closeTagPop();
@@ -32,7 +40,7 @@ function boxLayer() {
 }
 
 /* consecutive paragraphs with the same tag make one box */
-function drawBoxes() {
+export function drawBoxes() {
   if (!ui.wcMode || ui.view !== 'essay' || !ed()) {
     removeBoxes();
     return;
@@ -143,7 +151,7 @@ function blockAtY(y) {
 /* ---- dragging: a new box from the margin, or a box's end to resize it ---- */
 let wcDrag = null;
 
-document.addEventListener('mousedown', e => {
+const onWordCountBoxesMousedown = e => {
   if (!ui.wcMode || e.button !== 0) return;
   if (!document.querySelector('.doc') || !ed()) return;
   const handle = e.target.closest && e.target.closest('[data-wcrs]');
@@ -152,7 +160,7 @@ document.addEventListener('mousedown', e => {
   e.preventDefault();
   closeTagPop();
   drawTemp();
-});
+};
 
 /* resizing: the opposite end of the box is held still */
 function resizeDrag(handle) {
@@ -178,28 +186,28 @@ function newBoxDrag(e) {
   return block ? { anchor: block, cur: block, tag: null } : null;
 }
 
-document.addEventListener('mousemove', e => {
+const onWordCountBoxesMousemove = e => {
   if (!wcDrag) return;
   const block = blockAtY(e.clientY);
   if (!block || block === wcDrag.cur) return;
   wcDrag.cur = block;
   drawTemp();
-});
+};
 
 // the click that ends a drag must not close the menu the drag just opened
-let wcEatClick = false;
-document.addEventListener(
-  'click',
-  e => {
-    if (!wcEatClick) return;
-    wcEatClick = false;
-    e.stopPropagation();
-    e.preventDefault();
-  },
-  true
-);
+export let wcEatClick = false;
+export function setWcEatClick(value) {
+  wcEatClick = value;
+  return value;
+}
+const onWordCountBoxesClick = e => {
+  if (!wcEatClick) return;
+  wcEatClick = false;
+  e.stopPropagation();
+  e.preventDefault();
+};
 
-document.addEventListener('mouseup', () => {
+const onWordCountBoxesMouseup = () => {
   if (!wcDrag) return;
   const drag = wcDrag;
   wcDrag = null;
@@ -218,7 +226,7 @@ document.addEventListener('mouseup', () => {
   range.forEach(block => block.setAttribute('data-wct', drag.tag));
   if (temp) temp.remove();
   tagsChanged();
-});
+};
 
 function dragRange(drag) {
   const blocks = edBlocks(ed());
@@ -247,9 +255,9 @@ function drawTemp() {
 }
 
 /* ---- naming a box ---- */
-let tagPop = null;
+export let tagPop = null;
 
-function closeTagPop() {
+export function closeTagPop() {
   if (!tagPop) return;
   if (tagPop.tmp && tagPop.tmp.parentNode) tagPop.tmp.remove();
   tagPop.remove();
@@ -341,4 +349,11 @@ function applyTag(range, id, name) {
   }
   range.forEach(block => block.setAttribute('data-wct', id));
   tagsChanged();
+}
+
+export function initWordCountBoxes() {
+  document.addEventListener('mousedown', onWordCountBoxesMousedown);
+  document.addEventListener('mousemove', onWordCountBoxesMousemove);
+  document.addEventListener('click', onWordCountBoxesClick, true);
+  document.addEventListener('mouseup', onWordCountBoxesMouseup);
 }

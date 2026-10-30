@@ -1,8 +1,21 @@
+import { EXAMPLE, KEY } from '../core/example-data.js';
+import { $, meta, pts, setMeta, setPts, toast, ui } from '../core/helpers-and-state.js';
+import { inferLevels } from '../syllabus/point-levels.js';
+import { Store, setSave } from '../core/storage.js';
+import { sanitize } from '../editor/paste-cleaning.js';
+import { planApply } from '../syllabus/model.js';
+import { render } from '../view/page-render.js';
+import { docHTML, ed, saveDocNow, setDocHTML } from '../editor/notes-document.js';
+import { ccScan, openCiteCheck } from '../citations/citation-check.js';
+import { blankEssay, buildDocFromPoints, essays, newEssay, openEssay, setEssays } from '../essays/essays.js';
+import { refSort, refs, setNbRefSort, setNbRefs, setRefOwner, setRefSort2, setRefs } from '../citations/references.js';
+import { openSettings } from './settings.js';
+
 /* ===== boot: the notebook loaded (or the example made, the first time), then drawn ===== */
 const IMPORT_CHECK_DELAY = 200; // ms after importing essays before their citations are checked
 let booted = false; // the Mac app's calls wait for this
 
-function boot() {
+export function boot() {
   Store.init()
     .then(Store.load)
     .then(loaded => {
@@ -18,7 +31,7 @@ function boot() {
 
 /* the essays loaded, the page drawn */
 function startNotebook(list) {
-  essays = Array.isArray(list) ? list : [];
+  setEssays(Array.isArray(list) ? list : []);
   startView();
   $('nbtitle').value = meta.title || '';
   setSave();
@@ -30,8 +43,8 @@ function startNotebook(list) {
 /* the points in order (levels worked out if they were never saved); the example the first time */
 function loadPoints(loaded) {
   const seeded = !!loaded.meta;
-  meta = loaded.meta || { title: 'My notebook' };
-  pts = loaded.pts.sort((a, b) => (a.order || 0) - (b.order || 0));
+  setMeta(loaded.meta || { title: 'My notebook' });
+  setPts(loaded.pts.sort((a, b) => (a.order || 0) - (b.order || 0)));
   if (!pts.some(point => point.lvl != null)) inferLevels(pts);
   dropDuplicatePoints();
   if (!pts.length && !seeded) seedExample();
@@ -57,13 +70,13 @@ function dropDuplicatePoints() {
     } else dupes.push(point);
   });
   if (!dupes.length) return;
-  pts = pts.filter(point => !dupes.includes(point));
+  setPts(pts.filter(point => !dupes.includes(point)));
   dupes.forEach(point => Store.delPoint(point.id));
 }
 
 function seedExample() {
-  meta = { title: 'Molecular Biology notebook' };
-  pts = planApply(EXAMPLE, true).next;
+  setMeta({ title: 'Molecular Biology notebook' });
+  setPts(planApply(EXAMPLE, true).next);
   pts.forEach((point, i) => (point.order = i + 1));
   Store.example = true;
   pts.forEach(point => Store.savePoint(point));
@@ -71,20 +84,20 @@ function seedExample() {
 }
 
 function loadRefsList(list) {
-  refs = list.items;
-  refSort = list.sort;
-  nbRefs = refs;
-  nbRefSort = refSort;
-  refOwner = 'notes';
+  setRefs(list.items);
+  setRefSort2(list.sort);
+  setNbRefs(refs);
+  setNbRefSort(refSort);
+  setRefOwner('notes');
 }
 
 /* the notes (made from older notebooks' notes on each point, if there's no document yet) */
 function loadNotesDoc(doc) {
   if (doc != null) {
-    docHTML = doc;
+    setDocHTML(doc);
     return;
   }
-  docHTML = buildDocFromPoints() || '<p><br></p>';
+  setDocHTML(buildDocFromPoints() || '<p><br></p>');
   Store.saveDoc(docHTML);
 }
 
@@ -123,7 +136,7 @@ function afterBoot() {
 
 /* ===== the Mac app's calls ===== */
 /* essays converted from Word or PDF by the Mac app */
-window.nbImportEssays = list => {
+const nbImportEssays = list => {
   if (!booted) {
     window.__nbPendingImports = (window.__nbPendingImports || []).concat(list || []);
     return;
@@ -161,14 +174,14 @@ function checkImported(made) {
   else toast('Imported ' + what);
 }
 
-window.nbOpenEssay = id => {
+const nbOpenEssay = id => {
   if (!booted) return;
   if (ed()) saveDocNow();
   openEssay(id);
   Store.saveEssays(); // the save tells the app which essay is open
 };
 
-window.nbNewEssay = () => {
+const nbNewEssay = () => {
   if (!booted) return;
   if (ed()) saveDocNow();
   if (ui.view !== 'essay') {
@@ -179,7 +192,7 @@ window.nbNewEssay = () => {
 };
 
 /* the Mac app's Notes / Essay buttons */
-window.nbShow = view => {
+const nbShow = view => {
   if (!booted) {
     window.__nbStartView = view;
     return;
@@ -190,3 +203,10 @@ window.nbShow = view => {
   render();
   window.scrollTo(0, 0);
 };
+
+export function initBoot() {
+  window.nbImportEssays = nbImportEssays;
+  window.nbOpenEssay = nbOpenEssay;
+  window.nbNewEssay = nbNewEssay;
+  window.nbShow = nbShow;
+}

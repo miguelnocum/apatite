@@ -1,8 +1,13 @@
+import { $ } from '../core/helpers-and-state.js';
+import { insertImages } from './pasting-and-images.js';
+import { closestTag, cmd, inEd, tbMenu, tbState } from './editor-commands.js';
+import { closeTbMenu } from '../view/zoom.js';
+import { saveDocSoon } from './notes-document.js';
+import { addComment } from './comments.js';
+
 /* ===== keyboard shortcuts in the notes, the image picker, and checklists ===== */
 const FORMAT_KEYS = { b: 'bold', i: 'italic', u: 'underline' };
 const TAB_SPACE = '\u2003\u2003'; // what Tab types in ordinary text: two em spaces
-
-document.addEventListener('keydown', onEditorShortcut);
 
 /* Esc closes a menu; ⌘K links, ⌥⌘M comments, ⌘B/I/U format, Tab indents or moves on (the shortcuts never overlap) */
 function onEditorShortcut(e) {
@@ -69,25 +74,32 @@ function indentListItem(item, outdent) {
 }
 
 /* pictures chosen with Insert ▸ Image */
-$('mediain').addEventListener('change', function () {
+const onShortcutsMediainChange = function () {
   const files = [...(this.files || [])];
   this.value = '';
   if (files.length) insertImages(files);
-});
+};
 
 /* checklists: click the box to tick it; a new line starts unticked */
-document.addEventListener('mousedown', function (e) {
+const onShortcutsMousedown = function (e) {
   const item = e.target.closest && e.target.closest('#ed ul[data-todo]>li');
   if (!item || e.clientX > item.getBoundingClientRect().left) return; // (the box is in the margin, left of the text)
   e.preventDefault();
   item.setAttribute('data-done', item.getAttribute('data-done') === '1' ? '0' : '1');
   saveDocSoon();
-});
+};
 
-document.addEventListener('keydown', function (e) {
+const onShortcutsKeydown = function (e) {
   if (e.key !== 'Enter' || !closestTag('#ed ul[data-todo]>li')) return;
   setTimeout(() => {
     const item = closestTag('#ed ul[data-todo]>li');
     if (item && !item.textContent.trim()) item.removeAttribute('data-done');
   }, 0);
-});
+};
+
+export function initShortcuts() {
+  document.addEventListener('keydown', onEditorShortcut);
+  $('mediain').addEventListener('change', onShortcutsMediainChange);
+  document.addEventListener('mousedown', onShortcutsMousedown);
+  document.addEventListener('keydown', onShortcutsKeydown);
+}

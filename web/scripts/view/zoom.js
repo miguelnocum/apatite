@@ -1,5 +1,16 @@
+import { KEY } from '../core/example-data.js';
+import { $, ui } from '../core/helpers-and-state.js';
+import { renderSide } from '../syllabus/syllabus-view.js';
+import { markCur } from './page-render.js';
+import { setTbMenu, tbMenu } from '../editor/editor-commands.js';
+import { applyFocusZoom, focusWheel, inFocus, setFocusZoom, stepFocusZoom } from './focus-mode.js';
+import { ed } from '../editor/notes-document.js';
+import { isNarrow, renderComments } from '../editor/comments.js';
+import { isDocView } from '../essays/essays.js';
+import { getPref } from '../app/settings.js';
+
 /* ===== page zoom: the page is scaled, the wrapper takes the scaled size so scrolling stays right ===== */
-const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+export const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 const ZMIN = 0.25;
 const ZMAX = 3;
 const PAGE_WIDTH = 816; // px: a letter-size page at 96 dpi
@@ -22,8 +33,6 @@ let tbShift = 0;
 let relayoutTimer = null;
 let pinchFrom = 1;
 
-ui.zoom = savedZoom();
-
 /* the zoom to start at: one chosen in Settings, else the last used (Fit, the first time) */
 function savedZoom() {
   const clamp = value => Math.min(ZMAX, Math.max(ZMIN, +value) || 1);
@@ -38,7 +47,7 @@ function savedZoom() {
 }
 
 /* the height of the header over the page (measured into --hh) */
-function headerHeight() {
+export function headerHeight() {
   return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hh')) || DEFAULT_HEADER_HEIGHT;
 }
 
@@ -79,7 +88,7 @@ function zoomFold(zoom) {
   return PAGE_WIDTH * zoom > room + 1;
 }
 
-function setPaneFold(on) {
+export function setPaneFold(on) {
   const wrap = $('bodywrap');
   if (wrap.classList.contains('zfold') === on) return;
   /* straight to the new layout (no slide), so the page can be measured and your place kept */
@@ -92,7 +101,7 @@ function setPaneFold(on) {
   if (!on) setTimeout(() => renderComments(true), 0);
 }
 
-function applyZoom() {
+export function applyZoom() {
   if (isDocView()) foldForZoom();
   const zoom = pageZoom();
   const wrap = $('zwrap');
@@ -134,7 +143,7 @@ function narrowPage(page, zoom) {
 }
 
 /* the page is centred on the writing area (right of Contents); the toolbar slides to sit over it */
-function alignToolbar() {
+export function alignToolbar() {
   const toolbar = $('tb');
   const main = $('main');
   if (!isDocView() || !main.clientWidth || inFocus()) {
@@ -167,12 +176,12 @@ function toolbarShift(toolbar, main) {
   );
 }
 
-window.addEventListener('resize', () => {
+const onZoomWindowResize = () => {
   if (isDocView()) applyZoom();
-});
+};
 
 // panels opening or closing resize the writing area; re-place the page and toolbar now and when the slide ends
-function relayout() {
+export function relayout() {
   if (!isDocView()) return;
   applyZoom();
   clearTimeout(relayoutTimer);
@@ -182,9 +191,9 @@ function relayout() {
   }, RELAYOUT_AFTER);
 }
 
-$('bodywrap').addEventListener('transitionend', e => {
+const onZoomBodywrapTransitionend = e => {
   if (e.target === $('bodywrap')) relayout();
-});
+};
 
 function centreScroll() {
   const main = $('main');
@@ -200,7 +209,7 @@ function zoomScroller() {
 }
 
 /* the caret, if it's on screen; else the middle of the writing area */
-function zoomPoint() {
+export function zoomPoint() {
   const header = headerHeight();
   const caret = caretOnScreen(header);
   if (caret) return caret;
@@ -220,7 +229,7 @@ function caretOnScreen(header) {
 }
 
 /* what's at the point, and where in it the point is */
-function zoomAnchor(point) {
+export function zoomAnchor(point) {
   const page = zoomedPage();
   if (!page) return null;
   let el = document.elementFromPoint(point.x, point.y);
@@ -237,7 +246,7 @@ function zoomAnchor(point) {
 }
 
 /* scrolled so the anchor (or the caret) is back where it was on the screen */
-function keepAnchor(anchor) {
+export function keepAnchor(anchor) {
   if (!anchor || !anchor.el.isConnected) return;
   const { dx, dy } = anchorDrift(anchor);
   const scroller = zoomScroller();
@@ -256,7 +265,7 @@ function anchorDrift(anchor) {
   return { dx: box.left + anchor.fx * box.width - anchor.x, dy: box.top + anchor.fy * box.height - anchor.y };
 }
 
-function setZoom(zoom, point) {
+export function setZoom(zoom, point) {
   if (inFocus()) {
     setFocusZoom(zoom, point);
     return;
@@ -276,7 +285,7 @@ function setZoom(zoom, point) {
 }
 
 /* the next zoom in the list, up or down */
-function stepZoom(direction) {
+export function stepZoom(direction) {
   if (inFocus()) {
     stepFocusZoom(direction);
     return;
@@ -289,7 +298,7 @@ function stepZoom(direction) {
   setZoom(next || (direction > 0 ? ZOOMS[ZOOMS.length - 1] : ZOOMS[0]));
 }
 
-function watchZoom() {
+export function watchZoom() {
   if (zoomRO) zoomRO.disconnect();
   const page = $('zwrap').firstElementChild;
   if (window.ResizeObserver) {
@@ -302,45 +311,41 @@ function watchZoom() {
 }
 
 /* ⌘+ and ⌘− */
-document.addEventListener('keydown', e => {
+const onZoomKeydown = e => {
   if (!isDocView() || !(e.metaKey || e.ctrlKey) || e.altKey) return;
   const direction = e.key === '=' || e.key === '+' ? 1 : e.key === '-' || e.key === '_' ? -1 : 0;
   if (!direction) return;
   e.preventDefault();
   stepZoom(direction);
-});
+};
 
 // trackpad pinch: Safari/WebKit gesture events, or ctrl+wheel elsewhere
-document.addEventListener('gesturestart', e => {
+const onZoomGesturestart = e => {
   if (!isDocView()) return;
   e.preventDefault();
   pinchFrom = inFocus() ? ui.fzoom : pageZoom();
-});
-document.addEventListener('gesturechange', e => {
+};
+const onZoomGesturechange = e => {
   if (!isDocView()) return;
   e.preventDefault();
   setZoom(pinchFrom * e.scale, e.clientX != null ? { x: e.clientX, y: e.clientY } : null);
-});
-document.addEventListener(
-  'wheel',
-  e => {
-    if (!isDocView() || !e.ctrlKey) return;
-    e.preventDefault();
-    if (inFocus()) focusWheel(e);
-    else setZoom(pageZoom() * Math.exp(-e.deltaY / 100), { x: e.clientX, y: e.clientY });
-  },
-  { passive: false }
-);
+};
+const onZoomWheel = e => {
+  if (!isDocView() || !e.ctrlKey) return;
+  e.preventDefault();
+  if (inFocus()) focusWheel(e);
+  else setZoom(pageZoom() * Math.exp(-e.deltaY / 100), { x: e.clientX, y: e.clientY });
+};
 
-function closeTbMenu() {
+export function closeTbMenu() {
   if (!tbMenu) return;
   if (tbMenu.sub) tbMenu.sub.remove();
   tbMenu.remove();
-  tbMenu = null;
+  setTbMenu(null);
 }
 
 /* the focus back in the notes, with the selection they last had */
-function restoreSel() {
+export function restoreSel() {
   const editor = ed();
   if (!editor) return;
   editor.focus({ preventScroll: true });
@@ -348,4 +353,14 @@ function restoreSel() {
   const selection = getSelection();
   selection.removeAllRanges();
   selection.addRange(ui.lastRange);
+}
+
+export function initZoom() {
+  ui.zoom = savedZoom();
+  window.addEventListener('resize', onZoomWindowResize);
+  $('bodywrap').addEventListener('transitionend', onZoomBodywrapTransitionend);
+  document.addEventListener('keydown', onZoomKeydown);
+  document.addEventListener('gesturestart', onZoomGesturestart);
+  document.addEventListener('gesturechange', onZoomGesturechange);
+  document.addEventListener('wheel', onZoomWheel, { passive: false });
 }

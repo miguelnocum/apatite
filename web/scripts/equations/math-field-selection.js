@@ -1,3 +1,5 @@
+import { styleMathField } from './math-field-look.js';
+
 /* ===== the equation editor, part 2: selecting in a typing box =====
    Selections take whole things. MathLive stops inside things that read as one: between a letter and its subscript, inside a
    name such as ReLU, inside the cells of a cases block or matrix, inside a big bracket. A selection whose ends are at different
@@ -253,7 +255,7 @@ class FieldSelection {
 }
 
 /* a typing box made to look and select as it should */
-function enhanceMathField(field) {
+export function enhanceMathField(field) {
   if (!field.shadowRoot) return;
   styleMathField(field);
   new FieldSelection(field);

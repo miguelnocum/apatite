@@ -1,3 +1,6 @@
+import { annColor, annList } from './equation-drawing.js';
+import { mathEd } from './equation-editor-parts.js';
+
 /* ===== the notes around the equation: each near its part, above or below in turn, never on top of one another,
    with a curved line from the box to the part (measured in the page's own, unzoomed pixels) ===== */
 const NOTE_GAP = 12; // px between two boxes in a row
@@ -8,19 +11,9 @@ const NOTE_ROW_GAP = '30px'; // between a row of boxes and the equation
 const LINE_CLEARANCE = 3; // px between a line's end and its part
 const LINE_INSET = 14; // px a line keeps from the ends of its box
 const LINE_DOT_RADIUS = 2.4;
+export let annRO;
 
-const annRO = window.ResizeObserver
-  ? new ResizeObserver(entries =>
-      entries.forEach(entry => {
-        const el = entry.target.closest && entry.target.closest('[data-math]');
-        if (el) annLayout(el);
-      })
-    )
-  : null;
-if (document.fonts && document.fonts.ready)
-  document.fonts.ready.then(() => document.querySelectorAll('#ed [data-math]').forEach(annLayout));
-
-function annLayout(el) {
+export function annLayout(el) {
   const wrap = el.querySelector(':scope>.mwrap');
   if (!wrap || !wrap.offsetWidth) return;
   const frame = noteFrame(wrap);
@@ -148,7 +141,7 @@ function noteLineSVG(item, frame, colour) {
 }
 
 /* pointing at a part, its box or its row in the editor lights up all three */
-document.addEventListener('mouseover', e => {
+const onEquationNoteLayoutMouseover = e => {
   const target = e.target;
   const el =
     target.closest && (target.closest('#ed [data-math]') || (target.closest('.mathpop') && mathEd && mathEd.el));
@@ -159,7 +152,7 @@ document.addEventListener('mouseover', e => {
   el.querySelectorAll('.mann' + i + ',.mcard[data-ai="' + i + '"],.mpath[data-ai="' + i + '"]').forEach(part =>
     part.classList.add('annhl')
   );
-});
+};
 
 /* the note a box, an editor row or a coloured part belongs to */
 function pointedNote(target) {
@@ -167,4 +160,18 @@ function pointedNote(target) {
   if (row) return row.getAttribute('data-ai');
   const part = target.closest('[class*="mann"]');
   return part ? (/mann(\d+)/.exec(part.getAttribute('class')) || [])[1] : null;
+}
+
+export function initEquationNoteLayout() {
+  annRO = window.ResizeObserver
+    ? new ResizeObserver(entries =>
+        entries.forEach(entry => {
+          const el = entry.target.closest && entry.target.closest('[data-math]');
+          if (el) annLayout(el);
+        })
+      )
+    : null;
+  if (document.fonts && document.fonts.ready)
+    document.fonts.ready.then(() => document.querySelectorAll('#ed [data-math]').forEach(annLayout));
+  document.addEventListener('mouseover', onEquationNoteLayoutMouseover);
 }

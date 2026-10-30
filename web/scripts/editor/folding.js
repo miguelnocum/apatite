@@ -1,3 +1,12 @@
+import { $ } from '../core/helpers-and-state.js';
+import { mk } from './paste-cleaning.js';
+import { ed, saveDocSoon } from './notes-document.js';
+import { positionCards } from './comments.js';
+import { edBlocks } from '../essays/word-count.js';
+import { mdTopBlock, selectRange } from '../writing/writing.js';
+import { emptyLine } from './callouts.js';
+import { drawSp } from '../spec-points/spec-point-tags.js';
+
 /* ===== folding: the arrow beside a heading hides everything under it, down to the next heading at its level ===== */
 const FOLD_BUTTON_LEFT = 30; // px left of its heading
 const FOLD_BUTTON_HALF = 10; // px half the button's height
@@ -14,14 +23,14 @@ function hRank(el) {
 }
 
 /* headings used to start at h4 (Heading / chapter); with six levels they move up two: h4->h2, h5->h3, h6->h4 */
-function shiftHeadings(html) {
+export function shiftHeadings(html) {
   if (!html) return html;
   return String(html).replace(/<(\/?)h([456])(?=[\s>])/gi, (match, slash, level) => '<' + slash + 'h' + (+level - 2));
 }
 
 /* ===== room to type: a heading, picture, table or divider is always followed by a line you can click into (a picture
    even when a heading comes straight after it) ===== */
-function solidBlock(block) {
+export function solidBlock(block) {
   if (!block || block.nodeType !== 1) return false;
   if (block.matches('h2.ref,h3.ref,table,hr,nav[data-toc],[data-callout],[data-math]')) return true;
   return pictureBlock(block);
@@ -48,7 +57,7 @@ function roomy(block) {
   return solidBlock(block) || block.tagName === 'BLOCKQUOTE' || endsWithPicture(block);
 }
 
-function ensureRoom(root) {
+export function ensureRoom(root) {
   root = root || ed();
   if (!root || root.classList.contains('wcmode')) return false;
   let added = false;
@@ -67,7 +76,7 @@ function ensureRoom(root) {
 }
 
 /* a click in the gap under a heading or picture puts the caret on the line below it */
-document.addEventListener('mousedown', e => {
+const onFoldingMousedown = e => {
   const editor = ed();
   if (!editor || e.target !== editor || e.button !== 0 || editor.classList.contains('wcmode')) return;
   const above = blockAbove(editor, e.clientY);
@@ -82,7 +91,7 @@ document.addEventListener('mousedown', e => {
   range.collapse(false);
   selectRange(range);
   editor.focus({ preventScroll: true });
-});
+};
 
 /* the last shown block whose top is above this height */
 function blockAbove(editor, y) {
@@ -114,7 +123,7 @@ function hasSolidContent(block) {
 }
 
 /* folded headings hide what's under them; a fold with nothing to hide (or an empty heading) is dropped */
-function applyFolds() {
+export function applyFolds() {
   const editor = ed();
   if (!editor) return;
   let hiding = 0;
@@ -131,7 +140,7 @@ function applyFolds() {
 }
 
 /* an arrow beside each shown heading with something to fold */
-function drawFolds() {
+export function drawFolds() {
   const editor = ed();
   const layer = foldLayer(editor);
   if (!layer) return;
@@ -188,17 +197,17 @@ function foldsChanged() {
   if (!$('cmts').hidden) positionCards();
 }
 
-document.addEventListener('mousedown', e => {
+const onFoldingMousedown2 = e => {
   const button = e.target.closest && e.target.closest('.foldbtn');
   if (!button) return;
   e.preventDefault();
   const layer = button.parentNode;
   const heading = layer._hs && layer._hs[+button.dataset.foldi];
   if (heading) setFold(heading, !heading.hasAttribute('data-fold'));
-});
+};
 
 /* the caret or a jump landing in folded text opens the fold */
-function revealInEd(node) {
+export function revealInEd(node) {
   const editor = ed();
   if (!editor || !node || !editor.contains(node)) return;
   const block = mdTopBlock(node);
@@ -221,18 +230,7 @@ function openFoldAbove(editor, block) {
   }
 }
 
-/* anything scrolled into view in the notes is revealed first */
-(() => {
-  const scrollIntoView = Element.prototype.scrollIntoView;
-  Element.prototype.scrollIntoView = function (...args) {
-    try {
-      revealInEd(this);
-    } catch (x) {}
-    return scrollIntoView.apply(this, args);
-  };
-})();
-
-function foldAll(on) {
+export function foldAll(on) {
   const editor = ed();
   if (!editor) return;
   const blocks = edBlocks(editor);
@@ -245,7 +243,7 @@ function foldAll(on) {
 }
 
 /* the arrows (and spec point brackets) follow the notes as they change size */
-function watchFolds() {
+export function watchFolds() {
   const editor = ed();
   if (!editor || !window.ResizeObserver) return;
   if (foldRO) foldRO.disconnect();
@@ -257,4 +255,19 @@ function watchFolds() {
     }, FOLD_REDRAW_DELAY);
   });
   foldRO.observe(editor);
+}
+
+export function initFolding() {
+  document.addEventListener('mousedown', onFoldingMousedown);
+  document.addEventListener('mousedown', onFoldingMousedown2);
+  /* anything scrolled into view in the notes is revealed first */
+  (() => {
+    const scrollIntoView = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (...args) {
+      try {
+        revealInEd(this);
+      } catch (x) {}
+      return scrollIntoView.apply(this, args);
+    };
+  })();
 }

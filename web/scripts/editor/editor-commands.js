@@ -1,9 +1,34 @@
+import { $, curEd, toast, ui } from '../core/helpers-and-state.js';
+import { mk, sanitize } from './paste-cleaning.js';
+import { noteCaretCell, rangeWithinCell } from '../tables/table-grid.js';
+import { drawTableHandles, handledTable, tableLayer } from '../tables/table-handles.js';
+import { refreshTableTab } from '../tables/table-tab.js';
+import { restoreSel } from '../view/zoom.js';
+import { toggleFocus } from '../view/focus-mode.js';
+import { keyOf, titleMarks } from './highlight-key.js';
+import { openTbMenu } from './toolbar-menus.js';
+import { ed } from './notes-document.js';
+import { openCiteCheck } from '../citations/citation-check.js';
+import { insertTOC } from './contents.js';
+import { insertFootnote } from './footnotes.js';
+import { caretInto, isDocView } from '../essays/essays.js';
+import { insertCitation } from '../citations/in-text-citations.js';
+import { endChoosing, openSources, renderRefs } from '../citations/sources-pane.js';
+import { mdTopBlock } from '../writing/writing.js';
+import { inlineCode } from '../writing/inline-code.js';
+import { insertMath } from '../equations/equation-drawing.js';
+import { insertIMath } from '../equations/inline-equations.js';
+import { setBlockType } from './block-types.js';
+import { insertCallout } from './callouts.js';
+import { foldAll } from './folding.js';
+import { spTagSelection } from '../spec-points/spec-point-picker.js';
+
 /* ===== the editor's commands: the toolbar's buttons and menu items, and highlighting ===== */
 const NEW_TABLE_COLUMNS = 3;
 const NEW_TABLE_BODY_ROWS = 2;
 
 /* the caret (or selection) is in the notes or essay being written (not in the equation editor) */
-function inEd() {
+export function inEd() {
   const active = document.activeElement;
   if (active && active.closest && active.closest('.mathpop')) return false;
   const selection = getSelection();
@@ -11,12 +36,12 @@ function inEd() {
 }
 
 /* the notes changed (saved and redrawn as if typed) */
-function fire() {
+export function fire() {
   if (curEd) curEd.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 /* the nearest element around the caret that matches */
-function closestTag(selector) {
+export function closestTag(selector) {
   const selection = getSelection();
   if (!selection.anchorNode) return null;
   const node = selection.anchorNode.nodeType === 3 ? selection.anchorNode.parentNode : selection.anchorNode;
@@ -25,7 +50,7 @@ function closestTag(selector) {
 
 /* ---- highlighting: a colour from the key (0 removes it). In a highlight, it changes or goes; otherwise the selection is
    highlighted (any highlights inside it replaced) ---- */
-function applyHL(colour) {
+export function applyHL(colour) {
   if (!inEd()) {
     toast('Select some text in your notes first');
     return;
@@ -88,7 +113,7 @@ function markTexts(box, colour) {
 }
 
 /* ---- commands ---- */
-function cmd(command) {
+export function cmd(command) {
   if (!curEd && command !== 'x' && command !== 'focus') {
     toast('Click into a note first');
     return;
@@ -238,7 +263,7 @@ function tidyNote() {
 
 /* ---- the toolbar shows where the caret is ---- */
 /* (in a table: the table tab shows, and the table's handles) */
-function tableState() {
+export function tableState() {
   noteCaretCell();
   $('tb').classList.toggle('intable', !!(inEd() && closestTag('table')));
   refreshTableTab();
@@ -247,7 +272,7 @@ function tableState() {
 }
 
 /* the selection in the notes is kept, to come back to after a menu or the image picker */
-document.addEventListener('selectionchange', function () {
+const onEditorCommandsSelectionchange = function () {
   if (!isDocView()) return;
   tableState();
   const selection = getSelection();
@@ -255,12 +280,10 @@ document.addEventListener('selectionchange', function () {
   if (!editor || !selection.rangeCount || !editor.contains(selection.anchorNode)) return;
   ui.lastRange = selection.getRangeAt(0).cloneRange();
   tbState();
-});
-
-ui.hlColor = '1'; // set from the key once it loads (see 07-highlight-key)
+};
 
 /* buttons light up for what the caret is in: a heading, a list, bold, italic, a highlight; the highlighter shows its colour */
-function tbState() {
+export function tbState() {
   const inEditor = inEd();
   const light = (id, on) => {
     const button = document.getElementById(id);
@@ -287,4 +310,13 @@ function commandState(name) {
 }
 
 /* the toolbar menu that's open (see 07a-toolbar-menus) */
-let tbMenu = null;
+export let tbMenu = null;
+export function setTbMenu(value) {
+  tbMenu = value;
+  return value;
+}
+
+export function initEditorCommands() {
+  document.addEventListener('selectionchange', onEditorCommandsSelectionchange);
+  ui.hlColor = '1'; // set from the key once it loads (see 07-highlight-key)
+}

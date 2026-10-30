@@ -1,6 +1,8 @@
+import { esc } from '../core/helpers-and-state.js';
+
 /* ===== equations: a block of LaTeX drawn by KaTeX; click it to edit, with a palette of symbols.
    Each line of the LaTeX is a line of the equation (a matrix or other environment can still run over several lines). ===== */
-const KT_OPTS = {
+export const KT_OPTS = {
   displayMode: true,
   throwOnError: false,
   strict: 'ignore',
@@ -9,7 +11,7 @@ const KT_OPTS = {
 const EMPTY_BOX_COLOUR = '#9aa6b2'; // an empty box to fill in is drawn in this grey
 
 /* "arg min" (MathLive's spelling) is written argmin, as in the books */
-function texTidy(source) {
+export function texTidy(source) {
   return String(source || '').replace(
     /\\operatorname\*\{(?:\\mathrm\{arg(?:~|\\,|\\ |\s)+(min|max)\}|arg(?:~|\\,|\\ |\s)+(min|max))\}/g,
     (match, spelled, plain) => '\\operatorname*{arg' + (spelled || plain) + '}'
@@ -17,7 +19,7 @@ function texTidy(source) {
 }
 
 /* LaTeX as drawn: tidied, with an empty box for each place still to fill in */
-function texShow(source) {
+export function texShow(source) {
   return texTidy(source).replace(
     /\\placeholder(?:\[[^\]]*\])?\{[^{}]*\}/g,
     `\\textcolor{${EMPTY_BOX_COLOUR}}{\\square}`
@@ -25,7 +27,7 @@ function texShow(source) {
 }
 
 /* each line drawn as a displayed equation */
-function texShowHTML(source) {
+export function texShowHTML(source) {
   return texLines(source)
     .map(line => {
       try {
@@ -38,7 +40,7 @@ function texShowHTML(source) {
 }
 
 /* the lines of an equation: a new line only outside braces and environments */
-function texLines(source) {
+export function texLines(source) {
   const lines = [];
   let line = '';
   let depth = 0;
@@ -67,7 +69,7 @@ function braceStep(c) {
   return c === '{' ? 1 : c === '}' ? -1 : 0;
 }
 
-function texInline(tex) {
+export function texInline(tex) {
   try {
     return window.katex ? katex.renderToString(tex, { throwOnError: false, strict: 'ignore' }) : esc(tex);
   } catch (x) {
@@ -80,7 +82,7 @@ const TEX_TOK =
   /\\(?:begin|end|text|textbf|textit|mathrm|operatorname|mathbb|mathcal)\s*\{[^{}]*\}|\\[a-zA-Z]+\*?|\\.|\s+|[\s\S]/g;
 
 /* the pieces (not spaces), with where each starts (i) and ends (e) */
-function texTokens(source) {
+export function texTokens(source) {
   const tokens = [];
   let match;
   TEX_TOK.lastIndex = 0;
@@ -90,7 +92,7 @@ function texTokens(source) {
 }
 
 /* does KaTeX draw it without an error? */
-function texOK(source) {
+export function texOK(source) {
   try {
     katex.renderToString(source, { displayMode: true, throwOnError: true, strict: 'ignore', trust: KT_OPTS.trust });
     return true;

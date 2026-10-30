@@ -1,3 +1,9 @@
+import { $, ui } from '../core/helpers-and-state.js';
+import { mk } from './paste-cleaning.js';
+import { tbMenu, tbState } from './editor-commands.js';
+import { closeTbMenu } from '../view/zoom.js';
+import { ed } from './notes-document.js';
+
 /* ===== highlight key: what each highlighter colour is for (the Mac app keeps it, and hands it over as window.__HLKEY__) ===== */
 const DEFAULT_HIGHLIGHT_KEY = [
   { id: '1', meaning: 'General', hex: '#FFE58A' },
@@ -8,18 +14,18 @@ const DEFAULT_HIGHLIGHT_KEY = [
   { id: '6', meaning: '', hex: '#A8E8C0', hidden: true }
 ];
 const DARK_MARK_STRENGTH = '42%'; // in dark mode a mark is its colour mixed this much into the page
-let HLKEY = window.__HLKEY__ || DEFAULT_HIGHLIGHT_KEY;
+export let HLKEY = window.__HLKEY__ || DEFAULT_HIGHLIGHT_KEY;
 
-function keyOf(id) {
+export function keyOf(id) {
   return (HLKEY || []).find(k => k.id === String(id));
 }
 
 /* the colours offered (removed ones stay in the key, so highlights already made keep their colour) */
-function keyShown() {
+export function keyShown() {
   return (HLKEY || []).filter(k => !k.hidden);
 }
 
-function keyLabel(k) {
+export function keyLabel(k) {
   return k ? k.meaning || 'No meaning yet' : '';
 }
 
@@ -53,7 +59,7 @@ function keyStyleCSS() {
 }
 
 /* pointing at a highlight says what it means */
-function titleMarks(root) {
+export function titleMarks(root) {
   const scope = root || ed();
   if (!scope) return;
   scope.querySelectorAll('mark[data-h]').forEach(mark => {
@@ -63,7 +69,7 @@ function titleMarks(root) {
 }
 
 /* a new key from the Mac app (edited in Settings) */
-window.nbSetKey = function (list) {
+const nbSetKey = function (list) {
   if (!Array.isArray(list)) return;
   HLKEY = list;
   const current = keyOf(ui.hlColor);
@@ -74,5 +80,8 @@ window.nbSetKey = function (list) {
   if (tbMenu && tbMenu.kind === 'hl') closeTbMenu();
 };
 
-applyKeyStyle();
-ui.hlColor = firstKeyColourId();
+export function initHighlightKey() {
+  window.nbSetKey = nbSetKey;
+  applyKeyStyle();
+  ui.hlColor = firstKeyColourId();
+}

@@ -1,12 +1,20 @@
+import { NATIVE, esc, post, toast, ui } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { citationIds } from './citation-check.js';
+import { namePart, refById, yearLabels } from './references.js';
+import { openSources } from './sources-pane.js';
+import { caretAnchors, lockedFirst } from '../editor/caret-and-keys.js';
+
 /* ===== Harvard in-text citations: drawn from their references, put in where the caret is ===== */
-function citeWithPg(ids, page, labels, form) {
+export function citeWithPg(ids, page, labels, form) {
   const text = citeText(ids, labels, form);
   if (!text || !page || ids.length !== 1) return text;
   return text.slice(0, -1) + ', ' + (/[–-]/.test(page) ? 'pp. ' : 'p. ') + page + ')';
 }
 
 /* (Smith, 2020; Jones & Brown, 2019), or narrative (the author is part of the sentence): Smith (2020) */
-function citeText(ids, labels, form) {
+export function citeText(ids, labels, form) {
   labels = labels || yearLabels();
   if (form === 'n' && ids.length === 1) {
     const r = refById(ids[0]);
@@ -21,7 +29,7 @@ function citeText(ids, labels, form) {
 }
 
 /* every citation's text, from its references (or a placeholder, or a note that its source is gone) */
-function hydrateCites(root) {
+export function hydrateCites(root) {
   root = root || ed();
   if (!root) return;
   const labels = yearLabels();
@@ -56,7 +64,7 @@ function markCitation(citation, kind, text, title) {
 }
 
 /* a citation at the caret (or where the caret last was in the notes), a space before it if it follows a word */
-function insertCitation(ids) {
+export function insertCitation(ids) {
   const editor = ed();
   if (!editor || !caretInEditor(editor)) return null;
   const selection = getSelection();
@@ -132,16 +140,12 @@ const LINE_BLOCKS = '#ed > p, #ed > h1, #ed > h2, #ed > h3, #ed > h4, #ed > h5, 
 const TOP_LINES = ':scope > p, :scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6';
 const BESIDE_FIRST_SLACK = 2; // px right of a line's first citation's left edge that still counts as left of it
 
-document.addEventListener(
-  'mousedown',
-  e => {
-    if (e.button !== 0 || e.altKey) return;
-    const citation = e.target.closest && e.target.closest('#ed .cite');
-    if (citation) clickOnCitation(e, citation);
-    else clickBeforeFirstCitation(e);
-  },
-  true
-);
+const onInTextCitationsMousedown = e => {
+  if (e.button !== 0 || e.altKey) return;
+  const citation = e.target.closest && e.target.closest('#ed .cite');
+  if (citation) clickOnCitation(e, citation);
+  else clickBeforeFirstCitation(e);
+};
 
 function clickOnCitation(e, citation) {
   // the page box (and empty or broken citations) keep their own click
@@ -182,18 +186,19 @@ function marginLine(e) {
 
 /* Option-click on a citation (or a click on its page box, or on an empty or broken one): choose its sources;
    in the app, a click on a quote from a PDF opens it there */
-document.addEventListener(
-  'mousedown',
-  e => {
-    if (e.button !== 0) return;
-    const citation = e.target.closest && e.target.closest('#ed .cite');
-    if (!citation) return;
-    e.preventDefault();
-    if (NATIVE && citation.getAttribute('data-anchor') && !e.altKey) {
-      post({ type: 'openAnchor', anchor: citation.getAttribute('data-anchor') });
-      return;
-    }
-    openSources(citation);
-  },
-  true
-);
+const onInTextCitationsMousedown2 = e => {
+  if (e.button !== 0) return;
+  const citation = e.target.closest && e.target.closest('#ed .cite');
+  if (!citation) return;
+  e.preventDefault();
+  if (NATIVE && citation.getAttribute('data-anchor') && !e.altKey) {
+    post({ type: 'openAnchor', anchor: citation.getAttribute('data-anchor') });
+    return;
+  }
+  openSources(citation);
+};
+
+export function initInTextCitations() {
+  document.addEventListener('mousedown', onInTextCitationsMousedown, true);
+  document.addEventListener('mousedown', onInTextCitationsMousedown2, true);
+}

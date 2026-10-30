@@ -1,13 +1,30 @@
+import { esc } from '../core/helpers-and-state.js';
+import { headerHeight } from '../view/zoom.js';
+import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { edChanged } from '../editor/hydrate-and-changes.js';
+import { caretInto } from '../essays/essays.js';
+import { texInline } from './equation-tex.js';
+import { renderMath } from './equation-drawing.js';
+import { EQ_MENUS } from './equation-menus.js';
+import { renderIMath } from './inline-equations.js';
+import { EQ_BOXES } from './math-field-look.js';
+import { ZW, caretAnchors } from '../editor/caret-and-keys.js';
+import { ensureRoom, solidBlock } from '../editor/folding.js';
+
 /* ===== the equation editor, part 3: what it's made of — its markup, where it sits, closing it ===== */
 
 /* the editor that's open (a MathEditor), or null */
-let mathEd = null;
+export let mathEd = null;
+export function setMathEd(value) {
+  mathEd = value;
+  return value;
+}
 
-function mathAttr(el) {
+export function mathAttr(el) {
   return el.hasAttribute('data-imath') ? 'data-imath' : 'data-math';
 }
 
-function closeMathEditor() {
+export function closeMathEditor() {
   if (!mathEd) return;
   const editor = mathEd;
   mathEd = null;
@@ -26,7 +43,7 @@ function closeMathEditor() {
 }
 
 /* the caret goes on after an equation once it's edited: below a block one, straight after an inline one */
-function caretAfterMath(el) {
+export function caretAfterMath(el) {
   if (!el.isConnected) return;
   if (el.hasAttribute('data-imath')) {
     caretAfterInlineMath(el);
@@ -51,7 +68,7 @@ function caretAfterInlineMath(el) {
 
 /* ---- the markup: as in Word, one row of captioned groups (the gallery and the way of typing, a strip of symbols, the
    structures), the lines of the equation, its LaTeX, the annotation list, and the buttons ---- */
-function editorHTML() {
+export function editorHTML() {
   return (
     '<div class="mp-grip" title="Drag to move"><i></i></div>' +
     `<div class="mp-pal">${toolsGroupHTML()}${symbolsGroupHTML()}${structuresGroupHTML()}</div>` +
@@ -115,7 +132,7 @@ const SIDE_MARGIN = 12; // px kept clear at its sides
 const MOVED_MARGIN = 4; // px kept clear once it's been moved by hand
 const GRIP_BOTTOM_ROOM = 60; // px of a dragged editor that stay in the window at the bottom
 
-function placeEditor(popup, el) {
+export function placeEditor(popup, el) {
   if (popup.moved) {
     keepInWindow(popup);
     return;
@@ -167,7 +184,7 @@ function editorTop(popup, box, header) {
 }
 
 /* the grip along its top moves it */
-function enableGripDrag(popup) {
+export function enableGripDrag(popup) {
   popup.querySelector('.mp-grip').addEventListener('mousedown', function (ev) {
     if (ev.button !== 0) return;
     ev.preventDefault();
@@ -201,7 +218,7 @@ const CELL_FILL = 0.9; // of a symbol cell or toolbar icon
 const TILE_MAX_GROW = 1.4; // a small preview grows at most this much (symbols and icons only shrink)
 const SCALE_TOLERANCE = 0.03; // closer to 1 than this is left as it is
 
-function fitPreviews(root) {
+export function fitPreviews(root) {
   root.querySelectorAll('.mp-tile,.mp-sym,.mp-ci').forEach(fitPreview);
 }
 

@@ -1,5 +1,9 @@
+import { ed } from '../editor/notes-document.js';
+import { closeFn, fnPop, openFn } from '../editor/footnotes.js';
+import { closeImgTool, imgTool, openImgTool } from './image-toolbar.js';
+
 /* ===== clicks in the notes on footnotes and pictures; anything else closes their popups ===== */
-document.addEventListener('click', e => {
+const onNoteClicksClick = e => {
   const target = e.target;
   const marker = target.closest && target.closest('#ed .fn');
   const listed = !marker && target.closest && target.closest('#fnlist li');
@@ -13,7 +17,7 @@ document.addEventListener('click', e => {
     if (fnPop && !target.closest('.fnpop')) closeFn();
     if (imgTool && !target.closest('.imgbar,#imgframe,#cropper')) closeImgTool();
   }
-});
+};
 
 /* a footnote in the list at the end: its marker in the text, scrolled to and opened */
 function openListedFootnote(item) {
@@ -24,10 +28,11 @@ function openListedFootnote(item) {
 }
 
 /* pictures aren't dragged out as files (Move moves them) */
-document.addEventListener(
-  'dragstart',
-  e => {
-    if (e.target.closest && e.target.closest('#ed img')) e.preventDefault();
-  },
-  true
-);
+const onNoteClicksDragstart = e => {
+  if (e.target.closest && e.target.closest('#ed img')) e.preventDefault();
+};
+
+export function initNoteClicks() {
+  document.addEventListener('click', onNoteClicksClick);
+  document.addEventListener('dragstart', onNoteClicksDragstart, true);
+}

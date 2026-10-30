@@ -1,5 +1,26 @@
+import { $, esc, meta, toast, ui } from '../core/helpers-and-state.js';
+import { Store } from '../core/storage.js';
+import { essays } from '../essays/essays.js';
+import {
+  citeCount,
+  orderedRefs,
+  ownerDoc,
+  parseOne,
+  refById,
+  refHTML,
+  refOwner,
+  refSort,
+  refs,
+  setRefSort2,
+  setRefs,
+  sortedRefs,
+  splitRich,
+  yearLabels
+} from './references.js';
+import { citeText } from './in-text-citations.js';
+
 /* ===== the Works Cited tab: add, edit, order and delete references ===== */
-function renderWC() {
+export function renderWC() {
   const selected = ui.wcSel || (ui.wcSel = {});
   const labels = yearLabels();
   const src = ownerDoc();
@@ -105,8 +126,8 @@ function moveRef(id, target, after) {
   const at = list.findIndex(r => r.id === target);
   if (at < 0) return;
   list.splice(after ? at + 1 : at, 0, moved);
-  refs = list;
-  refSort = 'manual';
+  setRefs(list);
+  setRefSort2('manual');
   saveAndRenderWC();
   if (wasAuto) toast('Switched to manual order');
 }
@@ -129,13 +150,13 @@ const WORKS_CITED_ACTIONS = [
   [button => button.id === 'wcdel', () => deleteRefs(selectedRefIds(), 'wcdel')]
 ];
 
-document.addEventListener('click', e => {
+const onWorksCitedTabClick = e => {
   if (ui.view !== 'wc') return;
   const button = e.target.closest('button');
   if (!button) return;
   const action = WORKS_CITED_ACTIONS.find(([matches]) => matches(button, button.dataset));
   if (action) action[1](button, button.dataset);
-});
+};
 
 /* pasted references are added, except those already listed */
 function addPastedReferences() {
@@ -150,7 +171,7 @@ function addPastedReferences() {
     toast('Those references are already in your list');
     return;
   }
-  refs = refs.concat(added);
+  setRefs(refs.concat(added));
   saveAndRenderWC();
   const skipped = entries.length - added.length;
   const alreadyListed = skipped > 0 ? ` (${skipped} already listed)` : '';
@@ -159,8 +180,8 @@ function addPastedReferences() {
 
 /* manual order starts from the automatic one */
 function setRefSort(sort) {
-  if (sort === 'manual' && refSort === 'auto') refs = sortedRefs();
-  refSort = sort;
+  if (sort === 'manual' && refSort === 'auto') setRefs(sortedRefs());
+  setRefSort2(sort);
   saveAndRenderWC();
 }
 
@@ -216,7 +237,7 @@ function deleteRefs(ids, confirmKey) {
     renderWC();
     return;
   }
-  refs = refs.filter(r => !ids.includes(r.id));
+  setRefs(refs.filter(r => !ids.includes(r.id)));
   if (confirmKey === 'wcdel') ui.wcSel = {};
   else ui.refEdit = null;
   ui.confirm = null;
@@ -225,12 +246,12 @@ function deleteRefs(ids, confirmKey) {
 }
 
 /* ---- selecting ---- */
-document.addEventListener('change', e => {
+const onWorksCitedTabChange = e => {
   if (ui.view !== 'wc') return;
   const box = e.target;
   if (box.id === 'wcall') selectAllRefs(box.checked);
   else if (box.dataset && box.dataset.wcsel) selectRef(box.dataset.wcsel, box.checked);
-});
+};
 
 function selectAllRefs(on) {
   ui.wcSel = {};
@@ -253,7 +274,7 @@ const clearDropMarks = classes =>
     .querySelectorAll(classes.map(name => '.wci.' + name).join(','))
     .forEach(item => item.classList.remove(...classes));
 
-document.addEventListener('dragstart', e => {
+const onWorksCitedTabDragstart = e => {
   const item = e.target.closest && e.target.closest('.wci[draggable="true"]');
   if (!item) return;
   ui.dragId = item.dataset.id;
@@ -262,10 +283,10 @@ document.addEventListener('dragstart', e => {
   try {
     e.dataTransfer.setData('text/plain', item.dataset.id);
   } catch (x) {}
-});
+};
 
 /* the reference dragged over shows which side it would go */
-document.addEventListener('dragover', e => {
+const onWorksCitedTabDragover = e => {
   if (!ui.dragId) return;
   const item = e.target.closest && e.target.closest('.wci');
   if (!item) return;
@@ -273,9 +294,9 @@ document.addEventListener('dragover', e => {
   const box = item.getBoundingClientRect();
   clearDropMarks(['dropa', 'dropb']);
   item.classList.add(e.clientY > box.top + box.height / 2 ? 'dropa' : 'dropb');
-});
+};
 
-document.addEventListener('drop', e => {
+const onWorksCitedTabDrop = e => {
   if (!ui.dragId) return;
   const item = e.target.closest && e.target.closest('.wci');
   if (!item) return;
@@ -283,9 +304,18 @@ document.addEventListener('drop', e => {
   const id = ui.dragId;
   ui.dragId = null;
   moveRef(id, item.dataset.id, item.classList.contains('dropa'));
-});
+};
 
-document.addEventListener('dragend', () => {
+const onWorksCitedTabDragend = () => {
   ui.dragId = null;
   clearDropMarks(['dragging', 'dropa', 'dropb']);
-});
+};
+
+export function initWorksCitedTab() {
+  document.addEventListener('click', onWorksCitedTabClick);
+  document.addEventListener('change', onWorksCitedTabChange);
+  document.addEventListener('dragstart', onWorksCitedTabDragstart);
+  document.addEventListener('dragover', onWorksCitedTabDragover);
+  document.addEventListener('drop', onWorksCitedTabDrop);
+  document.addEventListener('dragend', onWorksCitedTabDragend);
+}

@@ -1,3 +1,15 @@
+import { toast } from '../core/helpers-and-state.js';
+import { closestTag, cmd, fire, inEd, tbState } from '../editor/editor-commands.js';
+import { isDocView } from '../essays/essays.js';
+import { MD, anchorElement, mdCaret, mdOff, mdPara, mdSel, textAfterCaret } from './writing.js';
+import { mdArrow, mdDash, mdIMath, mdInline } from './inline-shortcuts.js';
+import { TYPED_SPACE, mdBlock, mdCallout, mdRule, mdRuleTyped, quoteExit } from './block-shortcuts.js';
+import { codeExit } from './inline-code.js';
+import { insertMath } from '../equations/equation-drawing.js';
+import { ZW, blockBackspace, joinLocked, listBackspace } from '../editor/caret-and-keys.js';
+import { calloutBackspace, calloutEnter } from '../editor/callout-keys.js';
+import { WS, applyWS, saveWS, twScroll } from './typewriter-writing.js';
+
 /* ===== typing in the notes: smart quotes and pairs, stepping out of formatting, the shortcuts, and their ⌘Z ===== */
 const PAIRS = { '(': ')', '[': ']', '{': '}', '“': '”' };
 const OPENS_QUOTE = /[\s([{“‘—–/-]/; // after these (or at the start), a quote mark opens
@@ -30,24 +42,20 @@ function moveCaret(selection, direction) {
   selection.modify('move', direction, 'character');
 }
 
-document.addEventListener(
-  'beforeinput',
-  e => {
-    if (!e.target || e.target.id !== 'ed' || e.inputType !== 'insertText' || e.data == null) return;
-    const selection = getSelection();
-    if (!selection.rangeCount) return;
-    if (MD.esc && typedAfterFormatting(e, selection)) return;
-    if (e.data === '`' && selection.isCollapsed && backtickLeavesCode(e, selection)) return;
-    if (mdOff(selection.anchorNode)) return;
-    if (e.data === '"' || e.data === "'") typeQuote(e, selection);
-    else if (PAIRS[e.data]) typePair(e, selection);
-    else if (/^[)\]}]$/.test(e.data) && selection.isCollapsed && mdChars().a === e.data) {
-      e.preventDefault();
-      moveCaret(selection, 'forward');
-    }
-  },
-  true
-);
+const onTypingBeforeinput = e => {
+  if (!e.target || e.target.id !== 'ed' || e.inputType !== 'insertText' || e.data == null) return;
+  const selection = getSelection();
+  if (!selection.rangeCount) return;
+  if (MD.esc && typedAfterFormatting(e, selection)) return;
+  if (e.data === '`' && selection.isCollapsed && backtickLeavesCode(e, selection)) return;
+  if (mdOff(selection.anchorNode)) return;
+  if (e.data === '"' || e.data === "'") typeQuote(e, selection);
+  else if (PAIRS[e.data]) typePair(e, selection);
+  else if (/^[)\]}]$/.test(e.data) && selection.isCollapsed && mdChars().a === e.data) {
+    e.preventDefault();
+    moveCaret(selection, 'forward');
+  }
+};
 
 /* typing straight after a shortcut's formatting carries on in plain text */
 function typedAfterFormatting(e, selection) {
@@ -121,25 +129,21 @@ function typePair(e, selection) {
 }
 
 /* after each letter typed: does it complete a shortcut? */
-document.addEventListener(
-  'input',
-  e => {
-    if (!e.target || e.target.id !== 'ed') return;
-    if (!e.inputType || e.isComposing) return; /* our own change notices, or text still being composed */
-    /* WebKit can send a second notice for the same keystroke, straight after a conversion: that one isn't a new edit */
-    const viaIME = /^insert(FromComposition|CompositionText|ReplacementText)$/.test(e.inputType);
-    if (e.inputType !== 'insertText' && !viaIME) {
-      if (performance.now() - MD.at > SAME_KEYSTROKE) MD.last = null;
-      return;
-    }
-    MD.last = null;
-    if (convertTyped(e.data, viaIME)) {
-      MD.at = performance.now();
-      fire();
-    }
-  },
-  true
-);
+const onTypingInput = e => {
+  if (!e.target || e.target.id !== 'ed') return;
+  if (!e.inputType || e.isComposing) return; /* our own change notices, or text still being composed */
+  /* WebKit can send a second notice for the same keystroke, straight after a conversion: that one isn't a new edit */
+  const viaIME = /^insert(FromComposition|CompositionText|ReplacementText)$/.test(e.inputType);
+  if (e.inputType !== 'insertText' && !viaIME) {
+    if (performance.now() - MD.at > SAME_KEYSTROKE) MD.last = null;
+    return;
+  }
+  MD.last = null;
+  if (convertTyped(e.data, viaIME)) {
+    MD.at = performance.now();
+    fire();
+  }
+};
 
 function convertTyped(data, viaIME) {
   const space = TYPED_SPACE.test(data || '') || (viaIME && TYPED_SPACE.test((mdCaret() || { before: '' }).before));
@@ -164,26 +168,22 @@ function listShortcut(e) {
   return null;
 }
 
-document.addEventListener(
-  'keydown',
-  e => {
-    const mod = e.metaKey || e.ctrlKey;
-    if (typewriterKey(e) || !inEd()) return;
-    if (mod && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z' && MD.last) {
-      undoShortcut(e);
-      return;
-    }
-    if (/^Arrow|^Home$|^End$|^Page/.test(e.key)) {
-      MD.esc = null;
-      MD.last = null;
-    }
-    if (e.key === 'Backspace' && !mod && !e.altKey && backspaceKey(e)) return;
-    if (e.metaKey && !e.ctrlKey && commandKey(e)) return;
-    if (e.key === 'Delete' && !mod && !e.altKey && joinLocked(e, false)) return;
-    if (e.key === 'Enter' && !e.shiftKey && !mod && !e.altKey) enterKey(e);
-  },
-  true
-);
+const onTypingKeydown = e => {
+  const mod = e.metaKey || e.ctrlKey;
+  if (typewriterKey(e) || !inEd()) return;
+  if (mod && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z' && MD.last) {
+    undoShortcut(e);
+    return;
+  }
+  if (/^Arrow|^Home$|^End$|^Page/.test(e.key)) {
+    MD.esc = null;
+    MD.last = null;
+  }
+  if (e.key === 'Backspace' && !mod && !e.altKey && backspaceKey(e)) return;
+  if (e.metaKey && !e.ctrlKey && commandKey(e)) return;
+  if (e.key === 'Delete' && !mod && !e.altKey && joinLocked(e, false)) return;
+  if (e.key === 'Enter' && !e.shiftKey && !mod && !e.altKey) enterKey(e);
+};
 
 function headingKey(level) {
   const block = closestTag('h1,h2,h3,h4,h5,h6');
@@ -265,11 +265,14 @@ function enterKey(e) {
   quoteExit(e);
 }
 
-document.addEventListener(
-  'mousedown',
-  () => {
-    MD.esc = null;
-    MD.last = null;
-  },
-  true
-);
+const onTypingMousedown = () => {
+  MD.esc = null;
+  MD.last = null;
+};
+
+export function initTyping() {
+  document.addEventListener('beforeinput', onTypingBeforeinput, true);
+  document.addEventListener('input', onTypingInput, true);
+  document.addEventListener('keydown', onTypingKeydown, true);
+  document.addEventListener('mousedown', onTypingMousedown, true);
+}

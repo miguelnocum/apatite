@@ -1,10 +1,21 @@
+import { esc } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { restoreSel } from '../view/zoom.js';
+import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { mdTopBlock } from '../writing/writing.js';
+import { KT_OPTS, texInline, texLines, texShow } from './equation-tex.js';
+import { annCandidates, annotateTex } from './equation-parts.js';
+import { annLayout, annRO } from './equation-note-layout.js';
+import { openMathEditor } from './equation-editor.js';
+import { ensureRoom } from '../editor/folding.js';
+
 /* ===== explained equations: parts of an equation in colour, each with a note in plain words =====
    data-math-notes holds [{t:"\\sigma",c:2,n:"squashes any number to between 0 and 1"}]; every place the part appears is coloured,
    and its note sits above or below the equation with a line to it */
-const ANN_COLORS = ['#e5484d', '#3e8ef7', '#2f9e5b', '#f07a1a', '#8e4ec6', '#d6409f', '#0e9c8e', '#c08f00'];
+export const ANN_COLORS = ['#e5484d', '#3e8ef7', '#2f9e5b', '#f07a1a', '#8e4ec6', '#d6409f', '#0e9c8e', '#c08f00'];
 
 /* an equation's notes (those naming a part) */
-function annList(el) {
+export function annList(el) {
   try {
     const list = JSON.parse(el.getAttribute('data-math-notes') || '[]');
     return Array.isArray(list) ? list.filter(note => note && typeof note.t === 'string' && note.t.trim()) : [];
@@ -13,18 +24,18 @@ function annList(el) {
   }
 }
 
-function annSave(el, list) {
+export function annSave(el, list) {
   if (list.length) el.setAttribute('data-math-notes', JSON.stringify(list));
   else el.removeAttribute('data-math-notes');
 }
 
-function annColor(note) {
+export function annColor(note) {
   const count = ANN_COLORS.length;
   return ANN_COLORS[(((+note.c || 0) % count) + count) % count];
 }
 
 /* what an equation is drawn from: once drawn from the same, it isn't drawn again */
-function mathKey(el) {
+export function mathKey(el) {
   return (
     (el.getAttribute('data-math') || '') +
     '\u0001' +
@@ -34,7 +45,7 @@ function mathKey(el) {
 }
 
 /* a note's words, with maths written between dollar signs ($\{x_i, y_i\}$) drawn by KaTeX */
-function annNoteHTML(text) {
+export function annNoteHTML(text) {
   if (!text) return '<i>Click to explain</i>';
   return String(text)
     .split(/(\$[^$\n]+\$)/)
@@ -43,7 +54,7 @@ function annNoteHTML(text) {
 }
 
 /* every equation in a part of the page, drawn (unless it's drawn already from the same LaTeX and notes) */
-function renderMath(root) {
+export function renderMath(root) {
   (root || ed()).querySelectorAll('[data-math]').forEach(drawEquation);
 }
 
@@ -123,7 +134,7 @@ function withNotes(lines, list) {
 }
 
 /* a new equation where the caret is: in place of an empty line (or "$$"), else after the line; its editor opens */
-function insertMath(replace) {
+export function insertMath(replace) {
   const editor = ed();
   if (!editor) return;
   restoreSel();

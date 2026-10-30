@@ -1,17 +1,25 @@
+import { $, toast } from '../core/helpers-and-state.js';
+import { mk } from '../editor/paste-cleaning.js';
+import { ed, saveDocSoon } from '../editor/notes-document.js';
+import { edChanged } from '../editor/hydrate-and-changes.js';
+import { startImgMove, startImgResize } from './image-resize-move.js';
+import { cancelCrop, openCrop } from './image-crop.js';
+import { caretToStart } from '../writing/block-shortcuts.js';
+
 /* ===== images: click one for layout, size, crop, move, caption, delete ===== */
 const TOOLBAR_MARGIN = 8; // px between the toolbar and the picture, and the window's sides
 const TOOLBAR_MIN_TOP = 70; // px: a toolbar that would sit higher than this (under the header) goes below the picture
 const WRAPPED_WIDTH = '50'; // a picture wrapped by text starts at half the width
-let imgTool = null;
-let imgSel = null;
-const imgOrig = new WeakMap(); // a cropped picture's original
+export let imgTool = null;
+export let imgSel = null;
+export const imgOrig = new WeakMap(); // a cropped picture's original
 
 /* the picture, or the figure it's captioned in */
-function imgNode(img) {
+export function imgNode(img) {
   return img.closest('figure') || img;
 }
 
-function closeImgTool() {
+export function closeImgTool() {
   cancelCrop();
   if (imgTool) {
     imgTool.remove();
@@ -22,7 +30,7 @@ function closeImgTool() {
   imgSel = null;
 }
 
-function openImgTool(img) {
+export function openImgTool(img) {
   closeImgTool();
   imgSel = img;
   const toolbar = mk('div');
@@ -43,7 +51,7 @@ function openImgTool(img) {
   });
 }
 
-function drawImgTool() {
+export function drawImgTool() {
   const img = imgSel;
   if (!img || !imgTool) return;
   imgTool.innerHTML = imageButtons(img)
@@ -92,7 +100,7 @@ function sizeButtons(width) {
 }
 
 /* the toolbar above the image, and a frame with corner handles for resizing */
-function placeImgTool() {
+export function placeImgTool() {
   const img = imgSel;
   if (!img || !imgTool || !document.contains(img)) {
     closeImgTool();
@@ -127,18 +135,14 @@ function placeResizeFrame(img, box) {
   frame.setAttribute('data-size', Math.round((box.width / line) * 100) + '%');
 }
 
-window.addEventListener(
-  'scroll',
-  () => {
-    if (imgSel) placeImgTool();
-  },
-  { passive: true }
-);
-window.addEventListener('resize', () => {
+const onImageToolbarWindowScroll = () => {
   if (imgSel) placeImgTool();
-});
+};
+const onImageToolbarWindowResize = () => {
+  if (imgSel) placeImgTool();
+};
 
-function imgChanged() {
+export function imgChanged() {
   saveDocSoon();
   edChanged();
   setTimeout(drawImgTool, 0);
@@ -219,4 +223,9 @@ function addCaption(img) {
   caretToStart(caption);
   saveDocSoon();
   edChanged();
+}
+
+export function initImageToolbar() {
+  window.addEventListener('scroll', onImageToolbarWindowScroll, { passive: true });
+  window.addEventListener('resize', onImageToolbarWindowResize);
 }

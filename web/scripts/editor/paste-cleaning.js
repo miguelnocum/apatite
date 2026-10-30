@@ -1,3 +1,6 @@
+import { esc } from '../core/helpers-and-state.js';
+import { CALLOUTS } from './callouts.js';
+
 /* ===== cleaning HTML (pasted, or loaded from a file): only what notes can hold is kept, the rest unwrapped or dropped ===== */
 /* elements kept, and what they become */
 // prettier-ignore
@@ -51,7 +54,7 @@ const KEPT_STYLES = [
   ['vertical-align', /^t[dh]$/, /^(top|middle|bottom)$/]
 ];
 
-function mk(tag) {
+export function mk(tag) {
   return document.createElement(tag);
 }
 
@@ -241,7 +244,7 @@ function keepStyles(node, target, kept) {
 /* an empty line (only the caret markers beside citations, or nothing at all) keeps a line break, or it has no height
    and can't take the caret: a click on it lands in the line above, often a heading */
 const FILLABLE = 'p,h1,h2,h3,h4,h5,h6,li,blockquote,td,th,figcaption';
-function fillEmpty(root, keep) {
+export function fillEmpty(root, keep) {
   root.querySelectorAll(FILLABLE).forEach(block => {
     if (
       block === keep ||
@@ -255,7 +258,7 @@ function fillEmpty(root, keep) {
 }
 
 /* clean HTML. prune (for pasting): empty elements dropped, a lone paragraph in a list item unwrapped, tables given a body */
-function sanitize(html, prune) {
+export function sanitize(html, prune) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const out = mk('div');
   walk(doc.body, out);
@@ -283,7 +286,7 @@ function pruneCleaned(out) {
 }
 
 /* plain text as notes: each line a paragraph (or all on one line, inline) */
-function plainToHTML(text, inline) {
+export function plainToHTML(text, inline) {
   const lines = text
     .replace(/\r/g, '')
     .split('\n')

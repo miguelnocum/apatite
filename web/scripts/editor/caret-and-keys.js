@@ -1,8 +1,14 @@
+import { mk } from './paste-cleaning.js';
+import { fire, tbState } from './editor-commands.js';
+import { ed } from './notes-document.js';
+import { anchorElement, mdTopBlock, selectRange } from '../writing/writing.js';
+import { caretToStart } from '../writing/block-shortcuts.js';
+
 /* ===== a place for the caret beside a citation or footnote at the start or end of a line (on screen only; never saved) ===== */
-const ZW = '\u200b';
+export const ZW = '\u200b';
 const LOCKED_PIECES = '[data-cite],[data-fn],[data-imath]';
 
-function caretAnchors(root) {
+export function caretAnchors(root) {
   root = root || ed();
   if (!root) return;
   root.querySelectorAll(LOCKED_PIECES).forEach(el => {
@@ -24,7 +30,7 @@ function visibleText(range) {
 }
 
 /* ===== joining two lines where one starts with a citation or footnote (WebKit can't delete into a locked piece) ===== */
-function lockedFirst(block) {
+export function lockedFirst(block) {
   let node = block.firstChild;
   while (node && node.nodeType === 3 && !node.nodeValue.replace(/\u200b/g, '').trim()) node = node.nextSibling;
   return !!(
@@ -44,7 +50,7 @@ function caretAtEndOf(el) {
 }
 
 /* Backspace at the start of a line beginning with a locked piece, or Delete at the end of the line before one */
-function joinLocked(e, back) {
+export function joinLocked(e, back) {
   const selection = getSelection();
   if (!selection.rangeCount || !selection.isCollapsed) return false;
   const block = mdTopBlock(selection.anchorNode);
@@ -129,7 +135,7 @@ function caretAtStartOf(el) {
 }
 
 /* a bullet: the first Backspace takes the bullet away and leaves the words where they are (nested: one level out) */
-function listBackspace(e) {
+export function listBackspace(e) {
   const selection = getSelection();
   if (!selection.rangeCount || !selection.isCollapsed) return false;
   const el = anchorElement(selection);
@@ -188,7 +194,7 @@ function restOfList(list, nested, after) {
 }
 
 /* a line right after a callout, quote or table: never merged into it; an empty line goes, the caret steps up */
-function blockBackspace(e) {
+export function blockBackspace(e) {
   const selection = getSelection();
   if (!selection.rangeCount || !selection.isCollapsed) return false;
   const block = mdTopBlock(selection.anchorNode);
@@ -217,7 +223,7 @@ function lastPlaceIn(above) {
 }
 
 /* ===== which syllabus this notebook follows (the Mac app keeps syllabi as their own files) ===== */
-function sylInfo() {
+export function sylInfo() {
   const notebook = window.__NB__ || {};
   return { cur: notebook.syllabus || null, list: notebook.syllabi || [] };
 }

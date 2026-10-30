@@ -42,10 +42,10 @@ struct Destination: Identifiable {
                     key: "2") { $0.openEssay() },
         Destination(id: "database", title: "Database", blurb: "Where everything lives", icon: "archivebox",
                     colors: [Color(red: 0.13, green: 0.78, blue: 0.70), Color(red: 0.05, green: 0.55, blue: 0.62)],
-                    key: "3") { $0.screen = .database },
+                    key: "3") { $0.navigation.screen = .database },
         Destination(id: "read", title: "Read", blurb: "Your PDF library", icon: "books.vertical",
                     colors: [Color(red: 1.00, green: 0.76, blue: 0.20), Color(red: 0.98, green: 0.52, blue: 0.14)],
-                    key: "4") { $0.openReader() },
+                    key: "4") { $0.navigation.openReader() },
     ]
 }
 
@@ -104,7 +104,7 @@ struct WelcomeView: View {
     }
 
     private var title: some View {
-        Text(s.welcomeTitle)
+        Text(s.navigation.welcomeTitle)
             .font(.system(size: 54, weight: .heavy, design: .rounded))
             .multilineTextAlignment(.center)
             .foregroundStyle(LinearGradient(colors: Self.titleColours, startPoint: .leading, endPoint: .trailing))

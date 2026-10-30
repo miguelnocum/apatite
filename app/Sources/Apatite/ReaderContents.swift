@@ -1,7 +1,7 @@
 import SwiftUI
 import PDFKit
 
-extension AppState {
+extension ReaderModel {
     /// Builds the contents for the open paper (once per paper), off the main thread.
     func loadTOC() {
         guard let item = current, document != nil, tocFor != item.id else { return }
@@ -59,10 +59,10 @@ struct ContentsPanel: View {
     @State private var followed: Int? = nil
 
     var body: some View {
-        let cur = s.currentTOCEntry
+        let cur = s.reader.currentTOCEntry
         VStack(alignment: .leading, spacing: 0) {
             header
-            if !s.toc.isEmpty {
+            if !s.reader.toc.isEmpty {
                 TextField("Find a chapter or section", text: $q)
                     .textFieldStyle(.roundedBorder).controlSize(.small)
                     .padding(.horizontal, 12).padding(.bottom, 8)
@@ -71,8 +71,8 @@ struct ContentsPanel: View {
             entries(cur)
         }
         .background(s.themePanel)
-        .onAppear { s.loadTOC() }
-        .onChange(of: s.currentId) { _, _ in open = []; q = ""; followed = nil; s.loadTOC() }
+        .onAppear { s.reader.loadTOC() }
+        .onChange(of: s.reader.currentId) { _, _ in open = []; q = ""; followed = nil; s.reader.loadTOC() }
     }
 
     /// "Contents", expand or collapse all, and close
@@ -80,20 +80,20 @@ struct ContentsPanel: View {
         HStack {
             Text("Contents").font(.headline)
             Spacer()
-            if s.toc.contains(where: { $0.hasKids }) && q.isEmpty {
-                Button { open = open.isEmpty ? Set(s.toc.filter(\.hasKids).map(\.id)) : [] } label: {
+            if s.reader.toc.contains(where: { $0.hasKids }) && q.isEmpty {
+                Button { open = open.isEmpty ? Set(s.reader.toc.filter(\.hasKids).map(\.id)) : [] } label: {
                     Image(systemName: open.isEmpty ? "chevron.down.2" : "chevron.up.2")
                 }.buttonStyle(.borderless).help(open.isEmpty ? "Expand all" : "Collapse all")
             }
-            Button { s.showContents = false } label: { Image(systemName: "xmark") }.buttonStyle(.borderless).help("Hide contents (⌥⌘T)")
+            Button { s.reader.showContents = false } label: { Image(systemName: "xmark") }.buttonStyle(.borderless).help("Hide contents (⌥⌘T)")
         }.padding(.horizontal, 12).padding(.top, 10).padding(.bottom, 6)
     }
 
     /// loading, nothing found, or the list (following the section being read)
     @ViewBuilder private func entries(_ cur: Int?) -> some View {
-        if s.tocSource == "loading" {
+        if s.reader.tocSource == "loading" {
             ProgressView().controlSize(.small).frame(maxWidth: .infinity).padding(20)
-        } else if s.toc.isEmpty {
+        } else if s.reader.toc.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
                 Text("No contents found").font(.callout.weight(.semibold))
                 Text("This PDF has no built-in outline and no contents page with page numbers in its first pages.")
@@ -102,7 +102,7 @@ struct ContentsPanel: View {
             Spacer()
         } else {
             contentsList(cur)
-            if s.tocSource == "printed" {
+            if s.reader.tocSource == "printed" {
                 Text("Read from the book\u{2019}s printed contents page.")
                     .font(.caption2).foregroundStyle(.tertiary).padding(.horizontal, 12).padding(.vertical, 6)
             }
@@ -123,20 +123,20 @@ struct ContentsPanel: View {
     /// What's on show: matches when searching, otherwise every entry whose parents are open.
     private func rows(_ cur: Int?) -> [TOCEntry] {
         let needle = q.trimmingCharacters(in: .whitespaces).lowercased()
-        if !needle.isEmpty { return s.toc.filter { $0.title.lowercased().contains(needle) } }
-        return s.toc.filter { e in
+        if !needle.isEmpty { return s.reader.toc.filter { $0.title.lowercased().contains(needle) } }
+        return s.reader.toc.filter { e in
             var p = e.parent
-            while let i = p { if !open.contains(i) { return false }; p = s.toc[i].parent }
+            while let i = p { if !open.contains(i) { return false }; p = s.reader.toc[i].parent }
             return true
         }
     }
 
     /// Opens the way down to the section being read and keeps it in view.
     private func follow(_ cur: Int?, _ proxy: ScrollViewProxy) {
-        guard let c = cur, c != followed, c < s.toc.count else { return }
+        guard let c = cur, c != followed, c < s.reader.toc.count else { return }
         followed = c
-        var p = s.toc[c].parent
-        while let i = p { open.insert(i); p = s.toc[i].parent }
+        var p = s.reader.toc[c].parent
+        while let i = p { open.insert(i); p = s.reader.toc[i].parent }
         DispatchQueue.main.async { withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(c, anchor: .center) } }
     }
 
@@ -168,14 +168,14 @@ struct ContentsPanel: View {
 
     /// the entry's title and printed page; goes there
     private func entryButton(_ e: TOCEntry) -> some View {
-        Button { s.goTo(e) } label: {
+        Button { s.reader.goTo(e) } label: {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(e.title)
                     .font(.system(size: e.depth == 0 ? 12.5 : 12, weight: e.depth == 0 ? .semibold : .regular))
                     .foregroundStyle(e.page < 0 ? Color.secondary : Color.primary)
                     .lineLimit(2).multilineTextAlignment(.leading)
                 Spacer(minLength: 4)
-                if e.page >= 0 { Text(s.printed(e.page)).font(.system(size: 11, design: .monospaced)).foregroundStyle(.secondary) }
+                if e.page >= 0 { Text(s.reader.printed(e.page)).font(.system(size: 11, design: .monospaced)).foregroundStyle(.secondary) }
             }.contentShape(Rectangle())
         }.buttonStyle(.plain).disabled(e.page < 0)
     }

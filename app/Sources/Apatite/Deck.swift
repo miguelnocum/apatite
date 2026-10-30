@@ -189,11 +189,11 @@ extension Workspace {
 extension AppState {
     /// Opens a deck: in its own window while that window is in use, otherwise on the deck screen.
     func openDeck(_ p: ProjectInfo, _ id: String, ownWindow: Bool = false) {
-        flushAll { [self] in
+        session.flushAll { [self] in
             guard let it = workspace.item(.decks, id, in: p), let d = try? Data(contentsOf: it.url), let dk = try? JSONDecoder().decode(Deck.self, from: d) else { return }
             saveDeckNow()
             deck = dk; deckURL = it.url; deckProject = p
-            if ownWindow || deckDetached { showDeckWindow() } else { screen = .deck }
+            if ownWindow || deckDetached { showDeckWindow() } else { navigation.screen = .deck }
         }
     }
 
@@ -204,7 +204,7 @@ extension AppState {
         saveDeckNow()
         deckStartEdit = true
         showDeckWindow()
-        if screen == .deck { showEditor() }
+        if navigation.screen == .deck { navigation.showEditor() }
     }
 
     func showDeckWindow() {
@@ -220,12 +220,12 @@ extension AppState {
         deckDetached = false
         Self.prefs.removeObject(forKey: "deckWindow")
         closeDeckWindow?()
-        if deck != nil { screen = .deck }
+        if deck != nil { navigation.screen = .deck }
     }
 
     /// Closing the deck's window keeps the deck saved and out of the way.
     func deckWindowClosed() {
-        guard deckDetached, !quitting else { return }
+        guard deckDetached, !navigation.quitting else { return }
         saveDeckNow()
         deckDetached = false
         Self.prefs.removeObject(forKey: "deckWindow")
@@ -235,11 +235,11 @@ extension AppState {
     func deckWindowShortcut() {
         if deckDetached { openDeckWindow?(); return }
         deckStartEdit = true
-        if deck != nil, deckProject?.id == project.id { popOutDeck(); return }
-        if let d = workspace.items(.decks, in: project).first { openDeck(project, d.id, ownWindow: true); return }
-        let made = workspace.createDeck(in: project, title: "Untitled deck")
-        revision += 1
-        openDeck(project, made.id, ownWindow: true)
+        if deck != nil, deckProject?.id == session.project.id { popOutDeck(); return }
+        if let d = workspace.items(.decks, in: session.project).first { openDeck(session.project, d.id, ownWindow: true); return }
+        let made = workspace.createDeck(in: session.project, title: "Untitled deck")
+        session.revision += 1
+        openDeck(session.project, made.id, ownWindow: true)
     }
 
     /// At launch: the deck that was in its own window when the app quit comes back there.
@@ -253,9 +253,9 @@ extension AppState {
     }
 
     func newDeck(in p: ProjectInfo? = nil) {
-        let pr = p ?? project
+        let pr = p ?? session.project
         let made = workspace.createDeck(in: pr, title: "Untitled deck")
-        revision += 1
+        session.revision += 1
         openDeck(pr, made.id)
     }
 

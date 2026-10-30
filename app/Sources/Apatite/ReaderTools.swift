@@ -24,9 +24,9 @@ struct WheelState: Equatable {
     var sticky = false
 }
 
-extension AppState {
+extension ReaderModel {
     var wheelItems: [WheelItem] {
-        hlKey.filter { !$0.hidden }.map { WheelItem(id: "k" + $0.id, label: $0.label, color: $0.color, icon: nil, tool: .highlight($0.id)) }
+        app.hlKey.filter { !$0.hidden }.map { WheelItem(id: "k" + $0.id, label: $0.label, color: $0.color, icon: nil, tool: .highlight($0.id)) }
             + [WheelItem(id: "comment", label: "Comment", color: nil, icon: "text.bubble", tool: .comment),
                WheelItem(id: "eraser", label: "Eraser", color: nil, icon: "eraser", tool: .eraser),
                WheelItem(id: "select", label: "Select", color: nil, icon: "cursorarrow", tool: .select)]
@@ -65,7 +65,7 @@ extension AppState {
     var toolLabel: String? {
         switch tool {
         case .select: return nil
-        case .highlight(let id): return "Highlighter · " + (keyColor(id)?.label ?? "")
+        case .highlight(let id): return "Highlighter · " + (app.keyColor(id)?.label ?? "")
         case .comment: return "Comment: select text or click the page"
         case .eraser: return "Eraser: click a highlight or comment"
         }
@@ -132,9 +132,9 @@ extension AppState {
         guard let item = current else { return }
         var pg = printed(c.page)
         if let last = item.highlights.first(where: { $0.text == c.quote }), last.pageEnd != last.page { pg += "\u{2013}" + printed(last.pageEnd) }
-        let payload: [String: String] = ["text": c.text, "quote": c.quote, "refId": item.refId ?? "", "pg": pg, "refRaw": currentRef?.raw ?? item.refRaw ?? ""]
-        notesVisible = true
-        page.insertNote(payload)
+        let payload: [String: String] = ["text": c.text, "quote": c.quote, "refId": item.refId ?? "", "pg": pg, "refRaw": app.citations.currentRef?.raw ?? item.refRaw ?? ""]
+        app.navigation.notesVisible = true
+        app.page.insertNote(payload)
     }
 
     func go(page: Int, rect: CGRect?) {
@@ -159,8 +159,8 @@ struct WheelOverlay: View {
     static let hoverGrowth: CGFloat = 8
 
     var body: some View {
-        if let w = s.wheel {
-            let items = s.wheelItems
+        if let w = s.reader.wheel {
+            let items = s.reader.wheelItems
             ZStack {
                 clickCatcher(w, items)
                 ring(w, items)
@@ -174,18 +174,18 @@ struct WheelOverlay: View {
     private func clickCatcher(_ w: WheelState, _ items: [WheelItem]) -> some View {
         Color.black.opacity(0.001).contentShape(Rectangle())
             .onTapGesture(coordinateSpace: .local) { p in
-                if let i = s.wheelIndex(at: p) { s.choose(items[i]) } else { s.wheel = nil }
+                if let i = s.reader.wheelIndex(at: p) { s.reader.choose(items[i]) } else { s.reader.wheel = nil }
             }
-            .onContinuousHover { ph in if case .active(let p) = ph, w.sticky { s.hoverWheel(at: p) } }
+            .onContinuousHover { ph in if case .active(let p) = ph, w.sticky { s.reader.hoverWheel(at: p) } }
     }
 
     private func ring(_ w: WheelState, _ items: [WheelItem]) -> some View {
         let seg = 360.0 / Double(items.count)
         return ZStack {
             ForEach(Array(items.enumerated()), id: \.element.id) { i, it in segment(i, it, seg: seg, on: w.hover == i) }
-            Circle().fill(.regularMaterial).frame(width: AppState.wheelHole * 2 - 6, height: AppState.wheelHole * 2 - 6)
+            Circle().fill(.regularMaterial).frame(width: ReaderModel.wheelHole * 2 - 6, height: ReaderModel.wheelHole * 2 - 6)
         }
-        .frame(width: (AppState.wheelRadius + 10) * 2, height: (AppState.wheelRadius + 10) * 2)
+        .frame(width: (ReaderModel.wheelRadius + 10) * 2, height: (ReaderModel.wheelRadius + 10) * 2)
         .allowsHitTesting(false)
         .position(w.center)
         .shadow(color: .black.opacity(0.25), radius: 14, y: 4)
@@ -194,14 +194,14 @@ struct WheelOverlay: View {
     /// one item's segment (larger when hovered), with its icon (or a tick on the highlighter in use)
     @ViewBuilder private func segment(_ i: Int, _ it: WheelItem, seg: Double, on: Bool) -> some View {
         let start = Angle(degrees: -90 - seg / 2 + seg * Double(i)), end = Angle(degrees: -90 + seg / 2 + seg * Double(i))
-        Segment(start: start, end: end, inner: AppState.wheelHole, outer: AppState.wheelRadius + (on ? Self.hoverGrowth : 0))
+        Segment(start: start, end: end, inner: ReaderModel.wheelHole, outer: ReaderModel.wheelRadius + (on ? Self.hoverGrowth : 0))
             .fill(it.color ?? Color(nsColor: .windowBackgroundColor))
-            .overlay(Segment(start: start, end: end, inner: AppState.wheelHole, outer: AppState.wheelRadius + (on ? Self.hoverGrowth : 0))
+            .overlay(Segment(start: start, end: end, inner: ReaderModel.wheelHole, outer: ReaderModel.wheelRadius + (on ? Self.hoverGrowth : 0))
                 .stroke(on ? Color.accentColor : Color.primary.opacity(0.18), lineWidth: on ? 2.5 : 1))
-        let mid = (start.degrees + end.degrees) / 2 * .pi / 180, r = (AppState.wheelHole + AppState.wheelRadius) / 2
+        let mid = (start.degrees + end.degrees) / 2 * .pi / 180, r = (ReaderModel.wheelHole + ReaderModel.wheelRadius) / 2
         Group {
             if let icon = it.icon { Image(systemName: icon).font(.system(size: 17, weight: .semibold)) }
-            else if case .highlight(let id) = it.tool, s.tool == .highlight(id) { Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).foregroundStyle(.black.opacity(0.6)) }
+            else if case .highlight(let id) = it.tool, s.reader.tool == .highlight(id) { Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).foregroundStyle(.black.opacity(0.6)) }
         }
         .offset(x: cos(mid) * r, y: sin(mid) * r)
     }
@@ -211,7 +211,7 @@ struct WheelOverlay: View {
             .font(.system(size: 12.5, weight: .semibold))
             .padding(.horizontal, 10).padding(.vertical, 5)
             .background(Capsule().fill(.regularMaterial))
-            .position(x: w.center.x, y: w.center.y + AppState.wheelRadius + 26)
+            .position(x: w.center.x, y: w.center.y + ReaderModel.wheelRadius + 26)
             .allowsHitTesting(false)
     }
 }
@@ -238,7 +238,7 @@ struct CommentSpot: Identifiable {
     var id: String { c.id }
 }
 
-extension AppState {
+extension ReaderModel {
     func commentSpots(height: CGFloat) -> [CommentSpot] {
         var out: [CommentSpot] = []
         for c in comments {
@@ -262,8 +262,8 @@ struct CommentAnchors: View {
     @EnvironmentObject var s: AppState
     var body: some View {
         GeometryReader { g in
-            let _ = s.layoutTick
-            let spots = s.commentSpots(height: g.size.height)
+            let _ = s.reader.layoutTick
+            let spots = s.reader.commentSpots(height: g.size.height)
             ZStack(alignment: .topLeading) {
                 ForEach(spots) { sp in anchor(sp, width: g.size.width) }
             }
@@ -273,7 +273,7 @@ struct CommentAnchors: View {
 
     /// a pin (a comment on a point) or underlines (on text), and a line to the comment's card
     @ViewBuilder private func anchor(_ sp: CommentSpot, width: CGFloat) -> some View {
-        let on = s.editingComment == sp.c.id
+        let on = s.reader.editingComment == sp.c.id
         if sp.c.isPoint, let r = sp.anchor.first {
             Image(systemName: "text.bubble.fill").font(.system(size: 15))
                 .foregroundStyle(Color.accentColor)
@@ -298,15 +298,15 @@ struct CommentMargin: View {
     @EnvironmentObject var s: AppState
     var body: some View {
         GeometryReader { g in
-            let _ = s.layoutTick
-            let spots = s.commentSpots(height: g.size.height)
+            let _ = s.reader.layoutTick
+            let spots = s.reader.commentSpots(height: g.size.height)
             ZStack(alignment: .topLeading) {
                 Color(nsColor: s.themeUnderPage)
                 ForEach(spots) { sp in
                     CommentCard(c: sp.c).frame(width: g.size.width - 16).offset(x: 8, y: sp.cardY)
                 }
                 if spots.isEmpty {
-                    Text(s.comments.isEmpty ? "Comments appear here.\nRight-click and choose Comment." : "Scroll to see comments on other pages.")
+                    Text(s.reader.comments.isEmpty ? "Comments appear here.\nRight-click and choose Comment." : "Scroll to see comments on other pages.")
                         .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
                         .frame(width: g.size.width).padding(.top, 40)
                 }
@@ -323,7 +323,7 @@ struct CommentCard: View {
     @FocusState private var focused: Bool
 
     var body: some View {
-        let editing = s.editingComment == c.id
+        let editing = s.reader.editingComment == c.id
         VStack(alignment: .leading, spacing: 6) {
             content(editing)
         }
@@ -332,7 +332,7 @@ struct CommentCard: View {
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(editing ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: editing ? 1.5 : 1))
         .shadow(color: .black.opacity(0.08), radius: 3, y: 1)
         .contentShape(Rectangle())
-        .onTapGesture { if !editing { s.editingComment = c.id } }
+        .onTapGesture { if !editing { s.reader.editingComment = c.id } }
         .onAppear { text = c.text; if editing { focused = true } }
         .onChange(of: editing) { _, e in if e { text = c.text; focused = true } }
     }
@@ -354,13 +354,13 @@ struct CommentCard: View {
     @ViewBuilder private var editor: some View {
         TextEditor(text: $text).font(.system(size: 12.5)).frame(height: 72).focused($focused)
             .scrollContentBackground(.hidden).background(RoundedRectangle(cornerRadius: 5).fill(Color(nsColor: .textBackgroundColor)))
-            .onChange(of: text) { _, v in s.setComment(c.id, text: v) }
+            .onChange(of: text) { _, v in s.reader.setComment(c.id, text: v) }
         HStack(spacing: 10) {
-            Button { s.commentToNotes(c) } label: { Label("Notes", systemImage: "arrow.right.doc.on.clipboard") }
+            Button { s.reader.commentToNotes(c) } label: { Label("Notes", systemImage: "arrow.right.doc.on.clipboard") }
                 .help("Put this comment, with its quote and citation, at your cursor in Notes or the essay")
-            Button(role: .destructive) { s.deleteComment(c.id) } label: { Image(systemName: "trash") }.help("Delete comment")
+            Button(role: .destructive) { s.reader.deleteComment(c.id) } label: { Image(systemName: "trash") }.help("Delete comment")
             Spacer()
-            Button("Done") { if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && c.text.isEmpty { s.deleteComment(c.id) } else { s.editingComment = nil } }
+            Button("Done") { if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && c.text.isEmpty { s.reader.deleteComment(c.id) } else { s.reader.editingComment = nil } }
                 .keyboardShortcut(.defaultAction)
         }
         .buttonStyle(.borderless).font(.system(size: 11.5))
@@ -373,17 +373,17 @@ struct AnnotationsPanel: View {
     @EnvironmentObject var s: AppState
 
     var body: some View {
-        let hls = (s.current?.highlights ?? []).sorted { $0.page < $1.page }
+        let hls = (s.reader.current?.highlights ?? []).sorted { $0.page < $1.page }
         VStack(alignment: .leading, spacing: 0) {
             header
             filters(hls)
             Divider()
             List {
-                if s.annFilter == "all" || s.annFilter == "comments" { ForEach(s.comments) { c in commentRow(c) } }
-                if s.annFilter != "comments" {
-                    ForEach(hls.filter { s.annFilter == "all" || "k" + HighlightKey.id(forStored: $0.color) == s.annFilter }) { h in highlightRow(h) }
+                if s.reader.annFilter == "all" || s.reader.annFilter == "comments" { ForEach(s.reader.comments) { c in commentRow(c) } }
+                if s.reader.annFilter != "comments" {
+                    ForEach(hls.filter { s.reader.annFilter == "all" || "k" + HighlightKey.id(forStored: $0.color) == s.reader.annFilter }) { h in highlightRow(h) }
                 }
-                if hls.isEmpty && s.comments.isEmpty {
+                if hls.isEmpty && s.reader.comments.isEmpty {
                     Text("Highlights and comments in this PDF will be listed here.").font(.callout).foregroundStyle(.secondary)
                 }
             }
@@ -396,7 +396,7 @@ struct AnnotationsPanel: View {
         HStack {
             Text("Annotations").font(.headline)
             Spacer()
-            Button { s.showAnnotations = false } label: { Image(systemName: "xmark") }.buttonStyle(.borderless)
+            Button { s.reader.showAnnotations = false } label: { Image(systemName: "xmark") }.buttonStyle(.borderless)
         }.padding(.horizontal, 12).padding(.vertical, 10)
     }
 
@@ -407,20 +407,20 @@ struct AnnotationsPanel: View {
             HStack(spacing: 6) {
                 chip("all", "All", nil)
                 ForEach(usedKeys) { k in chip("k" + k.id, k.label, k.color) }
-                if !s.comments.isEmpty { chip("comments", "Comments", nil, icon: "text.bubble") }
+                if !s.reader.comments.isEmpty { chip("comments", "Comments", nil, icon: "text.bubble") }
             }.padding(.horizontal, 12)
         }.padding(.bottom, 8)
     }
 
     /// a comment: goes to it and opens it
     private func commentRow(_ c: PDFComment) -> some View {
-        Button { s.go(page: c.page, rect: c.cgRects.first); s.editingComment = c.id } label: {
+        Button { s.reader.go(page: c.page, rect: c.cgRects.first); s.reader.editingComment = c.id } label: {
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: "text.bubble").foregroundStyle(Color.accentColor).frame(width: 16)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(c.text.isEmpty ? "Empty comment" : c.text).lineLimit(3)
                     if !c.quote.isEmpty { Text("\u{201C}\(c.quote)\u{201D}").font(.caption).foregroundStyle(.secondary).lineLimit(2) }
-                    Text("p. \(s.printed(c.page))").font(.caption2).foregroundStyle(.tertiary)
+                    Text("p. \(s.reader.printed(c.page))").font(.caption2).foregroundStyle(.tertiary)
                 }
             }
         }.buttonStyle(.plain)
@@ -428,19 +428,19 @@ struct AnnotationsPanel: View {
 
     /// a highlight: goes to it and picks it
     private func highlightRow(_ h: Highlight) -> some View {
-        Button { s.go(page: h.page, rect: h.boxes?.first.flatMap { $0.count == 5 ? CGRect(x: $0[1], y: $0[2], width: $0[3], height: $0[4]) : nil }); s.selectedHL = h.id } label: {
+        Button { s.reader.go(page: h.page, rect: h.boxes?.first.flatMap { $0.count == 5 ? CGRect(x: $0[1], y: $0[2], width: $0[3], height: $0[4]) : nil }); s.reader.selectedHL = h.id } label: {
             HStack(alignment: .top, spacing: 8) {
                 RoundedRectangle(cornerRadius: 3).fill(s.keyColor(h.color)?.color ?? .yellow).frame(width: 14, height: 14).padding(.top, 2)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(h.text).lineLimit(3)
-                    Text("p. \(s.printed(h.page))" + (s.keyColor(h.color).map { " · " + $0.label } ?? "")).font(.caption2).foregroundStyle(.tertiary)
+                    Text("p. \(s.reader.printed(h.page))" + (s.keyColor(h.color).map { " · " + $0.label } ?? "")).font(.caption2).foregroundStyle(.tertiary)
                 }
             }
         }.buttonStyle(.plain)
     }
 
     private func chip(_ id: String, _ label: String, _ color: Color?, icon: String? = nil) -> some View {
-        Button { s.annFilter = id } label: {
+        Button { s.reader.annFilter = id } label: {
             HStack(spacing: 5) {
                 if let color { Circle().fill(color).frame(width: 9, height: 9) }
                 if let icon { Image(systemName: icon).font(.system(size: 10)) }
@@ -448,7 +448,7 @@ struct AnnotationsPanel: View {
             }
             .font(.system(size: 11.5, weight: .medium))
             .padding(.horizontal, 9).padding(.vertical, 4)
-            .background(Capsule().fill(s.annFilter == id ? Color.accentColor.opacity(0.2) : Color.primary.opacity(0.06)))
+            .background(Capsule().fill(s.reader.annFilter == id ? Color.accentColor.opacity(0.2) : Color.primary.opacity(0.06)))
         }.buttonStyle(.plain)
     }
 }

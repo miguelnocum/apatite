@@ -32,12 +32,12 @@ enum FocusTest {
     static func folder(_ t: TestRun) -> URL { t.ws.root.appendingPathComponent("focus") }
 
     static func resize(_ t: TestRun, _ width: CGFloat, _ height: CGFloat) {
-        t.s.webView?.window?.setFrame(NSRect(x: 60, y: 60, width: width, height: height), display: true)
+        t.s.session.webView?.window?.setFrame(NSRect(x: 60, y: 60, width: width, height: height), display: true)
     }
 
     /// the window's state, the page's, and a picture
     static func check(_ t: TestRun, _ name: String) {
-        guard let web = t.s.webView, let window = web.window else { t.log.append("\(name): NO WINDOW"); return }
+        guard let web = t.s.session.webView, let window = web.window else { t.log.append("\(name): NO WINDOW"); return }
         t.log.append("— \(name): window \(Int(window.frame.width))×\(Int(window.frame.height)), " + chrome(window, web))
         t.page(pageState, "  page")
         shoot(web, window, into: folder(t).appendingPathComponent("\(name).png"))

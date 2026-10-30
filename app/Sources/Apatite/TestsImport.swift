@@ -19,10 +19,10 @@ enum ImportTest {
         }
         pageSteps(t)
         windowSetup(t)
-        if let js = TestRun.env("APATITE_CLICKJS"), let web = t.s.webView { t.at(6.0) { TestInput.click(web, js) } }
-        if let keys = TestRun.env("APATITE_TYPE"), let web = t.s.webView { t.at(6.5) { TestInput.type(web, keys) } }
-        if let shot = TestRun.env("APATITE_WEBSHOT"), let web = t.s.webView { t.at(10.5) { TestInput.snapshot(web, to: shot) } }
-        t.at(11.5) { t.s.flushAll { report(t) } }
+        if let js = TestRun.env("APATITE_CLICKJS"), let web = t.s.session.webView { t.at(6.0) { TestInput.click(web, js) } }
+        if let keys = TestRun.env("APATITE_TYPE"), let web = t.s.session.webView { t.at(6.5) { TestInput.type(web, keys) } }
+        if let shot = TestRun.env("APATITE_WEBSHOT"), let web = t.s.session.webView { t.at(10.5) { TestInput.snapshot(web, to: shot) } }
+        t.at(11.5) { t.s.session.flushAll { report(t) } }
     }
 
     private static func importAll(_ t: TestRun, _ paths: [String]) {
@@ -31,7 +31,7 @@ enum ImportTest {
             do { results.append(try EssayImport.convert(URL(fileURLWithPath: path))) }
             catch { t.log.append("\((path as NSString).lastPathComponent): FAILED \(error.localizedDescription)") }
         }
-        t.s.deliverImports(results, into: t.s.project)
+        t.s.session.deliverImports(results, into: t.s.session.project)
     }
 
     /// optional steps to run in the page after the import (up to four batches, a pause between), each result logged
@@ -46,7 +46,7 @@ enum ImportTest {
     private static func windowSetup(_ t: TestRun) {
         if let size = TestRun.env("APATITE_WINSIZE") {
             let p = size.split(separator: "x").compactMap { Double($0) }
-            if p.count == 2 { t.at(1.0) { if let w = t.s.webView?.window { w.setFrame(NSRect(x: 40, y: 40, width: p[0], height: p[1]), display: true) } } }
+            if p.count == 2 { t.at(1.0) { if let w = t.s.session.webView?.window { w.setFrame(NSRect(x: 40, y: 40, width: p[0], height: p[1]), display: true) } } }
         }
         if let w = TestRun.env("APATITE_WEBWIDTH").flatMap(Double.init) {
             t.at(4.0) {
@@ -56,12 +56,12 @@ enum ImportTest {
                 }
             }
         }
-        if TestRun.env("APATITE_READER") != nil { t.at(3.0) { t.s.readerVisible = true; t.s.notesVisible = true } }
+        if TestRun.env("APATITE_READER") != nil { t.at(3.0) { t.s.navigation.readerVisible = true; t.s.navigation.notesVisible = true } }
     }
 
     /// what each imported essay ended up containing
     private static func report(_ t: TestRun) {
-        for e in t.ws.items(.essays, in: t.s.project) {
+        for e in t.ws.items(.essays, in: t.s.session.project) {
             let doc = t.ws.read(e.url)?["doc"] as? String ?? ""
             func n(_ p: String) -> Int { (try? NSRegularExpression(pattern: p).numberOfMatches(in: doc, range: NSRange(doc.startIndex..., in: doc))) ?? 0 }
             t.log.append("— \(e.title) (\(e.url.lastPathComponent))")
@@ -69,7 +69,7 @@ enum ImportTest {
             t.log.append("  footnotes \(n("data-fn=")), figures \(n("<figure>")), captions \(n("<figcaption>[^<]")), images \(n("<img")), bold \(n("<strong>")), italic \(n("<em>")), links \(n("<a "))")
             t.log.append("  starts: " + String(plainText(doc).prefix(160)).replacingOccurrences(of: "\n", with: " ¶ "))
         }
-        t.log.append("app's source list (what Link to source shows): \(t.s.refs.map(\.label))")
+        t.log.append("app's source list (what Link to source shows): \(t.s.citations.refs.map(\.label))")
         t.log.append("native theme: \(t.s.theme.map { "\($0.id) dark=\($0.dark) bg=\($0.bg) accent=\($0.accent)" } ?? "system")")
         t.finish()
     }

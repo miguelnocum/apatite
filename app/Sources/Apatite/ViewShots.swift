@@ -31,36 +31,36 @@ enum ViewShots {
     /// each screen and sheet in turn: (picture name, what opens it)
     private static func screens(_ s: AppState, pdf: String) -> [(String, () -> Void)] {
         [
-            ("01-welcome", { s.welcomeTitle = WelcomeTitles.all[0] }),
+            ("01-welcome", { s.navigation.welcomeTitle = WelcomeTitles.all[0] }),
             ("02-reader", {
-                if let item = try? s.lib.importPDF(from: URL(fileURLWithPath: pdf)) { s.items.append(item); s.lib.saveItems(s.items); s.openReader(); s.open(item.id) }
+                if let item = try? s.reader.lib.importPDF(from: URL(fileURLWithPath: pdf)) { s.reader.items.append(item); s.reader.lib.saveItems(s.reader.items); s.navigation.openReader(); s.reader.open(item.id) }
             }),
-            ("03-contents", { s.showContents = true }),
-            ("04-annotations", { s.showContents = false; s.showAnnotations = true }),
-            ("04b-wheel", { s.showAnnotations = false; s.openWheel(at: CGPoint(x: 500, y: 400)) }),
-            ("04c-comment", { s.wheel = nil; s.commentAt(page: 0, point: CGPoint(x: 120, y: 600)) }),
-            ("04d-annotations-comment", { s.showAnnotations = true }),
+            ("03-contents", { s.reader.showContents = true }),
+            ("04-annotations", { s.reader.showContents = false; s.reader.showAnnotations = true }),
+            ("04b-wheel", { s.reader.showAnnotations = false; s.reader.openWheel(at: CGPoint(x: 500, y: 400)) }),
+            ("04c-comment", { s.reader.wheel = nil; s.reader.commentAt(page: 0, point: CGPoint(x: 120, y: 600)) }),
+            ("04d-annotations-comment", { s.reader.showAnnotations = true }),
         ] + otherScreens(s, pdf: pdf)
     }
 
     /// the sheets, the key, the database, a deck, a folder import, and the notes
     private static func otherScreens(_ s: AppState, pdf: String) -> [(String, () -> Void)] {
         [
-            ("05-link", { s.showAnnotations = false; s.editingComment = nil; s.showLink = true }),
-            ("06-pages", { s.showLink = false; s.showPages = true }),
-            ("07-key", { s.showPages = false; s.showKeyEditor = true }),
-            ("08-database", { s.showKeyEditor = false; s.screen = .database }),
+            ("05-link", { s.reader.showAnnotations = false; s.reader.editingComment = nil; s.citations.showLink = true }),
+            ("06-pages", { s.citations.showLink = false; s.reader.showPages = true }),
+            ("07-key", { s.reader.showPages = false; s.showKeyEditor = true }),
+            ("08-database", { s.showKeyEditor = false; s.navigation.screen = .database }),
             ("09-deck", { openDeck(s) }),
-            ("09b-deck-edit", { s.deckStartEdit = true; s.screen = .database; DispatchQueue.main.async { s.screen = .deck } }),
+            ("09b-deck-edit", { s.deckStartEdit = true; s.navigation.screen = .database; DispatchQueue.main.async { s.navigation.screen = .deck } }),
             ("10-folder", { s.folderImport = FolderImportRequest(scan: FolderImport.scan(URL(fileURLWithPath: pdf).deletingLastPathComponent()), target: nil) }),
-            ("11-notes", { s.folderImport = nil; s.showEditor() })
+            ("11-notes", { s.folderImport = nil; s.navigation.showEditor() })
         ]
     }
 
     /// a deck with two cards, open in the study screen
     private static func openDeck(_ s: AppState) {
-        let deck = s.workspace.createDeck(in: s.project, title: "Shot deck")
-        s.openDeck(s.project, deck.id)
+        let deck = s.workspace.createDeck(in: s.session.project, title: "Shot deck")
+        s.openDeck(s.session.project, deck.id)
         let first = Card(term: "Overfitting", def: "Fitting noise in the training data")
         let second = Card(term: "Underfitting", def: "Too simple a model")
         s.deck?.cards = [first, second]

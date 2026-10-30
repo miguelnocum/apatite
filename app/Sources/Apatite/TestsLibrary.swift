@@ -41,7 +41,7 @@ enum OrgTest {
             sharedSyllabus(t, state.p, state.nb)
             mergeOldSyllabi(t)
             // Settings ▸ Syllabus: "New syllabus…" for the open notebook
-            t.s.switchTo(state.p, notebook: t.ws.items(.notebooks, in: state.p).first { $0.title == "Second" }!.id, view: "syl")
+            t.s.session.switchTo(state.p, notebook: t.ws.items(.notebooks, in: state.p).first { $0.title == "Second" }!.id, view: "syl")
         }
         t.at(4.5) { t.page(newSyllabusInSettings) { r in t.log.append("page picker before: \(r as? String ?? "?")") } }
         t.at(7.5) { checkNewSyllabus(t, state.p) }
@@ -128,7 +128,7 @@ enum DeckTest {
         let t = TestRun(report: "decktest.txt")
         t.at(1.5) {
             schedule(t)
-            let p = t.s.project
+            let p = t.s.session.project
             let sy = t.ws.createSyllabus(in: p, title: "Deck syllabus", pts: [["id": "pt1", "sec": "1 S", "code": "1.1", "text": "Overfitting", "status": 1]])
             let d = t.ws.createDeck(in: p, title: "Test deck")
             t.s.openDeck(p, d.id)
@@ -153,7 +153,7 @@ enum DeckTest {
     /// cards saved and read back, and rating suggestions from how they went
     private static func cardsAndSuggestions(_ t: TestRun, _ p: ProjectInfo, deckID: String, syllabusID: String) {
         let s = t.s, ws = t.ws
-        t.log.append("deck screen open: \(s.screen == .deck) with \(s.deck?.title ?? "NONE")")
+        t.log.append("deck screen open: \(s.navigation.screen == .deck) with \(s.deck?.title ?? "NONE")")
         var a = Card(term: "Overfitting", def: "Fitting noise"); a.pt = "pt1"; a.right = 5; a.wrong = 0
         var b = Card(term: "Underfitting", def: "Too simple a model"); b.pt = "pt1"; b.right = 4; b.wrong = 1
         s.deck?.cards = [a, b]; s.deck?.syllabus = syllabusID
@@ -174,10 +174,10 @@ enum DeckTest {
         let s = t.s
         s.popOutDeck()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            t.log.append("popped out: window \"\(deckWindow()?.title ?? "NONE")\", main window back on the notes \(s.screen == .workspace && s.notesVisible), starts in Edit \(!s.deckStartEdit)")
+            t.log.append("popped out: window \"\(deckWindow()?.title ?? "NONE")\", main window back on the notes \(s.navigation.screen == .workspace && s.navigation.notesVisible), starts in Edit \(!s.deckStartEdit)")
             s.dockDeck()
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                t.log.append("docked: window gone \(deckWindow() == nil), main window shows the deck \(s.screen == .deck)")
+                t.log.append("docked: window gone \(deckWindow() == nil), main window shows the deck \(s.navigation.screen == .deck)")
                 s.deckWindowShortcut()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     t.log.append("Go ▸ Deck in Its Own Window: \(deckWindow()?.title ?? "NONE"), remembered for next launch \(AppState.prefs.string(forKey: "deckWindow") != nil)")

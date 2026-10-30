@@ -10,7 +10,7 @@ struct ApatiteApp: App {
         Window("Apatite", id: "main") {
             ContentView()
                 .environmentObject(state)
-                .frame(minWidth: state.focusActive ? 340 : 960, minHeight: state.focusActive ? 300 : 620)
+                .frame(minWidth: state.navigation.focusActive ? 340 : 960, minHeight: state.navigation.focusActive ? 300 : 620)
         }
         .defaultSize(width: 1500, height: 940)
         .commands { AppCommands(state: state) }
@@ -45,13 +45,13 @@ struct AppCommands: Commands {
                 .keyboardShortcut(",")
         }
         CommandGroup(after: .newItem) {
-            Button("Import PDF…") { state.importPDFs() }
+            Button("Import PDF…") { state.reader.importPDFs() }
                 .keyboardShortcut("o")
-            Button("Show Library Folder in Finder") { state.revealLibrary() }
+            Button("Show Library Folder in Finder") { state.reader.revealLibrary() }
             Button("Import Folder of Papers…") { state.importFolder() }
                 .keyboardShortcut("o", modifiers: [.command, .shift])
             Divider()
-            Button("Import Essay…") { state.importEssays() }
+            Button("Import Essay…") { state.session.importEssays() }
                 .keyboardShortcut("i", modifiers: [.command, .shift])
         }
         viewMenu
@@ -61,21 +61,21 @@ struct AppCommands: Commands {
 
     private var viewMenu: some Commands {
         CommandGroup(after: .toolbar) {
-            Button(state.focusMode ? "Leave Focus Mode" : "Focus Mode") { state.toggleFocus() }
+            Button(state.navigation.focusMode ? "Leave Focus Mode" : "Focus Mode") { state.toggleFocus() }
                 .keyboardShortcut("f", modifiers: [.command, .shift])
         }
     }
 
     private var goMenu: some Commands {
         CommandMenu("Go") {
-            Button("Project Folder") { state.openProjectFolder() }
+            Button("Project Folder") { state.navigation.openProjectFolder() }
                 .keyboardShortcut("0")
-            Button("Welcome Page") { state.goHome() }
+            Button("Welcome Page") { state.navigation.goHome() }
                 .keyboardShortcut("0", modifiers: [.command, .shift])
             Divider()
             Button("Notes") { state.openNotes() }
             Button("Essay") { state.openEssay() }
-            Button("Read") { state.openReader() }
+            Button("Read") { state.navigation.openReader() }
             Divider()
             Button("Deck in Its Own Window") { state.deckWindowShortcut() }
                 .keyboardShortcut("d", modifiers: [.command, .shift])
@@ -84,21 +84,21 @@ struct AppCommands: Commands {
 
     private var readerMenu: some Commands {
         CommandMenu("Reader") {
-            Button("Toggle Notes") { state.toggleNotes() }
+            Button("Toggle Notes") { state.navigation.toggleNotes() }
                 .keyboardShortcut("n", modifiers: [.command, .shift])
-            Button("Toggle Reader") { state.toggleReader() }
+            Button("Toggle Reader") { state.navigation.toggleReader() }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
             Divider()
-            Button("Cite Selection as Quote") { state.citeQuote() }
+            Button("Cite Selection as Quote") { state.citations.citeQuote() }
                 .keyboardShortcut("c", modifiers: [.command, .shift])
-            Button("Highlight Selection") { state.highlight(state.defaultKeyId) }
+            Button("Highlight Selection") { state.reader.highlight(state.defaultKeyId) }
                 .keyboardShortcut("h", modifiers: [.command, .shift])
             Button("Highlight Key…") { state.openSettings("key") }
-            Button(state.showContents ? "Hide Contents" : "Show Contents") { state.showContents.toggle() }
+            Button(state.reader.showContents ? "Hide Contents" : "Show Contents") { state.reader.showContents.toggle() }
                 .keyboardShortcut("t", modifiers: [.command, .option])
             Divider()
-            Button("Link PDF to Source…") { state.showLink = true }
-            Button("Set Page Numbers…") { state.showPages = true }
+            Button("Link PDF to Source…") { state.citations.showLink = true }
+            Button("Set Page Numbers…") { state.reader.showPages = true }
         }
     }
 }
@@ -113,7 +113,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.activate(ignoringOtherApps: true)
         }
         // Load the notes editor straight away, even while the welcome page is showing.
-        MainActor.assumeIsolated { _ = AppState.shared.webView }
+        MainActor.assumeIsolated { _ = AppState.shared.session.webView }
         MainActor.assumeIsolated {
             SelfTest.runIfRequested(); ProjectTest.runIfRequested(); ImportTest.runIfRequested(); ReaderTest.runIfRequested(); FolderTest.runIfRequested(); WindowTest.runIfRequested(); LinkTest.runIfRequested(); PerfTest.runIfRequested(); OrgTest.runIfRequested(); DeckTest.runIfRequested(); ViewShots.runIfRequested(); FocusTest.runIfRequested()
             if testing { openTestScreen() }
@@ -132,7 +132,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// for screenshots in tests: open straight onto a screen (APATITE_SCREEN), and picture the window (APATITE_SNAPSHOT)
     @MainActor private func openTestScreen() {
         let env = ProcessInfo.processInfo.environment
-        if let sc = env["APATITE_SCREEN"].flatMap(Screen.init(rawValue:)) { AppState.shared.screen = sc }
+        if let sc = env["APATITE_SCREEN"].flatMap(Screen.init(rawValue:)) { AppState.shared.navigation.screen = sc }
         guard let out = env["APATITE_SNAPSHOT"] else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             // the window draws itself into a PNG (no screen-recording permission needed)
@@ -147,9 +147,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         // Pull the latest notes out of the editor before quitting so nothing typed is lost.
         MainActor.assumeIsolated {
-            AppState.shared.quitting = true
-            AppState.shared.rememberPage()
-            AppState.shared.flushAll {
+            AppState.shared.navigation.quitting = true
+            AppState.shared.reader.rememberPage()
+            AppState.shared.session.flushAll {
                 NSApp.reply(toApplicationShouldTerminate: true)
             }
         }
@@ -170,11 +170,11 @@ struct ContentView: View {
         .toolbar { toolbarItems }
         .focusChrome(state)
         .onAppear {
-            state.openReaderWindow = { openWindow(id: "reader") }
-            state.closeReaderWindow = { dismissWindow(id: "reader") }
+            state.navigation.openReaderWindow = { openWindow(id: "reader") }
+            state.navigation.closeReaderWindow = { dismissWindow(id: "reader") }
             state.openDeckWindow = { openWindow(id: "deck") }
             state.closeDeckWindow = { dismissWindow(id: "deck") }
-            if state.readerDetached { openWindow(id: "reader") }
+            if state.navigation.readerDetached { openWindow(id: "reader") }
             state.restoreDeckWindow()
         }
         .sheet(isPresented: $state.showKeyEditor) { KeyEditor().environmentObject(state) }
@@ -187,7 +187,7 @@ struct ContentView: View {
     }
 
     @ViewBuilder private var screen: some View {
-        switch state.screen {
+        switch state.navigation.screen {
         case .welcome:
             WelcomeView()
         case .database:
@@ -202,11 +202,11 @@ struct ContentView: View {
     /// the notes and the reader, side by side
     private var workspace: some View {
         HSplitView {
-            if state.notesVisible || state.focusActive {
+            if state.navigation.notesVisible || state.navigation.focusActive {
                 NotebookWebView()
-                    .frame(minWidth: state.focusActive ? 300 : 460, maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(minWidth: state.navigation.focusActive ? 300 : 460, maxWidth: .infinity, maxHeight: .infinity)
             }
-            if state.readerVisible && !state.readerDetached && !state.focusActive {
+            if state.navigation.readerVisible && !state.navigation.readerDetached && !state.navigation.focusActive {
                 ReaderPane()
                     .frame(minWidth: 460, idealWidth: 700, maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -215,34 +215,34 @@ struct ContentView: View {
 
     @ToolbarContentBuilder private var toolbarItems: some ToolbarContent {
         ToolbarItem(placement: .navigation) {
-            if state.screen != .welcome && state.screen != .database {
-                Button { state.openProjectFolder() } label: {
+            if state.navigation.screen != .welcome && state.navigation.screen != .database {
+                Button { state.navigation.openProjectFolder() } label: {
                     Label("Project Folder", systemImage: "house")
                 }
                 .help("This project's notebooks, syllabi and essays (⌘0)")
             }
         }
         ToolbarItem(placement: .navigation) {
-            if state.screen == .workspace { ProjectSwitcher() }
+            if state.navigation.screen == .workspace { ProjectSwitcher() }
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            if state.screen == .workspace { workspaceButtons }
+            if state.navigation.screen == .workspace { workspaceButtons }
         }
     }
 
     /// import, and show or hide the notes and the reader
     @ViewBuilder private var workspaceButtons: some View {
         Button {
-            state.importPDFs()
+            state.reader.importPDFs()
         } label: {
             Label("Import PDF", systemImage: "doc.badge.plus")
         }
         .help("Import PDFs into your library (⌘O)")
-        Toggle(isOn: Binding(get: { state.notesVisible }, set: { _ in state.toggleNotes() })) {
+        Toggle(isOn: Binding(get: { state.navigation.notesVisible }, set: { _ in state.navigation.toggleNotes() })) {
             Label("Notes", systemImage: "sidebar.left")
         }
         .help("Show or hide your notes (⇧⌘N)")
-        Toggle(isOn: Binding(get: { state.readerVisible || state.readerDetached }, set: { _ in state.toggleReader() })) {
+        Toggle(isOn: Binding(get: { state.navigation.readerVisible || state.navigation.readerDetached }, set: { _ in state.navigation.toggleReader() })) {
             Label("Reader", systemImage: "sidebar.right")
         }
         .help("Show or hide the PDF reader (⇧⌘R)")
@@ -255,58 +255,58 @@ struct ProjectSwitcher: View {
     private var ws: Workspace { state.workspace }
 
     var body: some View {
-        let _ = state.revision
+        let _ = state.session.revision
         Menu {
             Section("Projects") { projects }
-            Section("Notebooks in \(state.project.name)") { notebooks }
-            Section("Essays in \(state.project.name)") { essays }
-            Section("Decks in \(state.project.name)") {
-                ForEach(ws.items(.decks, in: state.project)) { d in Button(d.title) { state.openDeck(state.project, d.id) } }
+            Section("Notebooks in \(state.session.project.name)") { notebooks }
+            Section("Essays in \(state.session.project.name)") { essays }
+            Section("Decks in \(state.session.project.name)") {
+                ForEach(ws.items(.decks, in: state.session.project)) { d in Button(d.title) { state.openDeck(state.session.project, d.id) } }
                 Button("New Deck") { state.newDeck() }
                 Button("Deck in Its Own Window (\u{21E7}\u{2318}D)") { state.deckWindowShortcut() }
             }
             Divider()
-            Button("Open Database") { state.screen = .database }
+            Button("Open Database") { state.navigation.screen = .database }
         } label: { label }
         .help("Switch project, notebook or essay")
     }
 
     private var projects: some View {
         ForEach(ws.projects()) { p in
-            Button { if p.id != state.project.id { state.switchTo(p) } } label: {
-                if p.id == state.project.id { Label(p.name, systemImage: "checkmark") } else { Text(p.name) }
+            Button { if p.id != state.session.project.id { state.session.switchTo(p) } } label: {
+                if p.id == state.session.project.id { Label(p.name, systemImage: "checkmark") } else { Text(p.name) }
             }
         }
     }
 
     @ViewBuilder private var notebooks: some View {
-        ForEach(ws.items(.notebooks, in: state.project)) { nb in
-            Button { if nb.id != state.notebookId { state.openNotebook(state.project, nb.id) } } label: {
-                if nb.id == state.notebookId { Label(nb.title, systemImage: "checkmark") } else { Text(nb.title) }
+        ForEach(ws.items(.notebooks, in: state.session.project)) { nb in
+            Button { if nb.id != state.session.notebookId { state.session.openNotebook(state.session.project, nb.id) } } label: {
+                if nb.id == state.session.notebookId { Label(nb.title, systemImage: "checkmark") } else { Text(nb.title) }
             }
         }
-        Button("New Notebook") { state.newNotebook() }
+        Button("New Notebook") { state.session.newNotebook() }
     }
 
     @ViewBuilder private var essays: some View {
-        ForEach(ws.items(.essays, in: state.project)) { es in
-            Button { state.openEssayHere(es.id) } label: {
-                if state.pageView == "essay" && es.id == state.pageEssay { Label(es.title, systemImage: "checkmark") } else { Text(es.title) }
+        ForEach(ws.items(.essays, in: state.session.project)) { es in
+            Button { state.session.openEssayHere(es.id) } label: {
+                if state.session.pageView == "essay" && es.id == state.session.pageEssay { Label(es.title, systemImage: "checkmark") } else { Text(es.title) }
             }
         }
-        Button("New Essay") { state.newEssay() }
-        Button("Import Essay…") { state.importEssays() }
+        Button("New Essay") { state.session.newEssay() }
+        Button("Import Essay…") { state.session.importEssays() }
     }
 
     /// "Project › Notebook": what the page is showing, the essay or the notebook
     private var label: some View {
-        let inEssay = state.pageView == "essay"
-        let essayTitle = ws.items(.essays, in: state.project).first { $0.id == state.pageEssay }?.title
+        let inEssay = state.session.pageView == "essay"
+        let essayTitle = ws.items(.essays, in: state.session.project).first { $0.id == state.session.pageEssay }?.title
         return HStack(spacing: 5) {
             Image(systemName: "folder")
-            Text(state.project.name).fontWeight(.semibold)
+            Text(state.session.project.name).fontWeight(.semibold)
             Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.secondary)
-            Text(inEssay ? (essayTitle ?? "Essay") : (state.currentNotebook?.title ?? "Notebook")).lineLimit(1).frame(maxWidth: 320, alignment: .leading)
+            Text(inEssay ? (essayTitle ?? "Essay") : (state.session.currentNotebook?.title ?? "Notebook")).lineLimit(1).frame(maxWidth: 320, alignment: .leading)
         }
     }
 }
@@ -333,12 +333,12 @@ struct ReaderWindow: View {
 
     var body: some View {
         Group {
-            if state.readerDetached { ReaderPane() }
+            if state.navigation.readerDetached { ReaderPane() }
             else { Color.clear }
         }
         .preferredColorScheme(state.themeScheme)
         .tint(state.themeAccent)
-        .navigationTitle(state.current.map { "Reader \u{2014} " + $0.title } ?? "Reader")
-        .onDisappear { if !state.quitting && state.readerDetached { state.dockReader() } }
+        .navigationTitle(state.reader.current.map { "Reader \u{2014} " + $0.title } ?? "Reader")
+        .onDisappear { if !state.navigation.quitting && state.navigation.readerDetached { state.navigation.dockReader() } }
     }
 }

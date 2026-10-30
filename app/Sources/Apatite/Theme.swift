@@ -38,7 +38,7 @@ extension AppState {
         theme = t
         if let t, let data = try? JSONEncoder().encode(t) { Self.prefs.set(data, forKey: "theme") } else { Self.prefs.removeObject(forKey: "theme") }
         for w in NSApp.windows { w.backgroundColor = t.flatMap { NSColor(hex: $0.bg) } ?? .windowBackgroundColor }
-        pdfView?.backgroundColor = themeUnderPage
+        reader.pdfView?.backgroundColor = themeUnderPage
     }
 
     static func savedTheme() -> AppTheme? {

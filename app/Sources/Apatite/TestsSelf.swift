@@ -31,52 +31,52 @@ enum SelfTest {
     private static func importPaper(_ t: TestRun, _ path: String) {
         let s = t.s
         do {
-            let item = try s.lib.importPDF(from: URL(fileURLWithPath: path))
-            s.openReader() // as if Read was clicked on the welcome page
-            s.items.append(item); s.lib.saveItems(s.items); s.open(item.id)
-            t.log.append("import: ok, pages=\(s.document?.pageCount ?? 0)")
+            let item = try s.reader.lib.importPDF(from: URL(fileURLWithPath: path))
+            s.navigation.openReader() // as if Read was clicked on the welcome page
+            s.reader.items.append(item); s.reader.lib.saveItems(s.reader.items); s.reader.open(item.id)
+            t.log.append("import: ok, pages=\(s.reader.document?.pageCount ?? 0)")
         } catch { t.log.append("import: FAILED \(error)") }
     }
 
     /// the PDF view is on page 1, whose printed number is 48
     private static func setPagesAndSource(_ t: TestRun) {
-        t.s.setPages(useLabels: false, printedNumber: 48)
-        t.log.append("pages: page 1 -> \(t.s.printed(0)), page 2 -> \(t.s.printed(1))")
-        t.s.addRef("Argüelles, L. and March, H. (2022). Weeds in action: Vegetal political ecology of unwanted plants. Progress in Human Geography, 46(1), pp.44–66.")
+        t.s.reader.setPages(useLabels: false, printedNumber: 48)
+        t.log.append("pages: page 1 -> \(t.s.reader.printed(0)), page 2 -> \(t.s.reader.printed(1))")
+        t.s.citations.addRef("Argüelles, L. and March, H. (2022). Weeds in action: Vegetal political ecology of unwanted plants. Progress in Human Geography, 46(1), pp.44–66.")
     }
 
     /// second page holds this paragraph first; a hit on page 2 tests page numbering
     private static func citeQuote(_ t: TestRun) {
         let s = t.s
-        t.log.append("linked ref: \(s.currentRef?.label ?? "NONE")")
-        guard let doc = s.document, let v = s.pdfView else { t.log.append("no pdf view"); return }
+        t.log.append("linked ref: \(s.citations.currentRef?.label ?? "NONE")")
+        guard let doc = s.reader.document, let v = s.reader.pdfView else { t.log.append("no pdf view"); return }
         let hits = doc.findString("harmonious idea", withOptions: [.caseInsensitive])
         hits.forEach { $0.extendForLineBoundaries() }
         let hit = hits.first { doc.index(for: $0.pages[0]) == 1 } ?? hits.first
-        if let hit { v.setCurrentSelection(hit, animate: false); s.hasSelection = true }
+        if let hit { v.setCurrentSelection(hit, animate: false); s.reader.hasSelection = true }
         t.log.append("selection: \(hit?.string ?? "NONE") on PDF page \(hit.map { doc.index(for: $0.pages[0]) + 1 } ?? 0)")
-        s.citeQuote()
+        s.citations.citeQuote()
     }
 
     private static func jumpBack(_ t: TestRun) {
         let s = t.s
-        let hl = s.current?.highlights.last
+        let hl = s.reader.current?.highlights.last
         t.log.append("highlight stored: \(hl.map { "page \($0.page + 1), \($0.text.prefix(40))…" } ?? "NONE")")
-        let annots = s.document?.page(at: hl?.page ?? 0)?.annotations.filter { ($0.value(forAnnotationKey: .name) as? String)?.hasPrefix("snb:") == true }.count ?? 0
+        let annots = s.reader.document?.page(at: hl?.page ?? 0)?.annotations.filter { ($0.value(forAnnotationKey: .name) as? String)?.hasPrefix("snb:") == true }.count ?? 0
         t.log.append("annotations on page: \(annots)")
-        s.pdfView?.go(to: s.document!.page(at: 2)!)
+        s.reader.pdfView?.go(to: s.reader.document!.page(at: 2)!)
         s.openNotes() // jump from notes with the reader hidden, so it has to reappear first
-        if let id = s.current?.id, let h = hl { s.jump(id + "|" + h.id) }
+        if let id = s.reader.current?.id, let h = hl { s.citations.jump(id + "|" + h.id) }
     }
 
     private static func checkSaved(_ t: TestRun) {
-        t.log.append("after jump, PDF view is on PDF page \(t.s.currentIndex + 1) (expected 2)")
-        t.s.flushAll {
-            logSavedSession(t, t.s.savedSessionJSON())
+        t.log.append("after jump, PDF view is on PDF page \(t.s.reader.currentIndex + 1) (expected 2)")
+        t.s.session.flushAll {
+            logSavedSession(t, t.s.session.savedSessionJSON())
             // read the rendered citation text back out of the editor
             t.page("(document.querySelector('#ed .cite.pdf')||{}).textContent||'NONE'") { r in
                 t.log.append("rendered citation: \(r as? String ?? "?")")
-                let reopened = PDFDocument(url: t.s.lib.url(for: t.s.current!))
+                let reopened = PDFDocument(url: t.s.reader.lib.url(for: t.s.reader.current!))
                 let saved = reopened?.page(at: 1)?.annotations.filter { $0.type == "Highlight" }.count ?? 0
                 t.log.append("highlights saved inside the PDF file on page 2: \(saved)")
                 t.finish()
@@ -106,35 +106,35 @@ enum ProjectTest {
 
     static func runIfRequested() {
         guard TestRun.requested("APATITE_PROJECTTEST") != nil else { return }
-        let t = TestRun(report: "projecttest.txt"), a = t.s.project, state = State()
+        let t = TestRun(report: "projecttest.txt"), a = t.s.session.project, state = State()
         t.at(2.0) { addSource(t) }
-        t.at(3.5) { t.s.change([a]) { _ = t.ws.createEssay(in: a, title: "Draft one") } }
+        t.at(3.5) { t.s.session.change([a]) { _ = t.ws.createEssay(in: a, title: "Draft one") } }
         t.at(5.0) { secondProject(t, state) }
-        t.at(6.5) { t.s.change([a, state.b]) { moveCitingEssay(t, from: a, to: state.b) } }
+        t.at(6.5) { t.s.session.change([a, state.b]) { moveCitingEssay(t, from: a, to: state.b) } }
         t.at(8.5) { checkMoved(t, from: a, to: state.b) }
         t.at(10.0) { stillGoneThenSwitch(t, from: a, to: state.b) }
         t.at(12.0) { checkSwitched(t, state) }
         t.at(13.5) { checkRenamedThenDelete(t, state) }
         t.at(15.0) {
-            t.log.append("after delete: open project \(t.s.project.name); projects \(t.ws.projects().map(\.name))")
+            t.log.append("after delete: open project \(t.s.session.project.name); projects \(t.ws.projects().map(\.name))")
             t.finish()
         }
     }
 
     private static func secondProject(_ t: TestRun, _ state: State) {
         t.page("JSON.stringify(window.nbFlush&&JSON.parse(nbFlush()).essays.map(function(e){return e.title}))", "page essays after create")
-        t.s.change([]) { state.b = t.ws.createProject(named: "Second project") }
+        t.s.session.change([]) { state.b = t.ws.createProject(named: "Second project") }
     }
 
     /// a save from the page must not bring the moved essay back
     private static func stillGoneThenSwitch(_ t: TestRun, from a: ProjectInfo, to b: ProjectInfo) {
         t.log.append("still gone after page save: \(!t.ws.items(.essays, in: a).contains { $0.title == "Draft one" })")
-        t.s.switchTo(b, view: "essay")
+        t.s.session.switchTo(b, view: "essay")
     }
 
     private static func checkRenamedThenDelete(_ t: TestRun, _ state: State) {
-        t.log.append("after rename: open project \(t.s.project.name), folder \(t.s.project.url.lastPathComponent), papers at \(t.s.lib.pdfDir.deletingLastPathComponent().lastPathComponent)")
-        t.s.change([state.b]) { t.ws.deleteProject(state.b) }
+        t.log.append("after rename: open project \(t.s.session.project.name), folder \(t.s.session.project.url.lastPathComponent), papers at \(t.s.reader.lib.pdfDir.deletingLastPathComponent().lastPathComponent)")
+        t.s.session.change([state.b]) { t.ws.deleteProject(state.b) }
     }
 
     /// a source and a citation in the notes, so moving can carry the source along
@@ -169,10 +169,10 @@ enum ProjectTest {
     }
 
     private static func checkSwitched(_ t: TestRun, _ state: State) {
-        t.log.append("switched to: \(t.s.project.name), notebook \(t.s.currentNotebook?.title ?? "NONE")")
+        t.log.append("switched to: \(t.s.session.project.name), notebook \(t.s.session.currentNotebook?.title ?? "NONE")")
         t.page("document.getElementById('etitle')&&document.getElementById('etitle').value", "page shows essay")
         t.page("(document.querySelector('#ed span[data-cite]')||{}).textContent||'NONE'", "essay citation renders as")
         t.page("(function(){var st=JSON.parse(nbFlush());return 'essay list '+st.activeRefs.length+', notebook list '+st.refs.length})()", "separate lists (want essay 1, notebook 0)")
-        t.s.change([state.b]) { state.b = t.ws.renameProject(state.b, to: "Renamed project") }
+        t.s.session.change([state.b]) { state.b = t.ws.renameProject(state.b, to: "Renamed project") }
     }
 }

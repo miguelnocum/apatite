@@ -32,12 +32,12 @@ final class TestRun {
 
     /// runs a script in the notes page and logs its result under a label
     func page(_ js: String, _ label: String) {
-        s.webView?.evaluateJavaScript(js) { r, e in self.log.append("\(label): \(r.map { "\($0)" } ?? "ERR \(e?.localizedDescription ?? "")")") }
+        s.session.webView?.evaluateJavaScript(js) { r, e in self.log.append("\(label): \(r.map { "\($0)" } ?? "ERR \(e?.localizedDescription ?? "")")") }
     }
 
     /// runs a script in the notes page and hands its result on
     func page(_ js: String, then: @escaping (Any?) -> Void) {
-        s.webView?.evaluateJavaScript(js) { r, _ in then(r) }
+        s.session.webView?.evaluateJavaScript(js) { r, _ in then(r) }
     }
 
     /// the report written, and the app quits
@@ -49,16 +49,16 @@ final class TestRun {
     /// a PDF copied into the open project's library and opened
     @discardableResult
     func importPaper(_ path: String) -> LibItem? {
-        guard let item = try? s.lib.importPDF(from: URL(fileURLWithPath: path)) else { return nil }
-        s.items.append(item); s.lib.saveItems(s.items); s.open(item.id)
+        guard let item = try? s.reader.lib.importPDF(from: URL(fileURLWithPath: path)) else { return nil }
+        s.reader.items.append(item); s.reader.lib.saveItems(s.reader.items); s.reader.open(item.id)
         return item
     }
 
     /// the first place a phrase appears in the open PDF, selected
     @discardableResult
     func select(_ phrase: String) -> Bool {
-        guard let doc = s.document, let v = s.pdfView, let sel = doc.findString(phrase, withOptions: .caseInsensitive).first else { return false }
-        v.setCurrentSelection(sel, animate: false); s.hasSelection = true; return true
+        guard let doc = s.reader.document, let v = s.reader.pdfView, let sel = doc.findString(phrase, withOptions: .caseInsensitive).first else { return false }
+        v.setCurrentSelection(sel, animate: false); s.reader.hasSelection = true; return true
     }
 }
 

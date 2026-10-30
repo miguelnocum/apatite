@@ -53,7 +53,7 @@ struct DatabaseView: View {
     }
 
     var body: some View {
-        let _ = s.revision
+        let _ = s.session.revision
         dialogs(VStack(spacing: 0) {
             header
             Divider()
@@ -165,11 +165,11 @@ struct DatabaseView: View {
     /// Opens the Database where you are: the current project, inside the folders that hold it.
     private func initialPath() -> [String] {
         var out: [String] = []
-        var dir = s.project.url.deletingLastPathComponent()
+        var dir = s.session.project.url.deletingLastPathComponent()
         while dir.standardizedFileURL.path.count > ws.root.standardizedFileURL.path.count && dir.standardizedFileURL.path.hasPrefix(ws.root.standardizedFileURL.path) {
             out.insert("g:" + dir.path, at: 0); dir = dir.deletingLastPathComponent()
         }
-        return out + ["p:" + s.project.id]
+        return out + ["p:" + s.session.project.id]
     }
 
     // MARK: what a container holds
@@ -185,7 +185,7 @@ struct DatabaseView: View {
             let dir = key.isEmpty ? ws.root : URL(fileURLWithPath: String(key.dropFirst(2)), isDirectory: true)
             let c = ws.children(of: dir)
             return c.groups.map { Entry(id: "g:" + $0.path, title: $0.lastPathComponent, icon: "folder", detail: nil, container: true) }
-                 + c.projects.map { Entry(id: "p:" + $0.id, title: $0.name, icon: $0.id == s.project.id ? "shippingbox.fill" : "shippingbox", detail: nil, container: true) }
+                 + c.projects.map { Entry(id: "p:" + $0.id, title: $0.name, icon: $0.id == s.session.project.id ? "shippingbox.fill" : "shippingbox", detail: nil, container: true) }
         }
         guard let p = project(of: key) else { return [] }
         let fid: String? = folderID(of: key)
@@ -329,7 +329,7 @@ struct DatabaseView: View {
         Button { add(.decks, in: p, folder: fid) } label: { Label("New deck", systemImage: ItemKind.decks.icon) }
         Button { add(.papers, in: p, folder: fid) } label: { Label("Import PDFs…", systemImage: ItemKind.papers.icon) }
         Divider()
-        Button { s.importEssays(into: p) } label: { Label("Import Word or PDF essay…", systemImage: "square.and.arrow.down") }
+        Button { s.session.importEssays(into: p) } label: { Label("Import Word or PDF essay…", systemImage: "square.and.arrow.down") }
         Button { s.importFolder(into: p) } label: { Label("Import a folder of papers…", systemImage: "tray.and.arrow.down") }
         Divider()
         Button { newFolder(in: p, parent: fid) } label: { Label("New folder", systemImage: "folder.badge.plus") }
@@ -373,10 +373,10 @@ struct DatabaseView: View {
 
     private func open(_ r: DBRow) {
         switch r.kind {
-        case .notebooks: s.openNotebook(r.project, r.itemID)
-        case .essays: s.openEssay(r.project, r.itemID)
-        case .papers: s.openPaper(r.project, r.itemID)
-        case .syllabi: s.openSyllabus(r.project, r.itemID)
+        case .notebooks: s.session.openNotebook(r.project, r.itemID)
+        case .essays: s.session.openEssay(r.project, r.itemID)
+        case .papers: s.session.openPaper(r.project, r.itemID)
+        case .syllabi: s.session.openSyllabus(r.project, r.itemID)
         case .decks: s.openDeck(r.project, r.itemID)
         }
     }
@@ -385,7 +385,7 @@ struct DatabaseView: View {
 
     private func newGroup(in key: String) {
         var made: URL?
-        s.change([]) { made = ws.createGroup(named: "New folder", in: dir(of: key)) } then: {
+        s.session.change([]) { made = ws.createGroup(named: "New folder", in: dir(of: key)) } then: {
             guard let u = made else { return }
             newName = u.lastPathComponent; renaming = Target(key: "g:" + u.path, title: u.lastPathComponent, row: nil)
         }
@@ -393,7 +393,7 @@ struct DatabaseView: View {
 
     private func addProject(in key: String) {
         var made: ProjectInfo?
-        s.change([]) { made = ws.createProject(named: "Untitled project", in: dir(of: key)) } then: {
+        s.session.change([]) { made = ws.createProject(named: "Untitled project", in: dir(of: key)) } then: {
             guard let p = made else { return }
             let depth = key.isEmpty ? 0 : (path.firstIndex(of: key) ?? -1) + 1
             path = Array(path.prefix(depth)) + ["p:" + p.id]
@@ -403,7 +403,7 @@ struct DatabaseView: View {
 
     private func newFolder(in p: ProjectInfo, parent: String?) {
         var made: ProjectFolder?
-        s.change([]) { made = ws.createFolder(named: "New folder", parent: parent, in: p) } then: {
+        s.session.change([]) { made = ws.createFolder(named: "New folder", parent: parent, in: p) } then: {
             guard let f = made else { return }
             newName = f.name; renaming = Target(key: "f:\(p.id):\(f.id)", title: f.name, row: nil)
         }
@@ -413,7 +413,7 @@ struct DatabaseView: View {
         switch k {
         case .decks:
             var made: DocItem?
-            s.change([p]) { made = ws.createDeck(in: p, title: "Untitled deck", folder: folder) } then: { if let d = made { s.openDeck(p, d.id) } }
+            s.session.change([p]) { made = ws.createDeck(in: p, title: "Untitled deck", folder: folder) } then: { if let d = made { s.openDeck(p, d.id) } }
         case .notebooks, .essays, .syllabi: addDocument(k, in: p, folder: folder)
         case .papers: addPapers(in: p, folder: folder)
         }
@@ -422,7 +422,7 @@ struct DatabaseView: View {
     /// a new notebook, essay or syllabus, selected and ready to name
     private func addDocument(_ k: ItemKind, in p: ProjectInfo, folder: String?) {
         var made: DocItem?
-        s.change([p]) {
+        s.session.change([p]) {
             made = k == .notebooks ? ws.createNotebook(in: p, title: "Untitled notebook") : k == .essays ? ws.createEssay(in: p, title: "") : ws.createSyllabus(in: p, title: "Untitled syllabus", folder: folder)
             if let m = made, folder != nil, k != .syllabi { ws.setFolder(k, m.id, folder, in: p) }
         } then: {
@@ -441,7 +441,7 @@ struct DatabaseView: View {
         panel.message = "Choose PDFs to copy into \(p.name)"
         guard panel.runModal() == .OK else { return }
         let urls = panel.urls
-        s.change([p]) {
+        s.session.change([p]) {
             let lib = Library(project: p.url)
             var items = lib.loadItems()
             for u in urls {
@@ -453,7 +453,7 @@ struct DatabaseView: View {
         }
     }
 
-    private func link(_ r: DBRow, _ sid: String?) { s.change([r.project]) { ws.linkSyllabus(r.kind, r.itemID, to: sid, in: r.project) } }
+    private func link(_ r: DBRow, _ sid: String?) { s.session.change([r.project]) { ws.linkSyllabus(r.kind, r.itemID, to: sid, in: r.project) } }
 
     private func rename(_ t: Target) {
         let name = newName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -465,7 +465,7 @@ struct DatabaseView: View {
     }
 
     private func renameRow(_ row: DBRow, to name: String) {
-        s.change([row.project]) {
+        s.session.change([row.project]) {
             switch row.kind {
             case .notebooks, .essays, .syllabi, .decks:
                 if let it = ws.item(row.kind, row.itemID, in: row.project) { ws.rename(row.kind, it, to: name) }
@@ -481,14 +481,14 @@ struct DatabaseView: View {
             let old = String(t.key.dropFirst(2))
             var dest: URL?
             // the columns showing the folder (or folders inside it) follow it to its new name
-            s.change(ws.projects().filter { $0.url.path.hasPrefix(old + "/") }) { dest = ws.renameGroup(URL(fileURLWithPath: old, isDirectory: true), to: name) } then: {
+            s.session.change(ws.projects().filter { $0.url.path.hasPrefix(old + "/") }) { dest = ws.renameGroup(URL(fileURLWithPath: old, isDirectory: true), to: name) } then: {
                 if let d = dest { path = path.map { $0 == t.key ? "g:" + d.path : ($0.hasPrefix(t.key + "/") ? "g:" + d.path + $0.dropFirst(t.key.count) : $0) } }
             }
         } else if t.key.hasPrefix("p:"), let p = project(of: t.key) {
-            s.change([p]) { _ = ws.renameProject(p, to: name) }
+            s.session.change([p]) { _ = ws.renameProject(p, to: name) }
         } else if let p = project(of: t.key) {
             let fid = folderID(of: t.key) ?? ""
-            s.change([]) { ws.renameFolder(fid, to: name, in: p) }
+            s.session.change([]) { ws.renameFolder(fid, to: name, in: p) }
         }
     }
 
@@ -498,7 +498,7 @@ struct DatabaseView: View {
     }
 
     private func deleteRow(_ row: DBRow) {
-        s.change([row.project]) {
+        s.session.change([row.project]) {
             switch row.kind {
             case .notebooks, .essays, .syllabi, .decks:
                 if let it = ws.item(row.kind, row.itemID, in: row.project) { ws.delete(it) }
@@ -514,12 +514,12 @@ struct DatabaseView: View {
     private func deleteContainer(_ t: Target) {
         if t.key.hasPrefix("g:") {
             let u = URL(fileURLWithPath: String(t.key.dropFirst(2)), isDirectory: true)
-            s.change(ws.projects().filter { $0.url.path.hasPrefix(u.path + "/") }) { ws.trash(u) }
+            s.session.change(ws.projects().filter { $0.url.path.hasPrefix(u.path + "/") }) { ws.trash(u) }
         } else if t.key.hasPrefix("p:"), let p = project(of: t.key) {
-            s.change([p]) { ws.deleteProject(p) }
+            s.session.change([p]) { ws.deleteProject(p) }
         } else if let p = project(of: t.key) {
             let fid = folderID(of: t.key) ?? ""
-            s.change([p]) { ws.deleteFolder(fid, in: p) }
+            s.session.change([p]) { ws.deleteFolder(fid, in: p) }
         }
         if let i = path.firstIndex(of: t.key) { path = Array(path.prefix(i)) }
     }
@@ -546,7 +546,7 @@ struct DatabaseView: View {
         // the move happens after the page is saved; the drop is taken now
         let a = src.standardizedFileURL.path, b = dir(of: key).standardizedFileURL.path
         guard a != b, !b.hasPrefix(a + "/") else { return false }
-        s.change(touched) { ws.moveDir(src, into: dir(of: key)) }
+        s.session.change(touched) { ws.moveDir(src, into: dir(of: key)) }
         path = path.filter { !($0 == pl || $0.hasPrefix(pl + "/")) }
         return true
     }
@@ -556,7 +556,7 @@ struct DatabaseView: View {
         guard let p = project(of: pl), project(of: key)?.id == p.id else { return false }
         let fid = folderID(of: pl) ?? ""
         let to: String? = folderID(of: key)
-        s.change([]) { ws.moveFolder(fid, to: to, in: p) }
+        s.session.change([]) { ws.moveFolder(fid, to: to, in: p) }
         return true
     }
 
@@ -566,7 +566,7 @@ struct DatabaseView: View {
         guard parts.count == 3, let k = ItemKind(rawValue: parts[0]), let src = ws.project(parts[1]), let dst = project(of: key) else { return false }
         let id = parts[2]
         let folder: String? = folderID(of: key)
-        s.change(src.id == dst.id ? [src] : [src, dst]) {
+        s.session.change(src.id == dst.id ? [src] : [src, dst]) {
             if src.id != dst.id { moveItem(k, id, from: src, to: dst) }
             ws.setFolder(k, id, folder, in: dst)
         }
@@ -738,7 +738,7 @@ struct PreviewPane: View {
         let list = ws.items(.syllabi, in: r.project)
         return HStack(alignment: .firstTextBaseline) {
             Text("Syllabus").foregroundStyle(.secondary).frame(width: 84, alignment: .leading)
-            Picker("", selection: Binding(get: { current ?? "" }, set: { v in s.change([r.project]) { ws.linkSyllabus(r.kind, r.itemID, to: v.isEmpty ? nil : v, in: r.project) } })) {
+            Picker("", selection: Binding(get: { current ?? "" }, set: { v in s.session.change([r.project]) { ws.linkSyllabus(r.kind, r.itemID, to: v.isEmpty ? nil : v, in: r.project) } })) {
                 Text("None").tag("")
                 ForEach(list, id: \.id) { Text($0.title).tag($0.id) }
             }.labelsHidden().fixedSize()

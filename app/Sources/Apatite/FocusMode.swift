@@ -6,15 +6,9 @@ import WebKit
 /// and the reader pane go, the page runs up under the title bar (the traffic lights float over it, and the page fades its
 /// text out under them once scrolled), and the window can be made narrow enough to sit beside a lecture, flash cards or
 /// a paper. The page keeps the setting; ⇧⌘F or its bar's button.
-extension AppState {
+extension NavigationModel {
     /// focus mode on, and the notes showing (it doesn't apply to the welcome page, the database or a deck)
     var focusActive: Bool { focusMode && screen == .workspace }
-
-    /// View ▸ Focus Mode: the page turns it on or off, and tells the window
-    func toggleFocus() {
-        if screen != .workspace { openNotes() }
-        page.toggleFocus()
-    }
 
     /// the page says focus mode is on or off, and what colour it is
     func setFocusMode(_ on: Bool, bg: String?) {
@@ -23,16 +17,24 @@ extension AppState {
     }
 }
 
+extension AppState {
+    /// View ▸ Focus Mode: the page turns it on or off, and tells the window
+    func toggleFocus() {
+        if navigation.screen != .workspace { openNotes() }
+        page.toggleFocus()
+    }
+}
+
 extension View {
     /// in focus mode: the window's title bar see-through with the page up under it, and a strip along the top to drag
     /// the window by
     func focusChrome(_ state: AppState) -> some View {
-        ignoresSafeArea(.container, edges: state.focusActive ? .top : [])
+        ignoresSafeArea(.container, edges: state.navigation.focusActive ? .top : [])
             .overlay(alignment: .top) {
-                if state.focusActive { WindowDragStrip().frame(height: 28).ignoresSafeArea(.container, edges: .top) }
+                if state.navigation.focusActive { WindowDragStrip().frame(height: 28).ignoresSafeArea(.container, edges: .top) }
             }
-            .background(FocusWindowChrome(on: state.focusActive, bg: state.focusBG.flatMap { NSColor(hex: $0) },
-                                          web: state.webView,
+            .background(FocusWindowChrome(on: state.navigation.focusActive, bg: state.navigation.focusBG.flatMap { NSColor(hex: $0) },
+                                          web: state.session.webView,
                                           themeBG: state.theme.flatMap { NSColor(hex: $0.bg) } ?? .windowBackgroundColor))
     }
 }

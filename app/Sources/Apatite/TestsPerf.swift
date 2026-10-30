@@ -18,13 +18,13 @@ enum PerfTest {
         let big = ws.projects().max { Library(project: $0.url).loadItems().count < Library(project: $1.url).loadItems().count }!
         let papers = Library(project: big.url).loadItems()
         let paper = largest(papers, in: big)
-        at(1.5, "0 start in another project") { if s.project.id == big.id, let other = ws.projects().first(where: { $0.id != big.id }) { s.switchTo(other) } }
-        at(3, phases[0]) { s.screen = .database }
-        at(5, phases[1]) { perfMarks = ["-- open a paper in another project"]; s.openPaper(big, paper.id) }
+        at(1.5, "0 start in another project") { if s.session.project.id == big.id, let other = ws.projects().first(where: { $0.id != big.id }) { s.session.switchTo(other) } }
+        at(3, phases[0]) { s.navigation.screen = .database }
+        at(5, phases[1]) { perfMarks = ["-- open a paper in another project"]; s.session.openPaper(big, paper.id) }
         at(8, phases[2]) { repeatEvery(beat, times: 150) { scrollDown(s) } }
-        at(12, phases[3]) { s.screen = .database; perfMarks.append("-- open notebook"); if let nb = ws.items(.notebooks, in: big).first { s.openNotebook(big, nb.id) } }
-        at(15, phases[4]) { repeatEvery(0.08, times: 40) { s.webView?.evaluateJavaScript(typeAWord) } }
-        at(14.9, "4b") { s.webView?.evaluateJavaScript(pageBeat) }
+        at(12, phases[3]) { s.navigation.screen = .database; perfMarks.append("-- open notebook"); if let nb = ws.items(.notebooks, in: big).first { s.session.openNotebook(big, nb.id) } }
+        at(15, phases[4]) { repeatEvery(0.08, times: 40) { s.session.webView?.evaluateJavaScript(typeAWord) } }
+        at(14.9, "4b") { s.session.webView?.evaluateJavaScript(pageBeat) }
         at(21, "5b") {
             t.page("JSON.stringify(window.__hb)", "page heartbeat while typing + saving")
             t.page(flushTimed, "flush")
@@ -63,7 +63,7 @@ enum PerfTest {
     }
 
     private static func scrollDown(_ s: AppState) {
-        guard let sv = s.pdfView?.documentView?.enclosingScrollView else { return }
+        guard let sv = s.reader.pdfView?.documentView?.enclosingScrollView else { return }
         let c = sv.contentView; var o = c.bounds.origin; o.y += 40; c.scroll(to: o); sv.reflectScrolledClipView(c)
     }
 
@@ -75,7 +75,7 @@ enum PerfTest {
     static let typeAWord = "(function(){var e=document.getElementById('ed');if(!e)return;e.focus();var r=document.createRange();r.selectNodeContents(e);r.collapse(false);var s=getSelection();s.removeAllRanges();s.addRange(r);document.execCommand('insertText',false,'word ')})()"
 
     private static func report(_ t: TestRun, _ big: ProjectInfo, _ paperCount: Int, _ paper: LibItem) {
-        t.log.append("library: \(t.ws.projects().count) projects; test project \(big.name) with \(paperCount) papers; paper \(paper.title) (\(t.s.document?.pageCount ?? 0) pages)")
+        t.log.append("library: \(t.ws.projects().count) projects; test project \(big.name) with \(paperCount) papers; paper \(paper.title) (\(t.s.reader.document?.pageCount ?? 0) pages)")
         t.log.append("steps (time since the previous step):"); t.log += perfMarks
         for k in perPhase.keys.sorted() where k != "end" { let p = perPhase[k]!; t.log.append(String(format: "%@: worst freeze %.0f ms, total frozen %.0f ms", k, p.worst, p.total)) }
         for k in phases where perPhase[k] == nil { t.log.append("\(k): no freezes over 50 ms") }

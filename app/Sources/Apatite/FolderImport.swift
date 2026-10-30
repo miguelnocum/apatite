@@ -167,7 +167,7 @@ struct FolderImportSheet: View {
         HStack {
             Spacer()
             Button("Done") { dismiss() }
-            Button("Show in Database") { s.screen = .database; dismiss() }.keyboardShortcut(.defaultAction)
+            Button("Show in Database") { s.navigation.screen = .database; dismiss() }.keyboardShortcut(.defaultAction)
         }
     }
 
@@ -217,7 +217,7 @@ struct FolderImportSheet: View {
             let r = FolderImport.run(plan) { n in DispatchQueue.main.async { done = n } }
             DispatchQueue.main.async {
                 running = false; result = r
-                s.change(touched) {} // lists and the open project pick up the new papers
+                s.session.change(touched) {} // lists and the open project pick up the new papers
             }
         }
     }

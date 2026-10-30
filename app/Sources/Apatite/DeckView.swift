@@ -627,7 +627,7 @@ struct SuggestionsSheet: View {
         let todo = list.filter { !applied.contains($0.id) }
         guard let p = s.deckProject, let sid = s.deck?.syllabus, !todo.isEmpty else { return }
         // through change(), so an open notebook following this syllabus is saved first and then reloaded with the new ratings
-        s.change([p]) { for sg in todo { s.workspace.setRating(sg.id, sg.suggested, syllabus: sid, in: p) } }
+        s.session.change([p]) { for sg in todo { s.workspace.setRating(sg.id, sg.suggested, syllabus: sid, in: p) } }
         applied.formUnion(todo.map(\.id))
     }
 }

@@ -4,7 +4,7 @@ import WebKit
 /// The Syllabus / Notes / Works Cited screens, reused from the web version.
 struct NotebookWebView: NSViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
-        AppState.shared.webView ?? WKWebView()
+        AppState.shared.session.webView ?? WKWebView()
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {}
@@ -15,7 +15,7 @@ struct NotebookWebView: NSViewRepresentable {
     @MainActor private static func configuration() -> WKWebViewConfiguration {
         let ucc = WKUserContentController()
         // Hand the open project's notebook, essays and Works Cited to the page before any of its scripts run.
-        ucc.addUserScript(WKUserScript(source: AppState.shared.bootScript(), injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        ucc.addUserScript(WKUserScript(source: AppState.shared.session.bootScript(), injectionTime: .atDocumentStart, forMainFrameOnly: true))
         ucc.add(handler, name: "nb")
 
         let cfg = WKWebViewConfiguration()
@@ -53,7 +53,7 @@ struct NotebookWebView: NSViewRepresentable {
     final class Handler: NSObject, WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate {
         func userContentController(_ ucc: WKUserContentController, didReceive message: WKScriptMessage) {
             guard let body = message.body as? [String: Any], let decoded = PageMessage(body) else { return }
-            Task { @MainActor in AppState.shared.receive(decoded) }
+            Task { @MainActor in AppState.shared.session.receive(decoded) }
         }
 
         // Links in notes open in the default browser (or mail…), never inside the app: the page itself never navigates away.

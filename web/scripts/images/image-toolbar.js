@@ -1,10 +1,10 @@
+import { caretToStart } from '../core/caret.js';
 import { $, ed, toast } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
 import { saveDocSoon } from '../editor/notes-document.js';
 import { edChanged } from '../editor/hydrate-and-changes.js';
 import { startImgMove, startImgResize } from './image-resize-move.js';
 import { cancelCrop, openCrop } from './image-crop.js';
-import { caretToStart } from '../writing/block-shortcuts.js';
 
 /* ===== images: click one for layout, size, crop, move, caption, delete ===== */
 const TOOLBAR_MARGIN = 8; // px between the toolbar and the picture, and the window's sides

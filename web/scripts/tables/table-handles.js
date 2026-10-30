@@ -1,6 +1,6 @@
+import { caretInto, inEd } from '../core/caret.js';
 import { ed, ui } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { inEd } from '../editor/editor-commands.js';
 import {
   cellRect,
   clearCellSelection,
@@ -24,7 +24,6 @@ import {
   startRowResize
 } from './table-sizing.js';
 import { refreshTableTab } from './table-tab.js';
-import { caretInto } from '../essays/essays.js';
 
 /* ===== tables: handles over the table the pointer (or caret) is in. A grip above each column and beside each row selects
    it (⇧ adds the ones between) and drags it somewhere else; a column's or row's border drags to resize it; dragging

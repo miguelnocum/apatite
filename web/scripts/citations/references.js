@@ -1,8 +1,7 @@
 import { KEY } from '../core/example-data.js';
-import { ed, esc, toast, ui } from '../core/helpers-and-state.js';
+import { ed, edEssayId, esc, essays, toast, ui } from '../core/helpers-and-state.js';
 import { Store, setSave, track } from '../core/storage.js';
 import { docHTML, serializeDoc } from '../editor/notes-document.js';
-import { edEssayId, essays } from '../essays/essays.js';
 
 /* ===== the references of a Works Cited, and how they're kept ===== */
 /* every notebook and essay keeps its own Works Cited; `refs` is always the open list */

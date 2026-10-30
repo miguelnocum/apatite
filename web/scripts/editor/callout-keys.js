@@ -1,7 +1,6 @@
+import { caretInto, fire, selectRange } from '../core/caret.js';
 import { mk } from '../core/paste-cleaning.js';
-import { fire } from './editor-commands.js';
-import { caretInto } from '../essays/essays.js';
-import { anchorElement, mdBefore, selectRange } from '../writing/writing.js';
+import { anchorElement, mdBefore } from '../writing/writing.js';
 import { emptyLine } from './callouts.js';
 import { CALLOUTS } from '../core/callout-kinds.js';
 

@@ -1,11 +1,9 @@
 import { KEY } from '../core/example-data.js';
-import { $, ed, ui } from '../core/helpers-and-state.js';
+import { $, ed, isDocView, ui } from '../core/helpers-and-state.js';
 import { renderSide } from '../syllabus/syllabus-view.js';
 import { markCur } from './page-render.js';
-import { setTbMenu, tbMenu } from '../editor/editor-commands.js';
 import { applyFocusZoom, focusWheel, inFocus, setFocusZoom, stepFocusZoom } from './focus-mode.js';
 import { isNarrow, renderComments } from '../editor/comments.js';
-import { isDocView } from '../essays/essays.js';
 import { getPref } from '../app/settings.js';
 
 /* ===== page zoom: the page is scaled, the wrapper takes the scaled size so scrolling stays right ===== */
@@ -335,24 +333,6 @@ const onZoomWheel = e => {
   if (inFocus()) focusWheel(e);
   else setZoom(pageZoom() * Math.exp(-e.deltaY / 100), { x: e.clientX, y: e.clientY });
 };
-
-export function closeTbMenu() {
-  if (!tbMenu) return;
-  if (tbMenu.sub) tbMenu.sub.remove();
-  tbMenu.remove();
-  setTbMenu(null);
-}
-
-/* the focus back in the notes, with the selection they last had */
-export function restoreSel() {
-  const editor = ed();
-  if (!editor) return;
-  editor.focus({ preventScroll: true });
-  if (!(ui.lastRange && editor.contains(ui.lastRange.startContainer))) return;
-  const selection = getSelection();
-  selection.removeAllRanges();
-  selection.addRange(ui.lastRange);
-}
 
 export function initZoom() {
   ui.zoom = savedZoom();

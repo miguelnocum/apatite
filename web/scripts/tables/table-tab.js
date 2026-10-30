@@ -1,6 +1,6 @@
+import { caretInto, inEd } from '../core/caret.js';
 import { KEY } from '../core/example-data.js';
-import { $, ui } from '../core/helpers-and-state.js';
-import { inEd } from '../editor/editor-commands.js';
+import { $, isDocView, ui } from '../core/helpers-and-state.js';
 import { cellsIn, rowTag, selectCells, selectColumns, selectRows, tableTarget } from './table-grid.js';
 import {
   clearCells,
@@ -41,7 +41,6 @@ import {
   toggleTableFlag
 } from './table-look.js';
 import { tableChanged } from './table-handles.js';
-import { caretInto, isDocView } from '../essays/essays.js';
 
 /* ===== the table tab: under the toolbar while working in a table. Like an inspector, it has panes (Table, Rows &
    Columns, Cell, Text), one row of controls each: segmented buttons, steppers, style and colour swatches. It acts on the

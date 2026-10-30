@@ -1,6 +1,6 @@
+import { restoreSel } from '../core/caret.js';
 import { ed, toast } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { restoreSel } from '../view/zoom.js';
 import { saveDocSoon } from '../editor/notes-document.js';
 import { texShow } from './equation-tex.js';
 import { caretAfterMath, mathEd } from './equation-editor-parts.js';

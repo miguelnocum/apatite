@@ -1,8 +1,8 @@
+import { selectRange } from '../core/caret.js';
 import { $, ed, esc, toast } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
 import { saveDocSoon } from './notes-document.js';
 import { edChanged, hydrateExtras } from './hydrate-and-changes.js';
-import { selectRange } from '../writing/writing.js';
 
 /* ===== footnotes: a marker in the text, the numbered notes under the page; click one to write it ===== */
 const FOOTNOTE_POPUP_MARGIN = 12; // px the footnote box keeps from the window's edges

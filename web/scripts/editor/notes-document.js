@@ -1,10 +1,10 @@
-import { $, ed, meta, setCurEd, toast } from '../core/helpers-and-state.js';
+import { $, ed, edEssayId, essays, meta, setCurEd, toast } from '../core/helpers-and-state.js';
 import { Store, setSave } from '../core/storage.js';
 import { fillEmpty, sanitize } from '../core/paste-cleaning.js';
 import { addBanner, markCur } from '../view/page-render.js';
 import { watchZoom } from '../view/zoom.js';
 import { hydrateExtras } from './hydrate-and-changes.js';
-import { edEssayId, essays, renderEssaySide } from '../essays/essays.js';
+import { renderEssaySide } from '../essays/essays.js';
 import { refs, useRefs, yearLabels } from '../citations/references.js';
 import { hydrateCites } from '../citations/in-text-citations.js';
 import { emptyLine } from './callouts.js';

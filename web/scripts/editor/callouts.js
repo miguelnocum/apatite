@@ -1,9 +1,10 @@
+import { closeTbMenu } from '../core/toolbar-menu.js';
+import { fire, restoreSel, selectRange } from '../core/caret.js';
 import { ed } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
 import { CALLOUTS } from '../core/callout-kinds.js';
-import { cmd, fire } from './editor-commands.js';
-import { closeTbMenu, restoreSel } from '../view/zoom.js';
-import { mdTopBlock, selectRange } from '../writing/writing.js';
+import { cmd } from './editor-commands.js';
+import { mdTopBlock } from '../writing/writing.js';
 
 /* ===== callouts ===== */
 const CALLOUT_TYPES = ['note', 'tip', 'important', 'warning', 'caution'];

@@ -1,3 +1,4 @@
+import { selectRange } from '../core/caret.js';
 import { ed } from '../core/helpers-and-state.js';
 /* ===== Bear-style writing =====
    Typed shortcuts are commands: "**word**", "# ", "- " and friends turn into formatting the moment they are complete
@@ -20,12 +21,6 @@ export function mdSel(node, start, end) {
   range.setStart(node, start);
   range.setEnd(node, end == null ? start : end);
   selectRange(range);
-}
-
-export function selectRange(range) {
-  const selection = getSelection();
-  selection.removeAllRanges();
-  selection.addRange(range);
 }
 
 /* the caret, when it's in a text node: the node, its offset, and the text before it */

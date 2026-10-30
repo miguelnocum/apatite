@@ -1,8 +1,8 @@
+import { caretToStart, fire, selectRange } from '../core/caret.js';
 import { ed } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { fire, tbState } from './editor-commands.js';
-import { anchorElement, mdTopBlock, selectRange } from '../writing/writing.js';
-import { caretToStart } from '../writing/block-shortcuts.js';
+import { tbState } from './editor-commands.js';
+import { anchorElement, mdTopBlock } from '../writing/writing.js';
 
 /* ===== a place for the caret beside a citation or footnote at the start or end of a line (on screen only; never saved) ===== */
 export const ZW = '\u200b';

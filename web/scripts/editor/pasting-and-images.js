@@ -1,7 +1,6 @@
+import { caretInto, closestTag } from '../core/caret.js';
 import { NATIVE, curEd, setCurEd, toast } from '../core/helpers-and-state.js';
 import { mk, plainToHTML, sanitize } from '../core/paste-cleaning.js';
-import { closestTag } from './editor-commands.js';
-import { caretInto } from '../essays/essays.js';
 import { emptyLine } from './callouts.js';
 
 /* ===== pasting and dropping into the notes, and putting pictures in ===== */

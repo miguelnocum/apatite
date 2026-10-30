@@ -1,6 +1,6 @@
+import { caretInto, fire } from '../core/caret.js';
 import { toast, ui } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { fire } from '../editor/editor-commands.js';
 import {
   cellsIn,
   clearCellSelection,
@@ -16,7 +16,6 @@ import {
 } from './table-grid.js';
 import { columnInserted, columnsDeleted, columnsMoved } from './table-sizing.js';
 import { tableChanged } from './table-handles.js';
-import { caretInto } from '../essays/essays.js';
 import { MD } from '../writing/writing.js';
 
 /* ===== tables: rows and columns added, deleted and moved, cells merged and split; every change undoable with ⌘Z ===== */

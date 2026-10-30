@@ -1,6 +1,5 @@
-import { $, esc, meta, toast, ui } from '../core/helpers-and-state.js';
+import { $, esc, essays, meta, toast, ui } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
-import { essays } from '../essays/essays.js';
 import {
   citeCount,
   orderedRefs,

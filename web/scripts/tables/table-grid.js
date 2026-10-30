@@ -1,6 +1,6 @@
+import { closestTag, inEd } from '../core/caret.js';
 import { ui } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { closestTag, inEd } from '../editor/editor-commands.js';
 import { refreshTableTab } from './table-tab.js';
 
 /* ===== tables, Word-style: the grid behind a table, where a merged cell takes several places, and the cells selected in it.

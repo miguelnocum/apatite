@@ -1,16 +1,16 @@
-import { $, curEd, ed, toast, ui } from '../core/helpers-and-state.js';
+import { caretInto, restoreSel } from '../core/caret.js';
+import { $, curEd, ed, isDocView, toast, ui } from '../core/helpers-and-state.js';
+import { closestTag, fire, inEd } from '../core/caret.js';
 import { mk, sanitize } from '../core/paste-cleaning.js';
 import { noteCaretCell, rangeWithinCell } from '../tables/table-grid.js';
 import { drawTableHandles, handledTable, tableLayer } from '../tables/table-handles.js';
 import { refreshTableTab } from '../tables/table-tab.js';
-import { restoreSel } from '../view/zoom.js';
 import { toggleFocus } from '../view/focus-mode.js';
 import { keyOf, titleMarks } from './highlight-key.js';
 import { openTbMenu } from './toolbar-menus.js';
 import { openCiteCheck } from '../citations/citation-check.js';
 import { insertTOC } from './contents.js';
 import { insertFootnote } from './footnotes.js';
-import { caretInto, isDocView } from '../essays/essays.js';
 import { insertCitation } from '../citations/in-text-citations.js';
 import { endChoosing, openSources, renderRefs } from '../citations/sources-pane.js';
 import { mdTopBlock } from '../writing/writing.js';
@@ -25,27 +25,6 @@ import { spTagSelection } from '../spec-points/spec-point-picker.js';
 /* ===== the editor's commands: the toolbar's buttons and menu items, and highlighting ===== */
 const NEW_TABLE_COLUMNS = 3;
 const NEW_TABLE_BODY_ROWS = 2;
-
-/* the caret (or selection) is in the notes or essay being written (not in the equation editor) */
-export function inEd() {
-  const active = document.activeElement;
-  if (active && active.closest && active.closest('.mathpop')) return false;
-  const selection = getSelection();
-  return curEd && selection.rangeCount && curEd.contains(selection.anchorNode);
-}
-
-/* the notes changed (saved and redrawn as if typed) */
-export function fire() {
-  if (curEd) curEd.dispatchEvent(new Event('input', { bubbles: true }));
-}
-
-/* the nearest element around the caret that matches */
-export function closestTag(selector) {
-  const selection = getSelection();
-  if (!selection.anchorNode) return null;
-  const node = selection.anchorNode.nodeType === 3 ? selection.anchorNode.parentNode : selection.anchorNode;
-  return node.closest ? node.closest(selector) : null;
-}
 
 /* ---- highlighting: a colour from the key (0 removes it). In a highlight, it changes or goes; otherwise the selection is
    highlighted (any highlights inside it replaced) ---- */
@@ -306,13 +285,6 @@ function commandState(name) {
   } catch (e) {
     return false;
   }
-}
-
-/* the toolbar menu that's open (see 07a-toolbar-menus) */
-export let tbMenu = null;
-export function setTbMenu(value) {
-  tbMenu = value;
-  return value;
 }
 
 export function initEditorCommands() {

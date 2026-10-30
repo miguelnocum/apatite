@@ -1,11 +1,10 @@
+import { inEd } from '../core/caret.js';
 import { KEY } from '../core/example-data.js';
-import { $, ed, NATIVE, post } from '../core/helpers-and-state.js';
-import { inEd } from '../editor/editor-commands.js';
+import { $, ed, isDocView, NATIVE, post } from '../core/helpers-and-state.js';
 import { applyTableDefaults } from '../tables/table-look.js';
 import { headerHeight } from '../view/zoom.js';
 import { postFocus } from '../view/focus-mode.js';
 import { positionCards } from '../editor/comments.js';
-import { isDocView } from '../essays/essays.js';
 import { mdTopBlock } from './writing.js';
 import { drawFolds, revealInEd } from '../editor/folding.js';
 

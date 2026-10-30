@@ -70,3 +70,23 @@ export function setCurEd(value) {
   curEd = value;
   return value;
 }
+/* the essays (free writing on the same page, no syllabus) */
+export let essays = [];
+export function setEssays(value) {
+  essays = value;
+  return value;
+}
+
+/* which document the open editor holds; saving follows the editor, not the tab */
+export function edEssayId() {
+  const editor = ed();
+  return editor && editor.getAttribute('data-doc') === 'essay' ? editor.getAttribute('data-essay') : null;
+}
+
+export function isDocView() {
+  return ui.view === 'notes' || ui.view === 'essay';
+}
+
+export function curEssay() {
+  return essays.find(essay => essay.id === ui.essayId) || null;
+}

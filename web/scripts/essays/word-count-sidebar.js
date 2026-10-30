@@ -1,10 +1,9 @@
-import { $, ed, esc, ui } from '../core/helpers-and-state.js';
+import { $, curEssay, ed, edEssayId, esc, essays, ui } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { flash } from '../view/page-render.js';
 import { essayTotal, tagById, tagCounts, tagsChanged, wcOpts } from './word-count.js';
 import { contentsPanel } from './word-count-contents.js';
 import { closeTagPop, drawBoxes, setWcMode, tagPop } from './word-count-boxes.js';
-import { curEssay, edEssayId, essays } from './essays.js';
 
 /* ===== the word count in the essay's sidebar: the total, each tag's count and settings, the contents, the options ===== */
 const PERCENT = 100;

@@ -1,5 +1,20 @@
 import { KEY } from '../core/example-data.js';
-import { $, ed, esc, NATIVE, ptById, pts, setCurEd, toast, ui, uid } from '../core/helpers-and-state.js';
+import {
+  $,
+  curEssay,
+  ed,
+  edEssayId,
+  esc,
+  essays,
+  NATIVE,
+  ptById,
+  pts,
+  setCurEd,
+  setEssays,
+  toast,
+  ui,
+  uid
+} from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { renderSide, sideHd } from '../syllabus/syllabus-view.js';
 import { render } from '../view/page-render.js';
@@ -9,31 +24,10 @@ import { essayTotal, tagCounts, wcOpts } from './word-count.js';
 import { renderWordCount, updateEssayListCounts } from './word-count-sidebar.js';
 import { closeTagPop } from './word-count-boxes.js';
 import { useRefs } from '../citations/references.js';
-import { caretToStart } from '../writing/block-shortcuts.js';
 import { shiftHeadings } from '../editor/folding.js';
 import { spGo } from '../spec-points/spec-point-panel.js';
 
 /* ===== essays: free writing on the same page, no syllabus ===== */
-export let essays = [];
-export function setEssays(value) {
-  essays = value;
-  return value;
-}
-
-/* which document the open editor holds; saving follows the editor, not the tab */
-export function edEssayId() {
-  const editor = ed();
-  return editor && editor.getAttribute('data-doc') === 'essay' ? editor.getAttribute('data-essay') : null;
-}
-
-export function isDocView() {
-  return ui.view === 'notes' || ui.view === 'essay';
-}
-
-export function curEssay() {
-  return essays.find(essay => essay.id === ui.essayId) || null;
-}
-
 function rememberEssay() {
   try {
     localStorage.setItem(KEY + '-essay', ui.essayId || '');
@@ -75,7 +69,7 @@ export function openEssay(id) {
 }
 
 export function deleteEssay() {
-  essays = essays.filter(essay => essay.id !== ui.essayId);
+  setEssays(essays.filter(essay => essay.id !== ui.essayId));
   ui.delSure = false;
   Store.saveEssays();
   ui.essayId = essays.length ? essays[0].id : null;
@@ -150,13 +144,6 @@ function essayListHTML() {
     '<div class="esbtns"><button type="button" class="newes" id="newessay">+ New essay</button></div>' +
     `<div class="esl">${items.join('')}</div>`
   );
-}
-
-/* the caret at the start of a line, in the editor */
-export function caretInto(line) {
-  if (!line) return;
-  caretToStart(line);
-  ed().focus({ preventScroll: true });
 }
 
 /* point -> notes: jump to it, or add it in the right section */

@@ -1,5 +1,18 @@
+import { closeTbMenu } from '../core/toolbar-menu.js';
 import { EXAMPLE } from '../core/example-data.js';
-import { $, NATIVE, meta, post, pts, setCurEd, setPts, toast, ui } from '../core/helpers-and-state.js';
+import {
+  $,
+  curEssay,
+  isDocView,
+  meta,
+  NATIVE,
+  post,
+  pts,
+  setCurEd,
+  setPts,
+  toast,
+  ui
+} from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { commit, planApply } from '../syllabus/model.js';
 import { cfHTML, measure, renderSide, toggleSide } from '../syllabus/syllabus-view.js';
@@ -7,11 +20,11 @@ import { detect, renderSetup, secPrefix, sectionNames, suggestGrouping } from '.
 import { showStyleMatches } from '../syllabus/numbering-style.js';
 import { backToSyl, markCur, render } from '../view/page-render.js';
 import { cmd, tableState } from '../editor/editor-commands.js';
-import { closeTbMenu, stepZoom } from '../view/zoom.js';
+import { stepZoom } from '../view/zoom.js';
 import { openTbMenu } from '../editor/toolbar-menus.js';
 import { hydrate, saveDocNow, saveDocSoon } from '../editor/notes-document.js';
 import { edChanged } from '../editor/hydrate-and-changes.js';
-import { curEssay, deleteEssay, isDocView, newEssay, openEssay, openPoint, renderEssaySide } from '../essays/essays.js';
+import { deleteEssay, newEssay, openEssay, openPoint, renderEssaySide } from '../essays/essays.js';
 import { exportHTML } from '../editor/export.js';
 import { useRefs } from '../citations/references.js';
 import { renderWC } from '../citations/works-cited-tab.js';

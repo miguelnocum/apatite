@@ -1,8 +1,7 @@
-import { ed, esc, toast, ui } from '../core/helpers-and-state.js';
+import { curEssay, ed, esc, toast, ui } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { flash } from '../view/page-render.js';
 import { countedIn, edBlocks, tagById, tagNamed, tagsChanged, wcOpts } from './word-count.js';
-import { curEssay } from './essays.js';
 
 /* ===== tagging from the contents: a heading and everything under it, down to the next heading at its level ===== */
 function headingLevel(el) {

@@ -1,7 +1,7 @@
+import { closeTbMenu, tbMenu } from '../core/toolbar-menu.js';
 import { $, ed, ui } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { tbMenu, tbState } from './editor-commands.js';
-import { closeTbMenu } from '../view/zoom.js';
+import { tbState } from './editor-commands.js';
 /* ===== highlight key: what each highlighter colour is for (the Mac app keeps it, and hands it over as window.__HLKEY__) ===== */
 const DEFAULT_HIGHLIGHT_KEY = [
   { id: '1', meaning: 'General', hex: '#FFE58A' },

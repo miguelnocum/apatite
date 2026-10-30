@@ -1,17 +1,7 @@
+import { caretInto, caretToStart, fire, selectRange } from '../core/caret.js';
 import { mk } from '../core/paste-cleaning.js';
-import { fire, tbState } from '../editor/editor-commands.js';
-import { caretInto } from '../essays/essays.js';
-import {
-  MD,
-  anchorElement,
-  mdAscii,
-  mdBefore,
-  mdCaret,
-  mdPara,
-  mdSel,
-  selectRange,
-  textAfterCaret
-} from './writing.js';
+import { tbState } from '../editor/editor-commands.js';
+import { MD, anchorElement, mdAscii, mdBefore, mdCaret, mdPara, mdSel, textAfterCaret } from './writing.js';
 import { CALLOUTS } from '../core/callout-kinds.js';
 
 /* ===== typed shortcuts at the start of a line: "# " a heading, "- " a list, "> " a quote, "> [!NOTE] " a callout,
@@ -66,13 +56,6 @@ function newBlock(kind, key) {
   if (kind === 'todo' || kind === 'done') block.setAttribute('data-todo', '');
   if (kind === 'done') host.setAttribute('data-done', '1');
   return { block, host };
-}
-
-export function caretToStart(el) {
-  const range = document.createRange();
-  range.selectNodeContents(el);
-  range.collapse(true);
-  selectRange(range);
 }
 
 /* ⌘Z straight after: the line back as it was, with what was typed */

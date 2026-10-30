@@ -1,4 +1,4 @@
-import { $, ed, esc, toast, ui, uid } from '../core/helpers-and-state.js';
+import { $, ed, esc, isDocView, toast, ui, uid } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
 import { blockOf } from './pasting-and-images.js';
 import { rangeWithinCell } from '../tables/table-grid.js';
@@ -6,7 +6,6 @@ import { relayout, setPaneFold } from '../view/zoom.js';
 import { inFocus } from '../view/focus-mode.js';
 import { saveDocSoon } from './notes-document.js';
 import { edChanged, hydrateExtras } from './hydrate-and-changes.js';
-import { isDocView } from '../essays/essays.js';
 
 /* ===== comments on text in notes and essays, in styles ===== */
 export const CMT_TYPES = [

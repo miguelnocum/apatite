@@ -1,11 +1,10 @@
+import { caretInto } from '../core/caret.js';
+import { closeTbMenu, setTbMenu } from '../core/toolbar-menu.js';
 import { ed, ui } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { setTbMenu } from '../editor/editor-commands.js';
 import { cellsIn, clearCellSelection, tableTarget } from './table-grid.js';
 import { tableChanged } from './table-handles.js';
 import { TABLE_ICONS, TABLE_TAB_COMMANDS } from './table-tab.js';
-import { closeTbMenu } from '../view/zoom.js';
-import { caretInto } from '../essays/essays.js';
 
 /* ===== tables: the right-click menu on a cell. Right-clicking inside the selected cells keeps them selected, so they
    can be merged; anywhere else in a table, that cell becomes the one acted on ===== */

@@ -1,9 +1,8 @@
-import { $, ed, esc, ui } from '../core/helpers-and-state.js';
+import { $, curEssay, ed, esc, ui } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { mk } from '../core/paste-cleaning.js';
 import { countedIn, edBlocks, tagById, tagCounts, tagNamed, tagsChanged, wcOpts } from './word-count.js';
 import { renderWordCount } from './word-count-sidebar.js';
-import { curEssay } from './essays.js';
 
 /* ===== word count mode: the text is locked and boxes can be drawn down the left margin to tag paragraphs ===== */
 const BOX_PADDING = 8; // px a box reaches above and below its paragraphs

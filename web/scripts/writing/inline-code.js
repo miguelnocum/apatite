@@ -1,7 +1,8 @@
+import { closestTag, fire, selectRange } from '../core/caret.js';
 import { ed, toast } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { closestTag, fire, tbState } from '../editor/editor-commands.js';
-import { MD, selectRange } from './writing.js';
+import { tbState } from '../editor/editor-commands.js';
+import { MD } from './writing.js';
 import { ZW } from '../editor/caret-and-keys.js';
 
 /* ===== inline code: the selection becomes code (or stops being code); with nothing selected, an empty piece of code

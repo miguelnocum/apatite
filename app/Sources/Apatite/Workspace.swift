@@ -62,9 +62,7 @@ final class Workspace {
             }
         }
         try? fm.createDirectory(at: root, withIntermediateDirectories: true)
-        migrateSingleNotebook()
-        migrateToOwnLists()
-        for p in projects() { migrateSyllabi(p) }
+        migrateLibrary()
         if projects().isEmpty { _ = createProject(named: "My first project") }
     }
 
@@ -133,7 +131,7 @@ final class Workspace {
 
     func project(_ id: String?) -> ProjectInfo? { projects().first { $0.id == id } }
 
-    private func makeFolders(_ dir: URL) {
+    func makeFolders(_ dir: URL) {
         for k in ItemKind.allCases { try? fm.createDirectory(at: dir.appendingPathComponent(k.folder), withIntermediateDirectories: true) }
         try? fm.createDirectory(at: dir.appendingPathComponent("Backups"), withIntermediateDirectories: true)
     }
@@ -374,69 +372,5 @@ final class Workspace {
             .filter { $0.lastPathComponent.range(of: mine, options: .regularExpression) != nil }
             .sorted { $0.lastPathComponent > $1.lastPathComponent }
         for old in copies.dropFirst(Self.backupsKept) { try? fm.removeItem(at: old) }
-    }
-
-    // MARK: one Works Cited per document
-
-    /// Projects used to share one Works Cited (in project.json). Every notebook now gets a copy of it,
-    /// and every essay the sources it cites. project.json keeps the old list untouched.
-    private func migrateToOwnLists() {
-        for p in projects() {
-            let pj = read(p.url.appendingPathComponent("project.json")) ?? [:]
-            let shared = pj["refs"] as? [JSON] ?? []
-            let sort = pj["refSort"] ?? "auto"
-            for nb in items(.notebooks, in: p) {
-                guard var o = read(nb.url), o["refs"] == nil else { continue }
-                o["refs"] = shared; o["refSort"] = sort
-                write(o, to: nb.url)
-            }
-            for e in items(.essays, in: p) {
-                guard var o = read(e.url), o["refs"] == nil else { continue }
-                let cited = Self.citedIDs(in: o["doc"] as? String ?? "")
-                o["refs"] = shared.filter { cited.contains($0["id"] as? String ?? "") }; o["refSort"] = sort
-                write(o, to: e.url)
-            }
-        }
-    }
-
-    // MARK: moving the single-notebook library into its first project
-
-    /// Before projects, ~/Documents/Apatite held notebook.json, library.json, PDFs/ and Backups/.
-    /// That becomes the "Machine Learning" project; the original files are kept in "Old layout backup".
-    private func migrateSingleNotebook() {
-        let oldNB = root.appendingPathComponent("notebook.json")
-        guard fm.fileExists(atPath: oldNB.path), projects().isEmpty, let nb = read(oldNB) else { return }
-        let dir = freeURL(in: root, name: "Machine Learning", ext: "")
-        try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
-        makeFolders(dir)
-        write(["id": Self.newID(), "name": dir.lastPathComponent, "refs": nb["refs"] ?? [Any](), "refSort": nb["refSort"] ?? "auto",
-               "created": Date().timeIntervalSince1970], to: dir.appendingPathComponent("project.json"))
-        let title = (nb["meta"] as? JSON)?["title"] as? String ?? "Notebook"
-        write(["id": Self.newID(), "meta": nb["meta"] ?? ["title": title], "pts": nb["pts"] ?? [Any](), "doc": nb["doc"] ?? NSNull()],
-              to: dir.appendingPathComponent("Notebooks").appendingPathComponent(Self.safeName(title, fallback: "Notebook")).appendingPathExtension("json"))
-        for e in nb["essays"] as? [JSON] ?? [] {
-            let u = freeURL(in: dir.appendingPathComponent("Essays"), name: Self.safeName(e["title"] as? String ?? "", fallback: "Untitled essay"), ext: "json")
-            write(e, to: u)
-        }
-        copyOldPapers(to: dir.appendingPathComponent("Papers"))
-        keepOldLayout()
-    }
-
-    /// PDFs are copied; the originals stay in the backup folder until you delete it
-    private func copyOldPapers(to papers: URL) {
-        for f in (try? fm.contentsOfDirectory(at: root.appendingPathComponent("PDFs"), includingPropertiesForKeys: nil)) ?? [] where f.pathExtension.lowercased() == "pdf" {
-            try? fm.copyItem(at: f, to: papers.appendingPathComponent(f.lastPathComponent))
-        }
-        if let lib = try? Data(contentsOf: root.appendingPathComponent("library.json")) { try? lib.write(to: papers.appendingPathComponent("papers.json")) }
-    }
-
-    /// keep everything that was there, untouched, in one folder
-    private func keepOldLayout() {
-        let keep = freeURL(in: root, name: "Old layout backup", ext: "")
-        try? fm.createDirectory(at: keep, withIntermediateDirectories: true)
-        for n in ["notebook.json", "library.json", "PDFs", "Backups"] {
-            let u = root.appendingPathComponent(n)
-            if fm.fileExists(atPath: u.path) { try? fm.moveItem(at: u, to: keep.appendingPathComponent(n)) }
-        }
     }
 }

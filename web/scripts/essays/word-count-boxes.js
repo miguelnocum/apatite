@@ -1,6 +1,6 @@
-import { $, curEssay, ed, esc, ui } from '../core/helpers-and-state.js';
+import { $, curEssay, openEditor, escapeHtml, uiState } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { countedIn, edBlocks, tagById, tagCounts, tagNamed, tagsChanged, wcOpts } from './word-count.js';
 import { renderWordCount } from './word-count-sidebar.js';
 
@@ -11,15 +11,15 @@ const EAT_CLICK_FOR = 250; // ms after a drag in which its click is swallowed
 const POPUP_MARGIN = 12; // px the naming menu keeps from the window's edges
 
 export function setWcMode(on) {
-  const editor = ed();
-  ui.wcMode = !!on && ui.view === 'essay' && !!editor;
+  const editor = openEditor();
+  uiState.wcMode = !!on && uiState.view === 'essay' && !!editor;
   closeTagPop();
   if (editor) {
-    editor.setAttribute('contenteditable', ui.wcMode ? 'false' : 'true');
-    editor.classList.toggle('wcmode', ui.wcMode);
+    editor.setAttribute('contenteditable', uiState.wcMode ? 'false' : 'true');
+    editor.classList.toggle('wcmode', uiState.wcMode);
   }
   const page = document.querySelector('.doc');
-  if (page) page.classList.toggle('wcmode', ui.wcMode);
+  if (page) page.classList.toggle('wcmode', uiState.wcMode);
   renderWordCount();
   drawBoxes();
 }
@@ -30,7 +30,7 @@ function boxLayer() {
   if (!page) return null;
   let layer = $('wclayer');
   if (!layer) {
-    layer = mk('div');
+    layer = makeElement('div');
     layer.id = 'wclayer';
     page.appendChild(layer);
   }
@@ -39,15 +39,15 @@ function boxLayer() {
 
 /* consecutive paragraphs with the same tag make one box */
 export function drawBoxes() {
-  if (!ui.wcMode || ui.view !== 'essay' || !ed()) {
+  if (!uiState.wcMode || uiState.view !== 'essay' || !openEditor()) {
     removeBoxes();
     return;
   }
   const layer = boxLayer();
   const options = wcOpts(curEssay());
-  const runs = tagRuns(ed(), options);
+  const runs = tagRuns(openEditor(), options);
   spaceRuns(runs); // spacing first, then measure
-  const totals = tagCounts(ed(), options).by;
+  const totals = tagCounts(openEditor(), options).by;
   layer.innerHTML = runs.map((run, i) => boxHTML(run, i, runs, options, totals)).join('');
   layer.runs = runs;
 }
@@ -55,8 +55,8 @@ export function drawBoxes() {
 function removeBoxes() {
   const layer = $('wclayer');
   if (layer) layer.remove();
-  if (ed())
-    ed()
+  if (openEditor())
+    openEditor()
       .querySelectorAll('.wcgap,.wcgap-after')
       .forEach(block => block.classList.remove('wcgap', 'wcgap-after'));
 }
@@ -79,7 +79,7 @@ function tagRuns(editor, options) {
 
 /* room above each box and below it (when untagged text follows) */
 function spaceRuns(runs) {
-  edBlocks(ed()).forEach(block => block.classList.remove('wcgap', 'wcgap-after'));
+  edBlocks(openEditor()).forEach(block => block.classList.remove('wcgap', 'wcgap-after'));
   runs.forEach(run => {
     run.b[0].classList.add('wcgap');
     const next = run.b[run.b.length - 1].nextElementSibling;
@@ -107,7 +107,7 @@ function boxHTML(run, i, runs, options, totals) {
 function boxLabel(tag, count, total) {
   const limit = +tag.limit || 0;
   return (
-    esc(tag.name) +
+    escapeHtml(tag.name) +
     ' · ' +
     count.toLocaleString() +
     (total !== count ? ' (of ' + total.toLocaleString() + ')' : '') +
@@ -122,7 +122,7 @@ function placeCSS(place) {
 
 /* a block range's place on the page, in the page's own (unzoomed) pixels */
 function geom(first, last) {
-  const editor = ed();
+  const editor = openEditor();
   return {
     top: first.offsetTop - BOX_PADDING,
     h: last.offsetTop + last.offsetHeight - first.offsetTop + BOX_PADDING * 2,
@@ -135,7 +135,7 @@ function geom(first, last) {
 function blockAtY(y) {
   let best = null;
   let bestDistance = Infinity;
-  edBlocks(ed()).forEach(block => {
+  edBlocks(openEditor()).forEach(block => {
     const box = block.getBoundingClientRect();
     const distance = y < box.top ? box.top - y : y > box.bottom ? y - box.bottom : 0;
     if (distance < bestDistance) {
@@ -150,8 +150,8 @@ function blockAtY(y) {
 let wcDrag = null;
 
 const onWordCountBoxesMousedown = e => {
-  if (!ui.wcMode || e.button !== 0) return;
-  if (!document.querySelector('.doc') || !ed()) return;
+  if (!uiState.wcMode || e.button !== 0) return;
+  if (!document.querySelector('.doc') || !openEditor()) return;
   const handle = e.target.closest && e.target.closest('[data-wcrs]');
   wcDrag = handle ? resizeDrag(handle) : newBoxDrag(e);
   if (!wcDrag) return;
@@ -177,7 +177,7 @@ function resizeDrag(handle) {
 /* only the left margin starts a box */
 function newBoxDrag(e) {
   if (e.target.closest('.wclab,.tagpop')) return null;
-  const text = ed().getBoundingClientRect();
+  const text = openEditor().getBoundingClientRect();
   const page = document.querySelector('.doc').getBoundingClientRect();
   if (e.clientX >= text.left || e.clientX < page.left) return null;
   const block = blockAtY(e.clientY);
@@ -227,7 +227,7 @@ const onWordCountBoxesMouseup = () => {
 };
 
 function dragRange(drag) {
-  const blocks = edBlocks(ed());
+  const blocks = edBlocks(openEditor());
   const from = blocks.indexOf(drag.anchor);
   const to = blocks.indexOf(drag.cur);
   if (from < 0 || to < 0) return [];
@@ -240,7 +240,7 @@ function drawTemp() {
   if (!layer) return;
   let temp = $('wctemp');
   if (!temp) {
-    temp = mk('div');
+    temp = makeElement('div');
     temp.id = 'wctemp';
     temp.className = 'wcbx temp';
     layer.appendChild(temp);
@@ -278,7 +278,7 @@ function openTagPop(range, temp) {
     if (temp) temp.remove();
     return;
   }
-  const pop = mk('div');
+  const pop = makeElement('div');
   pop.className = 'tagpop';
   pop.tmp = temp;
   pop.range = range;
@@ -294,10 +294,11 @@ function openTagPop(range, temp) {
 
 function tagPopHTML(range, options) {
   const existing = options.tags.map(
-    tag => `<button data-tpuse="${tag.id}"><i class="dot" style="background:${tag.color}"></i>${esc(tag.name)}</button>`
+    tag =>
+      `<button data-tpuse="${tag.id}"><i class="dot" style="background:${tag.color}"></i>${escapeHtml(tag.name)}</button>`
   );
   const presets = presetNames(options).map(
-    name => `<button data-tpnew="${esc(name)}"><i class="dot new"></i>${esc(name)}</button>`
+    name => `<button data-tpnew="${escapeHtml(name)}"><i class="dot new"></i>${escapeHtml(name)}</button>`
   );
   const untag = range.some(block => block.hasAttribute('data-wct'))
     ? '<button data-tpclear class="del">Untag these</button>'

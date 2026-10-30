@@ -1,8 +1,17 @@
 import { inDoc } from '../core/save-doc.js';
-import { $, esc, ptById, pts, setPts, toast, ui, uid } from '../core/helpers-and-state.js';
+import {
+  $,
+  escapeHtml,
+  pointById,
+  syllabusPoints,
+  setSyllabusPoints,
+  toast,
+  uiState,
+  newId
+} from '../core/helpers-and-state.js';
 import { kidsOf, lvl, normLevels, numberSection, setLevel } from './point-levels.js';
 import { Store, queue } from '../core/storage.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { commit, groups } from './model.js';
 import { cfHTML, renderSide } from './syllabus-view.js';
 import { importHTML, sectionNames, suggestCode } from './syllabus-import.js';
@@ -21,15 +30,15 @@ const CARD_SETTLE = 'transform .18s ease';
 
 /* a new, empty point */
 function newPoint(section, level) {
-  return { id: uid(), sec: section, code: '', text: '', guide: '', status: 0, notes: '', lvl: level };
+  return { id: newId(), sec: section, code: '', text: '', guide: '', status: 0, notes: '', lvl: level };
 }
 
 /* ---- the table: the same table as the syllabus itself, column for column, so nothing moves when editing starts: the text
    becomes editable where it stands, and the tools (renumber, delete) float over the rows instead of taking room ---- */
 export function renderEdit() {
   const sections = groups();
-  ui.secMap = {};
-  sections.forEach(g => (ui.secMap[g.idx] = g.all.map(p => p.id)));
+  uiState.secMap = {};
+  sections.forEach(g => (uiState.secMap[g.idx] = g.all.map(p => p.id)));
   const rows = sections.map(g => sectionRowHTML(g) + g.all.map(pointRowHTML).join('')).join('');
   const table =
     '<div class="ywrap"><div class="tw"><table class="syl syled"><thead><tr><th class="cfh" title="Confidence">Conf.</th>' +
@@ -43,12 +52,12 @@ export function renderEdit() {
 }
 
 function sectionRowHTML(g) {
-  const sure = ui.confirm === 's' + g.idx;
+  const sure = uiState.confirm === 's' + g.idx;
   const count = g.all.length;
   const deleteLabel = sure ? `Delete section and its ${count} point${count === 1 ? '' : 's'}?` : '×';
   return (
     `<tr class="sr" data-ysec="${g.idx}"><td colspan="4"><span class="ysn" contenteditable="plaintext-only" spellcheck="false" ` +
-    `data-ysname="${g.idx}" data-ph="Section title">${esc(g.sec)}</span><span class="ytools">` +
+    `data-ysname="${g.idx}" data-ph="Section title">${escapeHtml(g.sec)}</span><span class="ytools">` +
     `<button class="ynum" data-ynum="${g.idx}" title="Renumber this section’s points from its title: 1.1, 1.1.1">Renumber</button>` +
     `<button class="yb del${sure ? ' sure' : ''}" data-ydelsec="${g.idx}" title="Delete this section and its points">${deleteLabel}</button>` +
     '</span></td></tr>'
@@ -56,14 +65,14 @@ function sectionRowHTML(g) {
 }
 
 function pointRowHTML(p) {
-  const sure = ui.confirm === p.id;
+  const sure = uiState.confirm === p.id;
   const kind = lvl(p) === 3 ? ' sub' : kidsOf(p).length ? ' par' : '';
   const deleteLabel = sure ? 'It has notes or a rating — delete anyway?' : '×';
   return (
     `<tr class="pr${kind}" data-yid="${p.id}" data-s="${p.status || 0}"><td class="cfc">${cfHTML(p)}</td>` +
-    `<td class="c"><span contenteditable="plaintext-only" spellcheck="false" data-yc="${p.id}" data-ph="${esc(suggestCode(p) || 'Code')}">${esc(p.code)}</span></td>` +
-    `<td><span contenteditable="plaintext-only" data-yt="${p.id}" data-ph="What to learn">${esc(p.text)}</span></td>` +
-    `<td class="g"><span contenteditable="plaintext-only" data-yg="${p.id}" data-ph="Guidance (optional)">${esc(p.guide)}</span>` +
+    `<td class="c"><span contenteditable="plaintext-only" spellcheck="false" data-yc="${p.id}" data-ph="${escapeHtml(suggestCode(p) || 'Code')}">${escapeHtml(p.code)}</span></td>` +
+    `<td><span contenteditable="plaintext-only" data-yt="${p.id}" data-ph="What to learn">${escapeHtml(p.text)}</span></td>` +
+    `<td class="g"><span contenteditable="plaintext-only" data-yg="${p.id}" data-ph="Guidance (optional)">${escapeHtml(p.guide)}</span>` +
     `<button class="yb del ydelpt${sure ? ' sure' : ''}" data-ydel="${p.id}" title="Delete this point">${deleteLabel}</button></td></tr>`
   );
 }
@@ -104,7 +113,7 @@ const onSyllabusEditingInput = function (e) {
   const data = field.dataset || {};
   if (!field.closest || !field.closest('.syled')) return;
   const id = data.yc || data.yt || data.yg;
-  if (id) pointTyped(ptById(id), data, field.textContent);
+  if (id) pointTyped(pointById(id), data, field.textContent);
   else if (data.ysname != null) sectionRenamed(data.ysname, field.textContent.trim());
 };
 
@@ -118,23 +127,23 @@ function pointTyped(point, data, value) {
 }
 
 function sectionRenamed(sectionIndex, name) {
-  (ui.secMap[sectionIndex] || []).forEach(id => {
-    const point = ptById(id);
+  (uiState.secMap[sectionIndex] || []).forEach(id => {
+    const point = pointById(id);
     if (!point) return;
     point.sec = name;
     queue(point);
   });
   Store.example = false;
-  clearTimeout(ui.sideT);
-  ui.sideT = setTimeout(renderSide, SECTION_RENAME_DELAY);
+  clearTimeout(uiState.sideT);
+  uiState.sideT = setTimeout(renderSide, SECTION_RENAME_DELAY);
 }
 
 /* a point after another (and after its sub-points), at its level, with the caret in its statement */
 function addPointAfter(point) {
   const family = [point].concat(kidsOf(point));
   const added = newPoint(point.sec, lvl(point));
-  pts.splice(pts.indexOf(family[family.length - 1]) + 1, 0, added);
-  commit(pts.slice());
+  syllabusPoints.splice(syllabusPoints.indexOf(family[family.length - 1]) + 1, 0, added);
+  commit(syllabusPoints.slice());
   numberSection(point.sec, true);
   syllabusEdited(true);
   focusSyllabusField(`[data-yt="${added.id}"]`);
@@ -154,12 +163,12 @@ const onSyllabusEditingKeydown = function (e) {
 
 function returnInSyllabus(field, data) {
   if (data.ysname != null) {
-    const first = (ui.secMap[data.ysname] || [])[0];
+    const first = (uiState.secMap[data.ysname] || [])[0];
     if (first) focusSyllabusField(`[data-yt="${first}"]`);
     else field.blur();
     return;
   }
-  const point = ptById(data.yc || data.yt || data.yg);
+  const point = pointById(data.yc || data.yt || data.yg);
   if (point) addPointAfter(point);
 }
 
@@ -195,15 +204,15 @@ const onSyllabusEditingClick = function (e) {
 
 /* a point with notes or a rating asks first */
 function deletePoint(id) {
-  const point = ptById(id);
+  const point = pointById(id);
   if (!point) return;
-  if ((inDoc(point.id) || point.status) && ui.confirm !== point.id) {
-    ui.confirm = point.id;
+  if ((inDoc(point.id) || point.status) && uiState.confirm !== point.id) {
+    uiState.confirm = point.id;
     renderEdit();
     return;
   }
-  ui.confirm = null;
-  setPts(pts.filter(p => p !== point));
+  uiState.confirm = null;
+  setSyllabusPoints(syllabusPoints.filter(p => p !== point));
   Store.delPoint(point.id);
   normLevels();
   numberSection(point.sec, true);
@@ -212,15 +221,15 @@ function deletePoint(id) {
 
 /* a section always asks first */
 function deleteSection(index) {
-  if (ui.confirm !== 's' + index) {
-    ui.confirm = 's' + index;
+  if (uiState.confirm !== 's' + index) {
+    uiState.confirm = 's' + index;
     renderEdit();
     return;
   }
   const points = secPts(index);
-  ui.confirm = null;
+  uiState.confirm = null;
   points.forEach(p => Store.delPoint(p.id));
-  setPts(pts.filter(p => !points.includes(p)));
+  setSyllabusPoints(syllabusPoints.filter(p => !points.includes(p)));
   syllabusEdited(false);
 }
 
@@ -243,8 +252,8 @@ function renumberSection(index) {
 function addSection() {
   let name = 'New section';
   for (let n = 2; sectionNames().includes(name); n++) name = 'New section ' + n;
-  pts.push(newPoint(name, 2));
-  commit(pts.slice());
+  syllabusPoints.push(newPoint(name, 2));
+  commit(syllabusPoints.slice());
   syllabusEdited(true);
   const titles = document.querySelectorAll('[data-ysname]');
   const title = titles[titles.length - 1];
@@ -263,7 +272,7 @@ let yIns = null; // the row the + line is under
 
 const onSyllabusEditingMousemove = function (e) {
   const line = $('yins');
-  if (!line || !ui.edit || ui.view !== 'syl') return;
+  if (!line || !uiState.edit || uiState.view !== 'syl') return;
   if (yd && yd.on) {
     line.hidden = true;
     return;
@@ -308,8 +317,8 @@ const onSyllabusEditingMousedown = function (e) {
 function addPointAtInsertLine(row) {
   const spot = insertSpot(row);
   if (!spot) return;
-  pts.splice(spot.index, 0, spot.point);
-  commit(pts.slice());
+  syllabusPoints.splice(spot.index, 0, spot.point);
+  commit(syllabusPoints.slice());
   numberSection(spot.point.sec, true);
   Store.example = false;
   Store.saveLocal();
@@ -324,14 +333,14 @@ function addPointAtInsertLine(row) {
    fits the spot (under a sub-point, or just above one, it's a sub-point) */
 function insertSpot(row) {
   if (row.classList.contains('sr')) {
-    const first = ptById((ui.secMap[row.dataset.ysec] || [])[0]);
-    return first ? { point: newPoint(first.sec, 2), index: pts.indexOf(first) } : null;
+    const first = pointById((uiState.secMap[row.dataset.ysec] || [])[0]);
+    return first ? { point: newPoint(first.sec, 2), index: syllabusPoints.indexOf(first) } : null;
   }
-  const point = ptById(row.dataset.yid);
+  const point = pointById(row.dataset.yid);
   if (!point) return null;
   const next = row.nextElementSibling;
   const sub = row.classList.contains('sub') || !!(next && next.classList.contains('sub'));
-  return { point: newPoint(point.sec, sub ? 3 : 2), index: pts.indexOf(point) + 1 };
+  return { point: newPoint(point.sec, sub ? 3 : 2), index: syllabusPoints.indexOf(point) + 1 };
 }
 
 /* ---- dragging the cards ---- */
@@ -360,7 +369,7 @@ function yAnimate(move) {
 }
 
 const onSyllabusEditingMousedown2 = function (e) {
-  if (e.button !== 0 || !ui.edit || ui.view !== 'syl') return;
+  if (e.button !== 0 || !uiState.edit || uiState.view !== 'syl') return;
   const row = e.target.closest && e.target.closest('#syledb tr');
   if (!row || e.target.closest('.yb')) return;
   const field = e.target.closest('[contenteditable]');
@@ -402,18 +411,18 @@ function dragState(row, family) {
     grp: family,
     single: kind === 'sub' || (kind === 'pt' && family.length === 1),
     lv: row.classList.contains('sub') ? 3 : 2,
-    from: row.dataset.yid ? ptById(row.dataset.yid).sec : null
+    from: row.dataset.yid ? pointById(row.dataset.yid).sec : null
   };
 }
 
 /* a copy of the dragged rows that follows the pointer (each cell its original width) */
 function dragImage(family, table, box) {
-  const floating = mk('div');
+  const floating = makeElement('div');
   floating.className = 'ydrag';
-  const copy = mk('table');
+  const copy = makeElement('table');
   copy.className = table.className;
   copy.style.width = table.getBoundingClientRect().width + 'px';
-  const body = mk('tbody');
+  const body = makeElement('tbody');
   copy.appendChild(body);
   family.forEach(row => {
     const clone = row.cloneNode(true);
@@ -508,7 +517,7 @@ function orderFromTable() {
       section = title ? title.textContent.trim() : '';
       return;
     }
-    const point = ptById(row.dataset.yid);
+    const point = pointById(row.dataset.yid);
     if (!point) return;
     if (point.sec !== section) touched[point.sec] = 1;
     point.sec = section;
@@ -520,7 +529,7 @@ function orderFromTable() {
 
 function finishDrag(drag, list, touched) {
   if (drag.single) {
-    const moved = ptById(drag.grp[0].dataset.yid);
+    const moved = pointById(drag.grp[0].dataset.yid);
     if (moved) moved.lvl = drag.want || drag.lv;
   }
   commit(list);

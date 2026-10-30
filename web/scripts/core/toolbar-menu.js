@@ -1,13 +1,13 @@
 /* ===== the toolbar menu that's open (see editor/toolbar-menus.js) ===== */
-export let tbMenu = null;
-export function setTbMenu(value) {
-  tbMenu = value;
+export let toolbarMenu = null;
+export function setToolbarMenu(value) {
+  toolbarMenu = value;
   return value;
 }
 
-export function closeTbMenu() {
-  if (!tbMenu) return;
-  if (tbMenu.sub) tbMenu.sub.remove();
-  tbMenu.remove();
-  setTbMenu(null);
+export function closeToolbarMenu() {
+  if (!toolbarMenu) return;
+  if (toolbarMenu.sub) toolbarMenu.sub.remove();
+  toolbarMenu.remove();
+  setToolbarMenu(null);
 }

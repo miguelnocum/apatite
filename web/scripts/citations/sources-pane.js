@@ -1,17 +1,17 @@
 import { saveDocSoon } from '../core/save-doc.js';
-import { $, ed, esc, isDocView, ui } from '../core/helpers-and-state.js';
+import { $, openEditor, escapeHtml, isDocView, uiState } from '../core/helpers-and-state.js';
 import { relayout, setPaneFold } from '../view/zoom.js';
 import { ccSoon, citationIds } from './citation-check.js';
-import { edChanged } from '../editor/hydrate-and-changes.js';
+import { notesEdited } from '../editor/hydrate-and-changes.js';
 import { renderComments } from '../editor/comments.js';
 import { namePart, orderedRefs, refById, refHTML, refs, yearLabels } from './references.js';
 import { hydrateCites, insertCitation } from './in-text-citations.js';
 
 /* ===== the Sources pane beside the notes: cite a source, or choose a citation's sources ===== */
 export function openSources(target) {
-  ui.refsOpen = true;
+  uiState.refsOpen = true;
   document.querySelectorAll('#ed .cite.sel').forEach(citation => citation.classList.remove('sel'));
-  ui.citeTarget = target || null;
+  uiState.citeTarget = target || null;
   if (target) target.classList.add('sel');
   renderRefs();
   const search = $('refq');
@@ -20,40 +20,40 @@ export function openSources(target) {
 
 /* the citation being chosen for, if it's still in the page */
 function liveCiteTarget() {
-  return ui.citeTarget && document.contains(ui.citeTarget) ? ui.citeTarget : null;
+  return uiState.citeTarget && document.contains(uiState.citeTarget) ? uiState.citeTarget : null;
 }
 
 /* parenthetical or narrative, for the citation being chosen for */
 const onSourcesPaneClick = e => {
   const button = e.target.closest && e.target.closest('[data-citeform]');
   if (!button || button.disabled) return;
-  const target = ui.citeTarget;
+  const target = uiState.citeTarget;
   if (!target || !document.contains(target)) return;
   if (button.dataset.citeform === 'n') target.setAttribute('data-form', 'n');
   else target.removeAttribute('data-form');
   hydrateCites();
   saveDocSoon();
-  if (typeof edChanged === 'function') edChanged();
+  if (typeof notesEdited === 'function') notesEdited();
   renderRefs();
 };
 
 export function endChoosing() {
   ccSoon();
-  if (ui.citeTarget) ui.citeTarget.classList.remove('sel');
-  ui.citeTarget = null;
+  if (uiState.citeTarget) uiState.citeTarget.classList.remove('sel');
+  uiState.citeTarget = null;
   renderRefs();
 }
 
 /* the pane shows in the notes and essays when it's open; opening it unfolds a page folded by zoom */
 export function renderRefs() {
   const pane = $('refs');
-  const open = !!(isDocView() && ui.refsOpen);
+  const open = !!(isDocView() && uiState.refsOpen);
   showRefsPane(pane, open);
   const button = $('srcbtn');
   if (button) button.setAttribute('aria-pressed', open ? 'true' : 'false');
   if (!open) return;
   const target = liveCiteTarget();
-  if (!target) ui.citeTarget = null;
+  if (!target) uiState.citeTarget = null;
   pane.innerHTML = refsPaneHTML(target);
   drawRefList();
 }
@@ -64,7 +64,7 @@ function showRefsPane(pane, open) {
   pane.hidden = !open;
   wrap.classList.toggle('withrefs', open);
   if (open && !wasOpen && wrap.classList.contains('zfold')) {
-    ui.zfoldOff = true;
+    uiState.zfoldOff = true;
     setPaneFold(false);
   }
   if (wasOpen === open) return;
@@ -81,7 +81,7 @@ function refsPaneHTML(target) {
     `<div class="rh"><h4>Works cited <em>${refs.length}</em></h4>` +
     '<button class="x" data-refclose="1" aria-label="Close sources">×</button></div>' +
     hint +
-    `<input type="text" id="refq" placeholder="Search author, year or title" aria-label="Search sources" value="${esc(ui.refQ || '')}">` +
+    `<input type="text" id="refq" placeholder="Search author, year or title" aria-label="Search sources" value="${escapeHtml(uiState.refQ || '')}">` +
     '<div id="reflist"></div>' +
     '<button class="btn sm" data-view="wc">Add or manage sources</button>'
   );
@@ -98,8 +98,8 @@ function citeFormHTML(target) {
   const r = ids.length === 1 ? refById(ids[0]) : null;
   const labels = yearLabels();
   const narrative = target.getAttribute('data-form') === 'n';
-  const parenthetical = r ? '(' + esc(namePart(r)) + ', ' + esc(labels[r.id]) + ')' : '(Author, Year)';
-  const inSentence = r ? esc(namePart(r)) + ' (' + esc(labels[r.id]) + ')' : 'Author (Year)';
+  const parenthetical = r ? '(' + escapeHtml(namePart(r)) + ', ' + escapeHtml(labels[r.id]) + ')' : '(Author, Year)';
+  const inSentence = r ? escapeHtml(namePart(r)) + ' (' + escapeHtml(labels[r.id]) + ')' : 'Author (Year)';
   const oneOnly = ids.length > 1 ? ' disabled title="Narrative form is for one source"' : '';
   return (
     '<div class="citeform" role="group" aria-label="Citation style">' +
@@ -112,8 +112,8 @@ function citeFormHTML(target) {
 function drawRefList() {
   const box = $('reflist');
   if (!box) return;
-  const chosen = ui.citeTarget ? citationIds(ui.citeTarget) : [];
-  const query = (ui.refQ || '').toLowerCase();
+  const chosen = uiState.citeTarget ? citationIds(uiState.citeTarget) : [];
+  const query = (uiState.refQ || '').toLowerCase();
   const labels = yearLabels();
   const matches = orderedRefs().filter(
     r => !query || (r.raw + ' ' + r.authors.join(' ') + ' ' + r.year).toLowerCase().indexOf(query) >= 0
@@ -125,7 +125,7 @@ function drawRefList() {
 function sourceHTML(r, labels, chosen) {
   return (
     `<div class="refi${chosen.includes(r.id) ? ' on' : ''}"><button class="refpick" data-refpick="${r.id}">` +
-    `<b>(${esc(namePart(r))}, ${esc(labels[r.id])})</b><span>${refHTML(r)}</span></button></div>`
+    `<b>(${escapeHtml(namePart(r))}, ${escapeHtml(labels[r.id])})</b><span>${refHTML(r)}</span></button></div>`
   );
 }
 
@@ -136,7 +136,7 @@ const onSourcesPaneRefsMousedown = e => {
 
 const onSourcesPaneRefsInput = e => {
   if (e.target.id !== 'refq') return;
-  ui.refQ = e.target.value;
+  uiState.refQ = e.target.value;
   drawRefList();
 };
 
@@ -144,7 +144,7 @@ const REFS_PANE_ACTIONS = [
   [
     data => data.refclose,
     () => {
-      ui.refsOpen = false;
+      uiState.refsOpen = false;
       endChoosing();
     }
   ],
@@ -161,8 +161,8 @@ const onSourcesPaneRefsClick = e => {
 };
 
 function removeChosenCitation() {
-  const citation = ui.citeTarget;
-  ui.citeTarget = null;
+  const citation = uiState.citeTarget;
+  uiState.citeTarget = null;
   if (citation) citation.remove();
   saveDocSoon();
   renderRefs();
@@ -174,7 +174,7 @@ function pickSource(id, several) {
   const target = liveCiteTarget();
   if (!target) {
     insertCitation([id]);
-    ui.refsOpen = false;
+    uiState.refsOpen = false;
     renderRefs();
     return;
   }
@@ -183,7 +183,7 @@ function pickSource(id, several) {
     drawRefList();
     return;
   }
-  ui.refsOpen = false;
+  uiState.refsOpen = false;
   endChoosing();
   caretAfter(target);
 }
@@ -213,7 +213,7 @@ function caretAfter(node) {
   range.setStartAfter(node);
   range.collapse(true);
   const selection = getSelection();
-  ed().focus({ preventScroll: true });
+  openEditor().focus({ preventScroll: true });
   selection.removeAllRanges();
   selection.addRange(range);
 }

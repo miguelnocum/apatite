@@ -1,8 +1,8 @@
 import { saveDocSoon } from '../core/save-doc.js';
 import { caretInto } from '../core/caret.js';
-import { ed, esc } from '../core/helpers-and-state.js';
+import { openEditor, escapeHtml } from '../core/helpers-and-state.js';
 import { headerHeight } from '../view/zoom.js';
-import { edChanged } from '../editor/hydrate-and-changes.js';
+import { notesEdited } from '../editor/hydrate-and-changes.js';
 import { texInline } from './equation-tex.js';
 import { renderMath } from './equation-drawing.js';
 import { EQ_MENUS } from './equation-menus.js';
@@ -35,11 +35,11 @@ export function closeMathEditor() {
   if (el.isConnected) {
     el.classList.remove('editing', 'annot');
     if (attr === 'data-imath') renderIMath(el.parentNode);
-    else renderMath(el.parentNode || ed());
+    else renderMath(el.parentNode || openEditor());
   }
   ensureRoom();
   saveDocSoon();
-  edChanged();
+  notesEdited();
 }
 
 /* the caret goes on after an equation once it's edited: below a block one, straight after an inline one */
@@ -61,7 +61,7 @@ function caretAfterInlineMath(el) {
   range.setStart(text, text.nodeValue.charAt(0) === ZW ? 1 : 0);
   range.collapse(true);
   const selection = getSelection();
-  ed().focus({ preventScroll: true });
+  openEditor().focus({ preventScroll: true });
   selection.removeAllRanges();
   selection.addRange(range);
 }
@@ -110,8 +110,8 @@ function symbolsGroupHTML() {
 function structuresGroupHTML() {
   const buttons = EQ_MENUS.map(
     ([name, icon], i) =>
-      `<button type="button" class="mp-cat" data-mpcat="${i}" title="${esc(name)}">` +
-      `<span class="mp-ci">${texInline(icon)}</span><span class="mp-cl">${esc(name)}</span></button>`
+      `<button type="button" class="mp-cat" data-mpcat="${i}" title="${escapeHtml(name)}">` +
+      `<span class="mp-ci">${texInline(icon)}</span><span class="mp-cl">${escapeHtml(name)}</span></button>`
   ).join('');
   return `<div class="mp-grp mp-sgrp"><div class="mp-gb mp-cats">${buttons}</div><div class="mp-gl">Structures</div></div>`;
 }

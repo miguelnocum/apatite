@@ -1,5 +1,5 @@
-import { ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { tableGrid } from './table-grid.js';
 import { beginTableChange, changeTable, endTableChange } from './table-edits.js';
 
@@ -54,7 +54,7 @@ export function columnShares(table) {
 /* widths given to every column (the table's layout then fixed, so they hold) */
 function setColumnShares(table, shares) {
   let group = table.querySelector(':scope > colgroup');
-  if (!group) group = table.insertBefore(mk('colgroup'), table.firstChild);
+  if (!group) group = table.insertBefore(makeElement('colgroup'), table.firstChild);
   group.innerHTML = shares.map(share => `<col style="width:${share.toFixed(2)}%">`).join('');
   table.setAttribute('data-fixed', '');
 }
@@ -153,7 +153,7 @@ export function tableVar(table, name) {
 export function startColumnResize(table, c, x) {
   beginTableChange(table);
   const edges = columnEdges(table);
-  ui.tresize = { kind: 'c', table: table, c: c, x: x, edges: edges, shares: columnShares(table) };
+  uiState.tresize = { kind: 'c', table: table, c: c, x: x, edges: edges, shares: columnShares(table) };
 }
 
 export function dragColumnBorder(drag, x) {
@@ -170,7 +170,7 @@ export function dragColumnBorder(drag, x) {
 export function startRowResize(table, r, y) {
   beginTableChange(table);
   const row = tableGrid(table).rows[r];
-  ui.tresize = { kind: 'r', table: table, row: row, y: y, height: row.offsetHeight, scale: pageScale(table) };
+  uiState.tresize = { kind: 'r', table: table, row: row, y: y, height: row.offsetHeight, scale: pageScale(table) };
 }
 
 export function dragRowBorder(drag, y) {
@@ -178,6 +178,6 @@ export function dragRowBorder(drag, y) {
 }
 
 export function endResize() {
-  ui.tresize = null;
+  uiState.tresize = null;
   endTableChange();
 }

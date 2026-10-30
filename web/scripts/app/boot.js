@@ -1,6 +1,17 @@
 import { docHTML, saveDocNow, setDocHTML } from '../core/save-doc.js';
 import { EXAMPLE, KEY } from '../core/example-data.js';
-import { $, ed, essays, meta, pts, setEssays, setMeta, setPts, toast, ui } from '../core/helpers-and-state.js';
+import {
+  $,
+  openEditor,
+  essays,
+  meta,
+  syllabusPoints,
+  setEssays,
+  setMeta,
+  setSyllabusPoints,
+  toast,
+  uiState
+} from '../core/helpers-and-state.js';
 import { inferLevels } from '../syllabus/point-levels.js';
 import { Store, setSave } from '../core/storage.js';
 import { sanitize } from '../core/paste-cleaning.js';
@@ -44,10 +55,10 @@ function startNotebook(list) {
 function loadPoints(loaded) {
   const seeded = !!loaded.meta;
   setMeta(loaded.meta || { title: 'My notebook' });
-  setPts(loaded.pts.sort((a, b) => (a.order || 0) - (b.order || 0)));
-  if (!pts.some(point => point.lvl != null)) inferLevels(pts);
+  setSyllabusPoints(loaded.pts.sort((a, b) => (a.order || 0) - (b.order || 0)));
+  if (!syllabusPoints.some(point => point.lvl != null)) inferLevels(syllabusPoints);
   dropDuplicatePoints();
-  if (!pts.length && !seeded) seedExample();
+  if (!syllabusPoints.length && !seeded) seedExample();
   else {
     try {
       Store.example = localStorage.getItem(KEY + '-ex') === '1';
@@ -60,7 +71,7 @@ function dropDuplicatePoints() {
   const seen = {};
   const dupes = [];
   const used = point => point.status || (point.notes || '').trim();
-  pts.forEach(point => {
+  syllabusPoints.forEach(point => {
     const key = [point.sec, point.code, point.text].join('\u0001');
     const earlier = seen[key];
     if (!earlier) seen[key] = point;
@@ -70,16 +81,16 @@ function dropDuplicatePoints() {
     } else dupes.push(point);
   });
   if (!dupes.length) return;
-  setPts(pts.filter(point => !dupes.includes(point)));
+  setSyllabusPoints(syllabusPoints.filter(point => !dupes.includes(point)));
   dupes.forEach(point => Store.delPoint(point.id));
 }
 
 function seedExample() {
   setMeta({ title: 'Molecular Biology notebook' });
-  setPts(planApply(EXAMPLE, true).next);
-  pts.forEach((point, i) => (point.order = i + 1));
+  setSyllabusPoints(planApply(EXAMPLE, true).next);
+  syllabusPoints.forEach((point, i) => (point.order = i + 1));
   Store.example = true;
-  pts.forEach(point => Store.savePoint(point));
+  syllabusPoints.forEach(point => Store.savePoint(point));
   Store.saveMeta();
 }
 
@@ -104,14 +115,14 @@ function loadNotesDoc(doc) {
 /* the essay last open, or the essay and view the Mac app asked for before the page was ready */
 function startView() {
   try {
-    ui.essayId = localStorage.getItem(KEY + '-essay') || null;
+    uiState.essayId = localStorage.getItem(KEY + '-essay') || null;
   } catch (e) {}
   if (window.__nbStartEssay) {
-    ui.essayId = window.__nbStartEssay;
+    uiState.essayId = window.__nbStartEssay;
     window.__nbStartEssay = null;
   }
   if (window.__nbStartView) {
-    ui.view = window.__nbStartView;
+    uiState.view = window.__nbStartView;
     window.__nbStartView = null;
   }
 }
@@ -145,7 +156,7 @@ const nbImportEssays = list => {
   made.forEach(essay => essays.unshift(essay));
   if (!made.length) return;
   Store.saveEssays();
-  if (ed()) saveDocNow();
+  if (openEditor()) saveDocNow();
   openEssay(made[made.length - 1].id);
   setTimeout(() => checkImported(made), IMPORT_CHECK_DELAY);
 };
@@ -176,16 +187,16 @@ function checkImported(made) {
 
 const nbOpenEssay = id => {
   if (!booted) return;
-  if (ed()) saveDocNow();
+  if (openEditor()) saveDocNow();
   openEssay(id);
   Store.saveEssays(); // the save tells the app which essay is open
 };
 
 const nbNewEssay = () => {
   if (!booted) return;
-  if (ed()) saveDocNow();
-  if (ui.view !== 'essay') {
-    ui.view = 'essay';
+  if (openEditor()) saveDocNow();
+  if (uiState.view !== 'essay') {
+    uiState.view = 'essay';
     render();
   }
   newEssay();
@@ -197,9 +208,9 @@ const nbShow = view => {
     window.__nbStartView = view;
     return;
   }
-  if (ui.view === view) return;
-  if (ed()) saveDocNow();
-  ui.view = view;
+  if (uiState.view === view) return;
+  if (openEditor()) saveDocNow();
+  uiState.view = view;
   render();
   window.scrollTo(0, 0);
 };

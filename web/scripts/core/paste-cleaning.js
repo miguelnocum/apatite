@@ -1,4 +1,4 @@
-import { esc } from './helpers-and-state.js';
+import { escapeHtml } from './helpers-and-state.js';
 import { CALLOUTS } from './callout-kinds.js';
 
 /* ===== cleaning HTML (pasted, or loaded from a file): only what notes can hold is kept, the rest unwrapped or dropped ===== */
@@ -54,7 +54,7 @@ const KEPT_STYLES = [
   ['vertical-align', /^t[dh]$/, /^(top|middle|bottom)$/]
 ];
 
-export function mk(tag) {
+export function makeElement(tag) {
   return document.createElement(tag);
 }
 
@@ -87,7 +87,7 @@ const SPECIAL_ELEMENTS = [
   [(n, tag) => tag === 'DIV' && n.hasAttribute('data-math'), copyEquation],
   [
     (n, tag) => tag === 'NAV' && n.hasAttribute('data-toc'),
-    (n, dst) => dst.appendChild(mk('nav')).setAttribute('data-toc', '')
+    (n, dst) => dst.appendChild(makeElement('nav')).setAttribute('data-toc', '')
   ],
   [(n, tag) => tag === 'FIGURE', copyFigure],
   [(n, tag) => tag === 'FIGCAPTION', (n, dst) => dst.appendChild(copyWith('figcaption', n, []))],
@@ -105,7 +105,7 @@ const SPECIAL_ELEMENTS = [
 
 /* a new element with the same children (cleaned), and the given attributes when they have a value */
 function copyWith(tag, node, attributes) {
-  const copy = mk(tag);
+  const copy = makeElement(tag);
   attributes.forEach(a => {
     if (node.getAttribute(a)) copy.setAttribute(a, node.getAttribute(a));
   });
@@ -115,7 +115,7 @@ function copyWith(tag, node, attributes) {
 
 /* an element of the notes that holds no text of its own (an equation, a footnote): its one attribute, even if empty */
 function emptyWith(tag, node, attribute) {
-  const copy = mk(tag);
+  const copy = makeElement(tag);
   copy.setAttribute(attribute, node.getAttribute(attribute) || '');
   return copy;
 }
@@ -124,7 +124,7 @@ function emptyWith(tag, node, attribute) {
 function copyImage(node, dst) {
   const src = node.getAttribute('src') || '';
   if (!node.hasAttribute('data-nb') || !src) return;
-  const image = mk('img');
+  const image = makeElement('img');
   image.setAttribute('src', src);
   image.setAttribute('data-nb', '1');
   image.setAttribute('alt', node.getAttribute('alt') || '');
@@ -137,7 +137,7 @@ function copyImage(node, dst) {
 }
 
 function copyCallout(node, dst) {
-  const callout = mk('div');
+  const callout = makeElement('div');
   callout.setAttribute('data-callout', node.getAttribute('data-callout'));
   ['data-wct', 'data-sp'].forEach(a => {
     if (node.getAttribute(a)) callout.setAttribute(a, node.getAttribute(a));
@@ -163,7 +163,7 @@ function copyFigure(node, dst) {
 
 /* a comment around nothing is dropped */
 function copyComment(node, dst) {
-  const comment = mk('span');
+  const comment = makeElement('span');
   ['data-cmt', 'data-ct', 'data-note'].forEach(a => {
     if (node.hasAttribute(a)) comment.setAttribute(a, node.getAttribute(a));
   });
@@ -173,7 +173,7 @@ function copyComment(node, dst) {
 
 /* a citation is drawn from its attributes, so its text isn't kept */
 function copyCitation(node, dst) {
-  const citation = mk('span');
+  const citation = makeElement('span');
   ['data-cite', 'data-pg', 'data-anchor', 'data-form'].forEach(a => {
     if (node.hasAttribute(a)) citation.setAttribute(a, node.getAttribute(a));
   });
@@ -191,7 +191,7 @@ function cleanElement(node, tag, dst) {
   else if ((tag === 'TD' || tag === 'TH') && dst.tagName !== 'TR')
     walk(node, dst); // a cell in a cell is just its text
   else {
-    const kept = mk(target);
+    const kept = makeElement(target);
     copyKeptAttributes(node, target, kept);
     dst.appendChild(kept);
     walk(node, kept);
@@ -201,8 +201,8 @@ function cleanElement(node, tag, dst) {
 /* a span or unknown element is unwrapped, keeping bold and italic set by its style */
 function styledWrapper(style, dst) {
   let inner = dst;
-  if (style.fontWeight === 'bold' || +style.fontWeight >= BOLD_WEIGHT) inner = inner.appendChild(mk('strong'));
-  if (style.fontStyle === 'italic') inner = inner.appendChild(mk('em'));
+  if (style.fontWeight === 'bold' || +style.fontWeight >= BOLD_WEIGHT) inner = inner.appendChild(makeElement('strong'));
+  if (style.fontStyle === 'italic') inner = inner.appendChild(makeElement('em'));
   return inner;
 }
 
@@ -213,7 +213,7 @@ function copyLink(node, dst) {
     walk(node, dst);
     return;
   }
-  const link = mk('a');
+  const link = makeElement('a');
   link.setAttribute('href', href);
   link.setAttribute('target', '_blank');
   link.setAttribute('rel', 'noopener noreferrer');
@@ -260,7 +260,7 @@ export function fillEmpty(root, keep) {
 /* clean HTML. prune (for pasting): empty elements dropped, a lone paragraph in a list item unwrapped, tables given a body */
 export function sanitize(html, prune) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
-  const out = mk('div');
+  const out = makeElement('div');
   walk(doc.body, out);
   if (prune) pruneCleaned(out);
   else fillEmpty(out);
@@ -279,7 +279,7 @@ function pruneCleaned(out) {
   });
   out.querySelectorAll('table').forEach(table => {
     if (table.querySelector('tbody') || table.querySelector('thead')) return;
-    const body = mk('tbody');
+    const body = makeElement('tbody');
     while (table.firstChild) body.appendChild(table.firstChild);
     table.appendChild(body);
   });
@@ -292,6 +292,6 @@ export function plainToHTML(text, inline) {
     .split('\n')
     .map(line => line.trim())
     .filter(Boolean);
-  if (inline || lines.length <= 1) return esc(lines.join(' '));
-  return lines.map(line => `<p>${esc(line)}</p>`).join('');
+  if (inline || lines.length <= 1) return escapeHtml(lines.join(' '));
+  return lines.map(line => `<p>${escapeHtml(line)}</p>`).join('');
 }

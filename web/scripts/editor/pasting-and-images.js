@@ -1,6 +1,6 @@
 import { caretInto, closestTag } from '../core/caret.js';
-import { NATIVE, curEd, setCurEd, toast } from '../core/helpers-and-state.js';
-import { mk, plainToHTML, sanitize } from '../core/paste-cleaning.js';
+import { NATIVE, activeEditor, setActiveEditor, toast } from '../core/helpers-and-state.js';
+import { makeElement, plainToHTML, sanitize } from '../core/paste-cleaning.js';
 import { emptyLine } from './callouts.js';
 
 /* ===== pasting and dropping into the notes, and putting pictures in ===== */
@@ -71,7 +71,7 @@ export function placeBetweenLines(node, block, root) {
 
 /* pictures put in where the caret is (or at a given range): uploaded where the web version can, else kept in the page */
 export function insertImages(files, at) {
-  const editor = curEd;
+  const editor = activeEditor;
   const selection = getSelection();
   let range = at || (selection.rangeCount ? selection.getRangeAt(0).cloneRange() : null);
   /* each picture after the one before */
@@ -94,7 +94,7 @@ export function insertImages(files, at) {
 function putImage(editor, range, src) {
   if (!editor) return;
   editor.focus();
-  const image = mk('img');
+  const image = makeElement('img');
   image.setAttribute('src', src);
   image.setAttribute('data-nb', '1');
   image.setAttribute('alt', '');
@@ -132,7 +132,7 @@ const onPastingAndImagesDrop = function (e) {
   const editor = e.target.closest && e.target.closest('.notes');
   if (!editor) return;
   e.preventDefault();
-  setCurEd(editor);
+  setActiveEditor(editor);
   const images = [...(e.dataTransfer.files || [])].filter(file => /^image\//.test(file.type));
   if (images.length) {
     editor.focus();

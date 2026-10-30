@@ -1,9 +1,9 @@
 import { saveDocSoon } from '../core/save-doc.js';
 import { closestTag } from '../core/caret.js';
-import { ed, esc, toast } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor, escapeHtml, toast } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { flash } from '../view/page-render.js';
-import { edChanged } from './hydrate-and-changes.js';
+import { notesEdited } from './hydrate-and-changes.js';
 import { emptyLine } from './callouts.js';
 
 /* ===== table of contents: every heading, indented by level, kept up to date; click to jump ===== */
@@ -18,7 +18,7 @@ function tocHeadings(root) {
 }
 
 export function renderTOC(root) {
-  root = root || ed();
+  root = root || openEditor();
   if (!root) return;
   const navs = root.querySelectorAll('nav[data-toc]');
   if (!navs.length) return;
@@ -33,14 +33,14 @@ function contentsListHTML(headings) {
   if (!headings.length) return '<p class="toc-empty">Headings you add will be listed here.</p>';
   const items = headings.map(
     (heading, i) =>
-      `<li class="toc-${heading.tagName.toLowerCase()}" data-toci="${i}">${esc(heading.textContent.trim())}</li>`
+      `<li class="toc-${heading.tagName.toLowerCase()}" data-toci="${i}">${escapeHtml(heading.textContent.trim())}</li>`
   );
   return `<ol class="toc-l">${items.join('')}</ol>`;
 }
 
 /* after the line the caret is on (or at the top); one per document */
 export function insertTOC() {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor) return;
   const existing = editor.querySelector('nav[data-toc]');
   if (existing) {
@@ -49,14 +49,14 @@ export function insertTOC() {
     return;
   }
   const block = topBlockAtCaret(editor);
-  const nav = mk('nav');
+  const nav = makeElement('nav');
   nav.setAttribute('data-toc', '');
   if (block) block.after(nav);
   else editor.insertBefore(nav, editor.firstChild);
   if (!nav.nextElementSibling) nav.after(emptyLine());
   renderTOC();
   saveDocSoon();
-  edChanged();
+  notesEdited();
   nav.scrollIntoView({ block: 'center' });
 }
 
@@ -69,7 +69,7 @@ function topBlockAtCaret(editor) {
 
 const onContentsClick = e => {
   const item = e.target.closest && e.target.closest('#ed nav[data-toc] li[data-toci]');
-  const heading = item && tocHeadings(ed())[+item.dataset.toci];
+  const heading = item && tocHeadings(openEditor())[+item.dataset.toci];
   if (!heading) return;
   heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
   flash(heading);

@@ -1,4 +1,4 @@
-import { ed } from '../core/helpers-and-state.js';
+import { openEditor } from '../core/helpers-and-state.js';
 import { closeFn, fnPop, openFn } from '../editor/footnotes.js';
 import { closeImgTool, imgTool, openImgTool } from './image-toolbar.js';
 
@@ -21,7 +21,7 @@ const onNoteClicksClick = e => {
 
 /* a footnote in the list at the end: its marker in the text, scrolled to and opened */
 function openListedFootnote(item) {
-  const marker = ed().querySelectorAll('.fn')[+item.dataset.fni];
+  const marker = openEditor().querySelectorAll('.fn')[+item.dataset.fni];
   if (!marker) return;
   marker.scrollIntoView({ block: 'center' });
   openFn(marker);

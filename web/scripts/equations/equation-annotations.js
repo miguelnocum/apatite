@@ -1,5 +1,5 @@
 import { saveDocSoon } from '../core/save-doc.js';
-import { ed, toast } from '../core/helpers-and-state.js';
+import { openEditor, toast } from '../core/helpers-and-state.js';
 import { texInline } from './equation-tex.js';
 import { ANN_COLORS, annColor, annList, annNoteHTML, annSave, renderMath } from './equation-drawing.js';
 import { editCard } from './equation-note-editing.js';
@@ -32,7 +32,7 @@ export class AnnotationPanel {
     this.popup.classList.toggle('annot', on);
     this.el.classList.toggle('annot', on);
     this.popup.querySelector('[data-mpann]').classList.toggle('on', on);
-    renderMath(this.el.parentNode || ed());
+    renderMath(this.el.parentNode || openEditor());
     this.draw();
     this.editor.place();
   }
@@ -63,7 +63,7 @@ export class AnnotationPanel {
 
   saved(list) {
     annSave(this.el, list);
-    renderMath(this.el.parentNode || ed());
+    renderMath(this.el.parentNode || openEditor());
     saveDocSoon();
   }
 

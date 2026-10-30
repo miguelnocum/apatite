@@ -7,19 +7,19 @@ const DEFAULT_HIGHLIGHT_KEY = [
   { id: '3', meaning: 'Controversial ideas', hex: '#FF9C9C' },
   { id: '6', meaning: '', hex: '#A8E8C0', hidden: true }
 ];
-export let HLKEY = window.__HLKEY__ || DEFAULT_HIGHLIGHT_KEY;
-export function setHLKEY(value) {
-  HLKEY = value;
+export let HIGHLIGHT_KEY = window.__HLKEY__ || DEFAULT_HIGHLIGHT_KEY;
+export function setHighlightKey(value) {
+  HIGHLIGHT_KEY = value;
   return value;
 }
 
 export function keyOf(id) {
-  return (HLKEY || []).find(k => k.id === String(id));
+  return (HIGHLIGHT_KEY || []).find(k => k.id === String(id));
 }
 
 /* the colours offered (removed ones stay in the key, so highlights already made keep their colour) */
 export function keyShown() {
-  return (HLKEY || []).filter(k => !k.hidden);
+  return (HIGHLIGHT_KEY || []).filter(k => !k.hidden);
 }
 
 export function keyLabel(k) {

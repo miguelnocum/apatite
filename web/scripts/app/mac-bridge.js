@@ -1,5 +1,5 @@
 import { docHTML, saveDocNow } from '../core/save-doc.js';
-import { $, ed, essays, meta, NATIVE, post, pts, ui } from '../core/helpers-and-state.js';
+import { $, openEditor, essays, meta, NATIVE, post, syllabusPoints, uiState } from '../core/helpers-and-state.js';
 import { Store, setSave, strip } from '../core/storage.js';
 import { nbRefSort, nbRefs, parseOne, refs, stashRefs } from '../citations/references.js';
 import { hydrateCites } from '../citations/in-text-citations.js';
@@ -19,14 +19,14 @@ function nbState() {
   stashRefs();
   return JSON.stringify({
     meta,
-    pts: pts.map(point => Object.assign(strip(point), { id: point.id })),
+    pts: syllabusPoints.map(point => Object.assign(strip(point), { id: point.id })),
     doc: docHTML,
     essays: essays.map(essay => Object.assign({}, essay, { refs: (essay.refs || []).map(nbRef) })),
     refs: (nbRefs || []).map(nbRef),
     refSort: nbRefSort,
     activeRefs: refs.map(nbRef),
-    view: ui.view,
-    essayId: ui.essayId || null,
+    view: uiState.view,
+    essayId: uiState.essayId || null,
     savedAt: new Date().toISOString()
   });
 }
@@ -56,7 +56,7 @@ function useNativeStore(notebook) {
 /* the app asks for the notebook now (closing, switching) */
 const nbFlush = () => {
   try {
-    if (ed()) saveDocNow();
+    if (openEditor()) saveDocNow();
   } catch (e) {}
   clearTimeout(nativeTimer);
   nativeTimer = null;
@@ -68,7 +68,7 @@ const nbAddRef = raw => {
   const r = parseOne(String(raw));
   refs.push(r);
   Store.saveRefs();
-  if (ui.view === 'wc') renderWC();
+  if (uiState.view === 'wc') renderWC();
   hydrateCites();
   return JSON.stringify({
     id: r.id,

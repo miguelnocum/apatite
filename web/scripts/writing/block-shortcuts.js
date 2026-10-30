@@ -1,6 +1,6 @@
-import { tbState } from '../editor/toolbar-state.js';
+import { updateToolbarState } from '../editor/toolbar-state.js';
 import { caretInto, caretToStart, fire, selectRange } from '../core/caret.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { MD, anchorElement, mdAscii, mdBefore, mdCaret, mdPara, mdSel, textAfterCaret } from './writing.js';
 import { CALLOUTS } from '../core/callout-kinds.js';
 
@@ -33,25 +33,25 @@ export function mdBlock() {
   if (caret.node.isConnected && caret.node.nodeValue) mdSel(caret.node, 0);
   else caretToStart(host);
   undoBlock(line, block, host, before);
-  tbState();
+  updateToolbarState();
   return true;
 }
 
 /* the line's contents into the new block (which keeps a line break when empty, so it has height) */
 function moveLineInto(line, host) {
   while (line.firstChild) host.appendChild(line.firstChild);
-  if (!host.textContent && !host.querySelector('br,img')) host.appendChild(mk('br'));
+  if (!host.textContent && !host.querySelector('br,img')) host.appendChild(makeElement('br'));
 }
 
 /* the new block, and the element in it that takes the line's contents */
 function newBlock(kind, key) {
   const tag = kind === 'h' ? 'h' + key.length : { quote: 'blockquote' }[kind];
   if (tag) {
-    const block = mk(tag);
+    const block = makeElement(tag);
     return { block, host: block };
   }
-  const block = mk(kind === 'ol' ? 'ol' : 'ul');
-  const host = mk('li');
+  const block = makeElement(kind === 'ol' ? 'ol' : 'ul');
+  const host = makeElement('li');
   block.appendChild(host);
   if (kind === 'todo' || kind === 'done') block.setAttribute('data-todo', '');
   if (kind === 'done') host.setAttribute('data-done', '1');
@@ -103,12 +103,12 @@ export function mdCallout() {
 
 /* a callout: its title line, and an empty line to write in */
 function newCallout(kind, titleText) {
-  const callout = mk('div');
+  const callout = makeElement('div');
   callout.setAttribute('data-callout', kind);
-  const title = mk('p');
+  const title = makeElement('p');
   title.setAttribute('data-cot', '');
   title.textContent = titleText;
-  const body = mk('p');
+  const body = makeElement('p');
   body.innerHTML = '<br>';
   callout.append(title, body);
   return { callout, title };
@@ -119,7 +119,7 @@ function undoCallout(callout, typed) {
   MD.last = {
     undo: () => {
       if (!callout.isConnected) return;
-      const quote = mk('blockquote');
+      const quote = makeElement('blockquote');
       quote.textContent = typed;
       callout.replaceWith(quote);
       mdSel(quote.firstChild, quote.firstChild.nodeValue.length);
@@ -142,8 +142,8 @@ export function mdRule() {
   const line = mdPara();
   if (!line || !/^(-{3,}|\*{3,}|_{3,}|—-?|–-)$/.test(line.textContent.trim()) || line.closest('[data-callout]'))
     return false;
-  const rule = mk('hr');
-  const after = mk('p');
+  const rule = makeElement('hr');
+  const after = makeElement('p');
   after.innerHTML = '<br>';
   line.replaceWith(rule);
   rule.after(after);
@@ -164,13 +164,13 @@ export function quoteExit(e, back) {
   if (empty.textContent.replace(/\u00a0/g, '').trim() || empty.querySelector('img')) return false;
   if (back && mdBefore(empty)) return false;
   e.preventDefault();
-  const plain = mk('p');
+  const plain = makeElement('p');
   plain.innerHTML = '<br>';
   if (line) splitQuoteAt(quote, line, plain);
   else quote.replaceWith(plain);
   caretInto(plain);
   fire();
-  tbState();
+  updateToolbarState();
   return true;
 }
 
@@ -181,7 +181,7 @@ function splitQuoteAt(quote, line, plain) {
   line.remove();
   quote.after(plain);
   if (rest.length) {
-    const second = mk('blockquote');
+    const second = makeElement('blockquote');
     rest.forEach(node => second.appendChild(node));
     plain.after(second);
   }

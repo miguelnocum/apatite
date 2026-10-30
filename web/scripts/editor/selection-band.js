@@ -1,5 +1,5 @@
-import { ed, ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor, uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { pageScale } from '../tables/table-sizing.js';
 /* ===== the selection drawn as Bear draws it: one even band, from where it starts to the right edge, whole lines between,
    and from the left edge to where it ends, with no gaps between lines or paragraphs. The browser's own is hidden while
@@ -17,7 +17,7 @@ export function queueBand() {
 }
 
 function drawBand() {
-  const editor = ed();
+  const editor = openEditor();
   const layer = editor && bandLayer(editor);
   if (!layer) return;
   const range = bandRange(editor);
@@ -39,7 +39,7 @@ function bandLayer(editor) {
   if (!page) return null;
   let layer = page.querySelector(':scope>.sellayer');
   if (layer) return layer;
-  layer = mk('div');
+  layer = makeElement('div');
   layer.className = 'sellayer';
   layer.setAttribute('contenteditable', 'false');
   page.appendChild(layer);
@@ -49,7 +49,7 @@ function bandLayer(editor) {
 /* the selection, if it's text in the notes (selected table cells show their own way) */
 function bandRange(editor) {
   const selection = getSelection();
-  if (!selection.rangeCount || selection.isCollapsed || ui.tsel) return null;
+  if (!selection.rangeCount || selection.isCollapsed || uiState.tsel) return null;
   const range = selection.getRangeAt(0);
   return editor.contains(range.startContainer) && editor.contains(range.endContainer) ? range : null;
 }

@@ -1,7 +1,7 @@
-import { tbState } from './toolbar-state.js';
+import { updateToolbarState } from './toolbar-state.js';
 import { fire } from '../core/caret.js';
-import { ed } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { edBlocks } from '../essays/word-count.js';
 import { hydrateCites } from '../citations/in-text-citations.js';
 import { mdTopBlock } from '../writing/writing.js';
@@ -12,7 +12,7 @@ const KEPT_BLOCK_ATTRIBUTES = ['data-sp', 'data-wct', 'data-fold']; // (data-fol
 
 export function setBlockType(tag) {
   const selection = getSelection();
-  const range = ed() && selection.rangeCount ? selection.getRangeAt(0) : null;
+  const range = openEditor() && selection.rangeCount ? selection.getRangeAt(0) : null;
   const targets = range ? blocksToChange(range, tag) : [];
   if (!targets.length) return false;
   const { startContainer, startOffset, endContainer, endOffset } = range; // (the live range moves as blocks change)
@@ -26,7 +26,7 @@ export function setBlockType(tag) {
   restoreBlockSelection(selection, ends, replaced, targets[0]);
   hydrateCites();
   fire();
-  tbState();
+  updateToolbarState();
   return true;
 }
 
@@ -35,7 +35,7 @@ export function setBlockType(tag) {
 function blocksToChange(range, tag) {
   const first = mdTopBlock(range.startContainer);
   const last = mdTopBlock(range.endContainer);
-  const blocks = edBlocks(ed());
+  const blocks = edBlocks(openEditor());
   const from = blocks.indexOf(first);
   const to = blocks.indexOf(last);
   if (!first || !last || from < 0 || to < 0) return [];
@@ -59,7 +59,7 @@ function keepBlockAttributes(from, to) {
 
 /* the block's contents in a new element (with a line break if it's empty, so it has height) */
 function retag(block, tag) {
-  const next = mk(tag);
+  const next = makeElement(tag);
   keepBlockAttributes(block, next);
   while (block.firstChild) next.appendChild(block.firstChild);
   if (!next.firstChild) next.innerHTML = '<br>';
@@ -80,7 +80,7 @@ function unwrapQuoteLines(quote, replaced) {
       replaced.set(node, quotedLine(quote, node));
     } else if (node.nodeType === 1 || node.nodeValue.trim()) {
       if (!loose) {
-        loose = mk('p');
+        loose = makeElement('p');
         keepBlockAttributes(quote, loose);
         quote.before(loose);
       }
@@ -92,7 +92,7 @@ function unwrapQuoteLines(quote, replaced) {
 
 /* a line of a quote, as a line of its own before the quote */
 function quotedLine(quote, node) {
-  const line = mk('p');
+  const line = makeElement('p');
   keepBlockAttributes(quote, line);
   while (node.firstChild) line.appendChild(node.firstChild);
   if (!line.firstChild) line.innerHTML = '<br>';

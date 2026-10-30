@@ -1,5 +1,5 @@
 import { docHTML, setDocHTML } from '../core/save-doc.js';
-import { $, ed, meta, setCurEd, toast } from '../core/helpers-and-state.js';
+import { $, openEditor, meta, setActiveEditor, toast } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { fillEmpty } from '../core/paste-cleaning.js';
 import { addBanner, markCur } from '../view/page-render.js';
@@ -15,7 +15,7 @@ import { convertSpecHeadings } from '../spec-points/older-spec-notes.js';
 const CONVERTED_TOAST_DELAY = 300;
 /* the notes as shown: empty lines that can take the caret, a last line, citations and the notes' own pieces drawn */
 export function hydrate(root) {
-  root = root || ed();
+  root = root || openEditor();
   if (!root) return;
   const selection = getSelection();
   fillEmpty(root, selection.rangeCount ? selection.anchorNode : null);
@@ -32,9 +32,9 @@ export function renderNotes() {
     'contenteditable="true" spellcheck="true" aria-label="Notes">' +
     (docHTML || '<p><br></p>') +
     '</div></div></div>';
-  const editor = ed();
+  const editor = openEditor();
   hydrate(editor);
-  setCurEd(editor);
+  setActiveEditor(editor);
   watchZoom();
   addBanner();
   markCur();

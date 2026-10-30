@@ -1,10 +1,10 @@
 import { caretInto, selectRange } from '../core/caret.js';
-import { tbMenu } from '../core/toolbar-menu.js';
+import { toolbarMenu } from '../core/toolbar-menu.js';
 import { STATUS } from '../core/example-data.js';
-import { $, ed, esc, ptById, pts, toast, ui } from '../core/helpers-and-state.js';
+import { $, openEditor, escapeHtml, pointById, syllabusPoints, toast, uiState } from '../core/helpers-and-state.js';
 import { lvl } from '../syllabus/point-levels.js';
 import { Store } from '../core/storage.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { groups } from '../syllabus/model.js';
 import { ratingBarHTML, sideClosed, sideHd } from '../syllabus/syllabus-view.js';
 import { render } from '../view/page-render.js';
@@ -24,14 +24,14 @@ const RATINGS = 5; // ratings run 0 (not rated) to 4
 
 /* each click moves on to the next place the point is tagged; a point not in the notes yet gets a place */
 export function spGo(id, fromMargin) {
-  const point = ptById(id);
+  const point = pointById(id);
   if (!point) return;
-  if (ui.view !== 'notes') {
-    ui.view = 'notes';
+  if (uiState.view !== 'notes') {
+    uiState.view = 'notes';
     render();
   }
   const runs = spRuns().filter(run => run.id === id);
-  ui.spCur = id;
+  uiState.spCur = id;
   if (!runs.length) {
     addPlaceFor(point);
     return;
@@ -41,8 +41,8 @@ export function spGo(id, fromMargin) {
 
 /* the place after the one gone to last time (the first, the first time) */
 function goToNextPlace(point, runs, fromMargin) {
-  const index = (ui.spNext && ui.spNext.id === point.id ? ui.spNext.i + 1 : 0) % runs.length;
-  ui.spNext = { id: point.id, i: index };
+  const index = (uiState.spNext && uiState.spNext.id === point.id ? uiState.spNext.i + 1 : 0) % runs.length;
+  uiState.spNext = { id: point.id, i: index };
   showRun(runs[index], fromMargin);
   drawSp();
   spMarkPanel(fromMargin);
@@ -53,10 +53,10 @@ function goToNextPlace(point, runs, fromMargin) {
 /* a short heading and a line to write on, where you were writing (an empty line becomes the heading; otherwise it
    goes after the line you're on). With no place in the notes yet, after the points before it. */
 function addPlaceFor(point) {
-  const heading = mk(lvl(point) === 3 ? 'h3' : 'h2');
+  const heading = makeElement(lvl(point) === 3 ? 'h3' : 'h2');
   heading.textContent = point.code || spShort(point.text);
   heading.setAttribute('data-sp', point.id);
-  const line = mk('p');
+  const line = makeElement('p');
   line.innerHTML = '<br>';
   line.setAttribute('data-sp', point.id);
   const here = writingBlock();
@@ -73,9 +73,11 @@ function addPlaceFor(point) {
 
 /* the top-level block the caret was last in */
 function writingBlock() {
-  const editor = ed();
+  const editor = openEditor();
   const last =
-    ui.lastRange && editor.contains(ui.lastRange.startContainer) ? mdTopBlock(ui.lastRange.startContainer) : null;
+    uiState.lastRange && editor.contains(uiState.lastRange.startContainer)
+      ? mdTopBlock(uiState.lastRange.startContainer)
+      : null;
   return last && last.id !== 'fnlist' && last.parentNode === editor ? last : null;
 }
 
@@ -89,8 +91,8 @@ function isEmptyLine(block) {
 
 /* after the last block tagged with a point that comes before this one (else at the end, before the footnotes) */
 function placeInPointOrder(heading, id) {
-  const editor = ed();
-  const order = pts.map(point => point.id);
+  const editor = openEditor();
+  const order = syllabusPoints.map(point => point.id);
   const position = order.indexOf(id);
   let after = null;
   edBlocks(editor).forEach(block => {
@@ -115,7 +117,7 @@ function showRun(run, fromMargin) {
   range.selectNodeContents(text);
   range.collapse(false);
   selectRange(range);
-  ed().focus({ preventScroll: true });
+  openEditor().focus({ preventScroll: true });
 }
 
 /* lit up for a moment (restarted if it's already lit) */
@@ -128,25 +130,27 @@ function spFlash(block) {
 
 /* the panel follows the caret: the point of the paragraph you're in is marked */
 function spMarkPanel(scroll) {
-  document.querySelectorAll('#side .spi').forEach(row => row.classList.toggle('cur', row.dataset.spgo === ui.spCur));
+  document
+    .querySelectorAll('#side .spi')
+    .forEach(row => row.classList.toggle('cur', row.dataset.spgo === uiState.spCur));
   if (scroll) {
     const current = document.querySelector('#side .spi.cur');
     if (current) current.scrollIntoView({ block: 'nearest' });
   }
   document.querySelectorAll('#splayer .spbr').forEach((bracket, i) => {
     const run = $('splayer').runs[i];
-    bracket.classList.toggle('cur', !!run && run.id === ui.spCur);
+    bracket.classList.toggle('cur', !!run && run.id === uiState.spCur);
   });
 }
 
 const onSpecPointPanelSelectionchange = () => {
-  if (ui.view !== 'notes' || !ed()) return;
+  if (uiState.view !== 'notes' || !openEditor()) return;
   const selection = getSelection();
-  if (!selection.rangeCount || !ed().contains(selection.anchorNode)) return;
+  if (!selection.rangeCount || !openEditor().contains(selection.anchorNode)) return;
   const block = mdTopBlock(selection.anchorNode);
   const id = block && spOf(block);
-  if (!id || id === ui.spCur) return;
-  ui.spCur = id;
+  if (!id || id === uiState.spCur) return;
+  uiState.spCur = id;
   spMarkPanel(true);
 };
 
@@ -154,9 +158,9 @@ const onSpecPointPanelSelectionchange = () => {
 const onSpecPointPanelMouseover = e => {
   const row = e.target.closest && e.target.closest('#side .spi');
   const id = row && row.dataset.spgo;
-  if (id === ui.spHover) return;
-  ui.spHover = id;
-  const editor = ed();
+  if (id === uiState.spHover) return;
+  uiState.spHover = id;
+  const editor = openEditor();
   if (!editor) return;
   editor.querySelectorAll('.sphover').forEach(block => block.classList.remove('sphover'));
   if (!id) return;
@@ -168,12 +172,12 @@ const onSpecPointPanelMouseover = e => {
 /* ---- the panel: the points by section, each with its rating and how often it's in the notes ---- */
 /* after an edit, in the notes: the panel is redrawn */
 export function redrawSpPanel() {
-  if (ui.view === 'notes') renderSpPanel();
+  if (uiState.view === 'notes') renderSpPanel();
 }
 
 export function renderSpPanel() {
   const current = sylInfo().cur;
-  const head = sideHd(current && current.title ? esc(current.title) : 'Syllabus');
+  const head = sideHd(current && current.title ? escapeHtml(current.title) : 'Syllabus');
   const sections = sideClosed() ? null : groups();
   if (!sections) $('side').innerHTML = head;
   else if (!sections.length) $('side').innerHTML = head + noPointsHTML();
@@ -193,7 +197,7 @@ function noPointsHTML() {
 }
 
 function spModeHTML() {
-  const mode = !!ui.spMode;
+  const mode = !!uiState.spMode;
   const hint = mode
     ? '<p class="sphint">Drag down the left margin of your notes to tag them; drag a bracket’s ends to resize it. Esc when you’re done.</p>'
     : '';
@@ -208,7 +212,7 @@ function sectionHTML(section, counts) {
   const bar = ratingBarHTML(section.all);
   const inNotes = section.all.filter(point => counts[point.id]).length;
   return (
-    `<div class="sps"><div class="spsh"><span>${esc(section.sec || 'Untitled section')}</span>` +
+    `<div class="sps"><div class="spsh"><span>${escapeHtml(section.sec || 'Untitled section')}</span>` +
     `<em>${inNotes}/${section.all.length}</em></div><div class="prog" aria-hidden="true">${bar}</div>` +
     section.all.map(point => spPointRowHTML(point, counts[point.id] || 0)).join('') +
     '</div>'
@@ -217,7 +221,8 @@ function sectionHTML(section, counts) {
 
 function spPointRowHTML(point, count) {
   const rating = point.status || 0;
-  const className = (lvl(point) === 3 ? ' sub' : '') + (count ? '' : ' none') + (ui.spCur === point.id ? ' cur' : '');
+  const className =
+    (lvl(point) === 3 ? ' sub' : '') + (count ? '' : ' none') + (uiState.spCur === point.id ? ' cur' : '');
   const title =
     (count ? 'Go to its notes' : 'Not in your notes yet: click to add a place for it') +
     ' · ' +
@@ -226,9 +231,9 @@ function spPointRowHTML(point, count) {
   const ratingTitle =
     (rating ? rating + ': ' + STATUS[rating] : 'Not rated') + ' (click for next, shift-click for previous)';
   return (
-    `<div class="spi${className}" data-spgo="${point.id}" role="button" tabindex="0" title="${esc(title)}">` +
-    `<button type="button" class="spdot" data-spcyc="${point.id}" style="--c:var(--s${rating})" title="${esc(ratingTitle)}">` +
-    `${rating || ''}</button><span class="spx"><code>${esc(point.code || '')}</code>${esc(point.text)}</span>` +
+    `<div class="spi${className}" data-spgo="${point.id}" role="button" tabindex="0" title="${escapeHtml(title)}">` +
+    `<button type="button" class="spdot" data-spcyc="${point.id}" style="--c:var(--s${rating})" title="${escapeHtml(ratingTitle)}">` +
+    `${rating || ''}</button><span class="spx"><code>${escapeHtml(point.code || '')}</code>${escapeHtml(point.text)}</span>` +
     (count ? `<em>${count > 1 ? count + '×' : '✓'}</em>` : '') +
     '</div>'
   );
@@ -245,7 +250,7 @@ const onSpecPointPanelClick = e => {
     cycleRating(rating.dataset.spcyc, e.shiftKey);
   } else if (modeButton) {
     e.stopPropagation();
-    setSpMode(!ui.spMode);
+    setSpMode(!uiState.spMode);
   } else if (row) {
     e.preventDefault();
     spGo(row.dataset.spgo);
@@ -254,7 +259,7 @@ const onSpecPointPanelClick = e => {
 
 /* the next rating (⇧: the one before), round from 4 to not rated */
 function cycleRating(id, back) {
-  const point = ptById(id);
+  const point = pointById(id);
   if (!point) return;
   point.status = ((point.status || 0) + (back ? RATINGS - 1 : 1)) % RATINGS;
   Store.savePoint(point);
@@ -264,7 +269,7 @@ function cycleRating(id, back) {
 
 /* tagging mode: the brackets and the margin to drag in only show while it's on */
 function setSpMode(on) {
-  ui.spMode = !!on;
+  uiState.spMode = !!on;
   if (!on) {
     closeSpPick();
     setSpDrag(null);
@@ -274,7 +279,7 @@ function setSpMode(on) {
 }
 
 const onSpecPointPanelKeydown = e => {
-  if (e.key === 'Escape' && ui.spMode && !spPick && ui.view === 'notes' && !tbMenu) setSpMode(false);
+  if (e.key === 'Escape' && uiState.spMode && !spPick && uiState.view === 'notes' && !toolbarMenu) setSpMode(false);
 };
 
 export function initSpecPointPanel() {

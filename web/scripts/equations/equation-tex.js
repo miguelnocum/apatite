@@ -1,4 +1,4 @@
-import { esc } from '../core/helpers-and-state.js';
+import { escapeHtml } from '../core/helpers-and-state.js';
 
 /* ===== equations: a block of LaTeX drawn by KaTeX; click it to edit, with a palette of symbols.
    Each line of the LaTeX is a line of the equation (a matrix or other environment can still run over several lines). ===== */
@@ -33,7 +33,7 @@ export function texShowHTML(source) {
       try {
         return katex.renderToString(texShow(line), { displayMode: true, throwOnError: false, strict: 'ignore' });
       } catch (x) {
-        return esc(line);
+        return escapeHtml(line);
       }
     })
     .join('');
@@ -71,9 +71,9 @@ function braceStep(c) {
 
 export function texInline(tex) {
   try {
-    return window.katex ? katex.renderToString(tex, { throwOnError: false, strict: 'ignore' }) : esc(tex);
+    return window.katex ? katex.renderToString(tex, { throwOnError: false, strict: 'ignore' }) : escapeHtml(tex);
   } catch (x) {
-    return esc(tex);
+    return escapeHtml(tex);
   }
 }
 

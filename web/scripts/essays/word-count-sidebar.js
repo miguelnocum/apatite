@@ -1,4 +1,4 @@
-import { $, curEssay, ed, edEssayId, esc, essays, ui } from '../core/helpers-and-state.js';
+import { $, curEssay, openEditor, edEssayId, escapeHtml, essays, uiState } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { flash } from '../view/page-render.js';
 import { essayTotal, tagById, tagCounts, tagsChanged, wcOpts } from './word-count.js';
@@ -10,18 +10,18 @@ const PERCENT = 100;
 
 /* after an edit, in an essay: the word count is redrawn */
 export function wordCountAfterEdit() {
-  if (ui.view === 'essay') renderWordCount();
+  if (uiState.view === 'essay') renderWordCount();
 }
 
 export function renderWordCount() {
   const box = $('wcbox');
   const essay = curEssay();
-  const editor = ed();
+  const editor = openEditor();
   if (!box || !essay || !editor || edEssayId() !== essay.id) return;
   const options = wcOpts(essay);
   const counts = tagCounts(editor, options);
   const keep = focusedWordCountField(box);
-  ui.wcOpen = ui.wcOpen || {};
+  uiState.wcOpen = uiState.wcOpen || {};
   box.innerHTML =
     modeButtonHTML() +
     totalHTML(counts.total, +options.limit || 0) +
@@ -30,11 +30,11 @@ export function renderWordCount() {
     contentsPanel(editor, options) +
     optionsHTML(options);
   if (keep) refocus(box.querySelector(keep));
-  if (ui.wcMode) drawBoxes();
+  if (uiState.wcMode) drawBoxes();
 }
 
 function modeButtonHTML() {
-  const mode = !!ui.wcMode;
+  const mode = !!uiState.wcMode;
   const hint = mode
     ? '<p class="wchint">Drag down the left margin beside your paragraphs to box them as a section. Click a box’s label to change it.</p>'
     : '';
@@ -58,15 +58,15 @@ function totalHTML(total, limit) {
 
 function tagSectionHTML(tag, count) {
   const limit = +tag.limit || 0;
-  const open = !!ui.wcOpen[tag.id];
+  const open = !!uiState.wcOpen[tag.id];
   const title = tag.exclude ? 'Shown but not counted in the total' : 'Show in the essay';
   const limitNote = limit ? ` <small>/ ${limit.toLocaleString()}</small>` : '';
   return (
     `<div class="wcsec"><div class="wcrow${tag.exclude ? ' off' : ''}${limit && count > limit ? ' over' : ''}" ` +
     `data-wctag="${tag.id}" title="${title}">` +
-    `<button class="tw${open ? ' open' : ''}" data-wctw="${tag.id}" aria-expanded="${open}" aria-label="Settings for ${esc(tag.name)}">` +
+    `<button class="tw${open ? ' open' : ''}" data-wctw="${tag.id}" aria-expanded="${open}" aria-label="Settings for ${escapeHtml(tag.name)}">` +
     '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3.5 2l3 3-3 3"/></svg></button>' +
-    `<i class="dot" style="background:${tag.color}"></i><span class="nm">${esc(tag.name)}</span>` +
+    `<i class="dot" style="background:${tag.color}"></i><span class="nm">${escapeHtml(tag.name)}</span>` +
     `<span class="ct">${count.toLocaleString()}${limitNote}</span></div>` +
     (open ? tagSettingsHTML(tag, limit) : '') +
     '</div>'
@@ -75,7 +75,7 @@ function tagSectionHTML(tag, count) {
 
 function tagSettingsHTML(tag, limit) {
   return (
-    `<div class="wctagset"><label>Name <input type="text" data-wcname="${tag.id}" value="${esc(tag.name)}"></label>` +
+    `<div class="wctagset"><label>Name <input type="text" data-wcname="${tag.id}" value="${escapeHtml(tag.name)}"></label>` +
     `<label>Limit <input type="number" min="0" step="50" data-wctlim="${tag.id}" value="${limit || ''}" placeholder="none"></label>` +
     `<label class="ck"><input type="checkbox" data-wcexcl="${tag.id}"${tag.exclude ? '' : ' checked'}> Count in total</label>` +
     `<button type="button" class="wcdel" data-wcdeltag="${tag.id}">Remove this tag</button></div>`
@@ -91,7 +91,7 @@ function untaggedHTML(options, counts) {
       `<div class="wcrow untag${options.untagged === false && tagged ? ' off' : ''}">` +
       '<button class="tw" disabled></button><i class="dot"></i>' +
       `<span class="nm">${tagged ? 'Untagged' : 'Whole essay'}</span><span class="ct">${counts.untagged.toLocaleString()}</span></div>`;
-  if (!tagged && !ui.wcMode)
+  if (!tagged && !uiState.wcMode)
     html += '<p class="wchint">Use Word count mode to box paragraphs as Introduction, Body paragraphs, Conclusion…</p>';
   return html;
 }
@@ -146,7 +146,7 @@ export function updateEssayListCounts() {
   document.querySelectorAll('#side .esl a[data-essay]').forEach(link => {
     const essay = essays.find(x => x.id === link.dataset.essay);
     if (!essay) return;
-    const count = essay.id === edEssayId() ? tagCounts(ed(), wcOpts(essay)).total : essayTotal(essay);
+    const count = essay.id === edEssayId() ? tagCounts(openEditor(), wcOpts(essay)).total : essayTotal(essay);
     const label = link.querySelector('.wc');
     if (label) label.textContent = count.toLocaleString() + ' word' + (count === 1 ? '' : 's');
   });
@@ -164,7 +164,7 @@ const WORD_COUNT_CLICKS = [
 const onWordCountSidebarClick = e => {
   const target = e.target;
   if (target.id === 'wcmodebtn') {
-    setWcMode(!ui.wcMode);
+    setWcMode(!uiState.wcMode);
     return;
   }
   const hit =
@@ -175,8 +175,8 @@ const onWordCountSidebarClick = e => {
 
 /* clicking a box's label: the tag's settings in the sidebar, opened, its name ready to change */
 function openTagSettings(id) {
-  ui.wcOpen = ui.wcOpen || {};
-  ui.wcOpen[id] = true;
+  uiState.wcOpen = uiState.wcOpen || {};
+  uiState.wcOpen[id] = true;
   renderWordCount();
   const name = document.querySelector('[data-wcname="' + id + '"]');
   if (!name) return;
@@ -187,13 +187,13 @@ function openTagSettings(id) {
 
 function toggleTagSettings(id, e) {
   e.preventDefault();
-  ui.wcOpen = ui.wcOpen || {};
-  ui.wcOpen[id] = !ui.wcOpen[id];
+  uiState.wcOpen = uiState.wcOpen || {};
+  uiState.wcOpen[id] = !uiState.wcOpen[id];
   renderWordCount();
 }
 
 function removeTag(id) {
-  ed()
+  openEditor()
     .querySelectorAll('[data-wct="' + id + '"]')
     .forEach(block => block.removeAttribute('data-wct'));
   setWc(options => (options.tags = options.tags.filter(tag => tag.id !== id)));
@@ -201,7 +201,7 @@ function removeTag(id) {
 }
 
 function showTagged(id) {
-  const first = ed().querySelector('[data-wct="' + id + '"]');
+  const first = openEditor().querySelector('[data-wct="' + id + '"]');
   if (!first) return;
   first.scrollIntoView({ behavior: 'smooth', block: 'center' });
   flash(first);

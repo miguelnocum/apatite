@@ -1,7 +1,7 @@
-import { tbState } from '../editor/toolbar-state.js';
+import { updateToolbarState } from '../editor/toolbar-state.js';
 import { closestTag, fire, selectRange } from '../core/caret.js';
-import { ed, toast } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor, toast } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { MD } from './writing.js';
 import { ZW } from '../editor/caret-and-keys.js';
 
@@ -23,7 +23,7 @@ export function codeExit(code) {
 }
 
 export function inlineCode() {
-  const editor = ed();
+  const editor = openEditor();
   const selection = getSelection();
   if (!editor || !selection.rangeCount || !editor.contains(selection.anchorNode)) {
     toast('Click in your notes first');
@@ -33,7 +33,7 @@ export function inlineCode() {
   if (code && editor.contains(code)) leaveCode(code, selection);
   else makeCode(selection.getRangeAt(0), selection);
   fire();
-  tbState();
+  updateToolbarState();
 }
 
 /* in code with nothing selected: step out of it (an empty one goes); with a selection: it stops being code */
@@ -57,7 +57,7 @@ function leaveCode(code, selection) {
 
 /* the selection as code, the caret after it; or empty code with the caret inside */
 function makeCode(range, selection) {
-  const code = mk('code');
+  const code = makeElement('code');
   if (!range.collapsed) {
     code.textContent = range.toString();
     range.deleteContents();

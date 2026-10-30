@@ -1,10 +1,10 @@
-import { $, ui } from '../core/helpers-and-state.js';
+import { $, uiState } from '../core/helpers-and-state.js';
 import { closestTag, inEd } from '../core/caret.js';
 import { keyOf } from './highlight-colours.js';
 
 /* ===== the toolbar shows where the caret is ===== */
 /* buttons light up for what the caret is in: a heading, a list, bold, italic, a highlight; the highlighter shows its colour */
-export function tbState() {
+export function updateToolbarState() {
   const inEditor = inEd();
   const light = (id, on) => {
     const button = document.getElementById(id);
@@ -15,7 +15,7 @@ export function tbState() {
   light('tb-b', commandState('bold'));
   light('tb-i', commandState('italic'));
   light('tb-hl', closestTag('mark'));
-  const colour = keyOf(ui.hlColor);
+  const colour = keyOf(uiState.hlColor);
   const swatch = $('hlsw');
   if (swatch) swatch.style.background = colour ? colour.hex : 'var(--h1)';
   const highlighter = $('tb-hl');

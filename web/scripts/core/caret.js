@@ -1,4 +1,4 @@
-import { curEd, ed, ui } from './helpers-and-state.js';
+import { activeEditor, openEditor, uiState } from './helpers-and-state.js';
 
 /* ===== where the caret is: in the notes or essay being written, and what is around it ===== */
 /* the caret (or selection) is in the notes or essay being written (not in the equation editor) */
@@ -6,12 +6,12 @@ export function inEd() {
   const active = document.activeElement;
   if (active && active.closest && active.closest('.mathpop')) return false;
   const selection = getSelection();
-  return curEd && selection.rangeCount && curEd.contains(selection.anchorNode);
+  return activeEditor && selection.rangeCount && activeEditor.contains(selection.anchorNode);
 }
 
 /* the notes changed (saved and redrawn as if typed) */
 export function fire() {
-  if (curEd) curEd.dispatchEvent(new Event('input', { bubbles: true }));
+  if (activeEditor) activeEditor.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 /* the nearest element around the caret that matches */
@@ -24,13 +24,13 @@ export function closestTag(selector) {
 
 /* the focus back in the notes, with the selection they last had */
 export function restoreSel() {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor) return;
   editor.focus({ preventScroll: true });
-  if (!(ui.lastRange && editor.contains(ui.lastRange.startContainer))) return;
+  if (!(uiState.lastRange && editor.contains(uiState.lastRange.startContainer))) return;
   const selection = getSelection();
   selection.removeAllRanges();
-  selection.addRange(ui.lastRange);
+  selection.addRange(uiState.lastRange);
 }
 
 export function selectRange(range) {
@@ -50,5 +50,5 @@ export function caretToStart(el) {
 export function caretInto(line) {
   if (!line) return;
   caretToStart(line);
-  ed().focus({ preventScroll: true });
+  openEditor().focus({ preventScroll: true });
 }

@@ -1,6 +1,6 @@
 import { saveDocSoon } from '../core/save-doc.js';
-import { ed, esc, NATIVE, post, toast, ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor, escapeHtml, NATIVE, post, toast, uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { citationIds } from './citation-check.js';
 import { namePart, refById, yearLabels } from './references.js';
 import { openSources } from './sources-pane.js';
@@ -30,7 +30,7 @@ export function citeText(ids, labels, form) {
 
 /* every citation's text, from its references (or a placeholder, or a note that its source is gone) */
 export function hydrateCites(root) {
-  root = root || ed();
+  root = root || openEditor();
   if (!root) return;
   const labels = yearLabels();
   root.querySelectorAll('span[data-cite]').forEach(citation => hydrateCitation(citation, labels));
@@ -53,7 +53,7 @@ function hydrateCitation(citation, labels) {
       citation.title = 'Open this quote in the PDF (Option-click to change source)';
     } else citation.title = 'Change source';
     citation.classList.toggle('nar', form === 'n' && ids.length === 1);
-    if (ui.citeTarget === citation) citation.classList.add('sel');
+    if (uiState.citeTarget === citation) citation.classList.add('sel');
   }
 }
 
@@ -65,20 +65,20 @@ function markCitation(citation, kind, text, title) {
 
 /* a citation at the caret (or where the caret last was in the notes), a space before it if it follows a word */
 export function insertCitation(ids) {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor || !caretInEditor(editor)) return null;
   const selection = getSelection();
   const range = selection.getRangeAt(0);
   range.deleteContents();
   const start = range.startContainer;
   const before = start.nodeType === 3 ? start.nodeValue.slice(0, range.startOffset) : '';
-  const citation = mk('span');
+  const citation = makeElement('span');
   citation.setAttribute('data-cite', (ids || []).join(','));
   if (before && !/\s$/.test(before)) insertBefore(range, document.createTextNode(' '));
   insertBefore(range, citation);
   selection.removeAllRanges();
   selection.addRange(range);
-  ui.lastRange = range.cloneRange();
+  uiState.lastRange = range.cloneRange();
   hydrateCites();
   saveDocSoon();
   return citation;
@@ -94,19 +94,19 @@ function insertBefore(range, node) {
 function caretInEditor(editor) {
   const selection = getSelection();
   if (selection.rangeCount && editor.contains(selection.anchorNode)) return true;
-  if (!(ui.lastRange && editor.contains(ui.lastRange.startContainer))) {
+  if (!(uiState.lastRange && editor.contains(uiState.lastRange.startContainer))) {
     toast('Click in your notes where the citation should go');
     return false;
   }
   editor.focus({ preventScroll: true });
   selection.removeAllRanges();
-  selection.addRange(ui.lastRange);
+  selection.addRange(uiState.lastRange);
   return true;
 }
 
 /* citations read as text; only the page number is a box you click (to open the quote in the PDF) */
 function citePgChips(root) {
-  (root || ed()).querySelectorAll('span[data-cite].cite').forEach(pageChip);
+  (root || openEditor()).querySelectorAll('span[data-cite].cite').forEach(pageChip);
   caretAnchors(root);
 }
 
@@ -117,7 +117,7 @@ function pageChip(citation) {
   const parts = /^(.*?)(pp?\. [^)]*)(\)?)$/.exec(citation.textContent);
   if (!parts) return;
   const title = citation.getAttribute('data-anchor') ? 'Open this quote in the PDF' : 'Page';
-  citation.innerHTML = `${esc(parts[1])}<span class="cpg" title="${title}">${esc(parts[2])}</span>${esc(parts[3])}`;
+  citation.innerHTML = `${escapeHtml(parts[1])}<span class="cpg" title="${title}">${escapeHtml(parts[2])}</span>${escapeHtml(parts[3])}`;
   citation.classList.add('haspg');
   citation.title = 'Option-click to change the source';
 }
@@ -131,7 +131,7 @@ function caretBeside(el, after) {
   range.setStart(text, after ? 0 : text.nodeValue.length);
   range.collapse(true);
   const selection = getSelection();
-  ed().focus({ preventScroll: true });
+  openEditor().focus({ preventScroll: true });
   selection.removeAllRanges();
   selection.addRange(range);
 }
@@ -169,7 +169,7 @@ function clickBeforeFirstCitation(e) {
 
 /* a click in the page's margin, level with a line: that line */
 function marginLine(e) {
-  const editor = ed();
+  const editor = openEditor();
   const inMargin =
     editor &&
     e.target.closest &&

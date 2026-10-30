@@ -1,7 +1,7 @@
-import { tbState } from './toolbar-state.js';
+import { updateToolbarState } from './toolbar-state.js';
 import { caretToStart, fire, selectRange } from '../core/caret.js';
-import { ed } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { anchorElement, mdTopBlock } from '../writing/writing.js';
 
 /* ===== a place for the caret beside a citation or footnote at the start or end of a line (on screen only; never saved) ===== */
@@ -9,7 +9,7 @@ export const ZW = '\u200b';
 const LOCKED_PIECES = '[data-cite],[data-fn],[data-imath]';
 
 export function caretAnchors(root) {
-  root = root || ed();
+  root = root || openEditor();
   if (!root) return;
   root.querySelectorAll(LOCKED_PIECES).forEach(el => {
     ensureTextBeside(el, el.previousSibling, node => el.before(node));
@@ -147,7 +147,7 @@ export function listBackspace(e) {
   if (list.parentElement && list.parentElement.closest('li')) document.execCommand('outdent');
   else caretToStart(bulletToLine(item, list));
   fire();
-  tbState();
+  updateToolbarState();
   return true;
 }
 
@@ -172,7 +172,7 @@ function bulletToLine(item, list) {
 
 /* the item's own words as a line (with its list's spec point), and the lists nested in it */
 function splitItem(item, list) {
-  const line = mk('p');
+  const line = makeElement('p');
   const nested = [];
   [...item.childNodes].forEach(child => {
     if (child.nodeType === 1 && /^(UL|OL)$/.test(child.tagName)) nested.push(child);

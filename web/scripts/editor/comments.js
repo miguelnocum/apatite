@@ -1,11 +1,11 @@
 import { saveDocSoon } from '../core/save-doc.js';
-import { $, ed, esc, isDocView, toast, ui, uid } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { $, openEditor, escapeHtml, isDocView, toast, uiState, newId } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { blockOf } from './pasting-and-images.js';
 import { rangeWithinCell } from '../tables/table-grid.js';
 import { relayout, setPaneFold } from '../view/zoom.js';
 import { inFocus } from '../view/focus-mode.js';
-import { edChanged, hydrateExtras } from './hydrate-and-changes.js';
+import { notesEdited, hydrateExtras } from './hydrate-and-changes.js';
 
 /* ===== comments on text in notes and essays, in styles ===== */
 export const CMT_TYPES = [
@@ -26,12 +26,12 @@ export function cmtType(id) {
 }
 
 export function cmtAnchors() {
-  const editor = ed();
+  const editor = openEditor();
   return editor ? [...editor.querySelectorAll('span[data-cmt]')] : [];
 }
 
 function cmtAnchor(id) {
-  return ed().querySelector('[data-cmt="' + id + '"]');
+  return openEditor().querySelector('[data-cmt="' + id + '"]');
 }
 
 /* comments as a drawer over the page, rather than a column beside it */
@@ -41,12 +41,12 @@ export function isNarrow() {
 
 /* the selected text gets a comment of this style (within one paragraph), and its card opens */
 export function addComment(type) {
-  const editor = ed();
+  const editor = openEditor();
   const selection = getSelection();
   const range = commentRange(editor, selection);
   if (!range) return;
-  const anchor = mk('span');
-  anchor.setAttribute('data-cmt', 'c' + uid());
+  const anchor = makeElement('span');
+  anchor.setAttribute('data-cmt', 'c' + newId());
   anchor.setAttribute('data-ct', type);
   anchor.setAttribute('data-note', '');
   anchor.appendChild(range.extractContents());
@@ -79,9 +79,14 @@ function commentRange(editor, selection) {
 function commentAdded(editor, anchor) {
   unfoldForComments();
   hydrateExtras(editor);
-  Object.assign(ui, { cmtOpen: true, cmtDrawer: true, cmtFilter: null, cmtActive: anchor.getAttribute('data-cmt') });
+  Object.assign(uiState, {
+    cmtOpen: true,
+    cmtDrawer: true,
+    cmtFilter: null,
+    cmtActive: anchor.getAttribute('data-cmt')
+  });
   saveDocSoon();
-  edChanged();
+  notesEdited();
   renderComments();
   focusOpenCard();
 }
@@ -98,10 +103,10 @@ export function renderComments(keepFocus) {
   const box = $('cmts');
   if (!box) return;
   const list = isDocView() ? cmtAnchors() : [];
-  const show = !!(list.length && ui.cmtOpen && !$('bodywrap').classList.contains('withrefs') && isDocView());
+  const show = !!(list.length && uiState.cmtOpen && !$('bodywrap').classList.contains('withrefs') && isDocView());
   showCommentColumn(box, show);
   updateCommentButton(list, show);
-  box.classList.toggle('drawer-open', !!(show && isNarrow() && ui.cmtDrawer));
+  box.classList.toggle('drawer-open', !!(show && isNarrow() && uiState.cmtDrawer));
   if (!show) return;
   const active = document.activeElement;
   if (keepFocus && active && box.contains(active) && active.tagName === 'TEXTAREA') {
@@ -110,7 +115,7 @@ export function renderComments(keepFocus) {
   }
   box.innerHTML = commentsHeadHTML(list) + '<div class="cmtlayer">' + commentCardsHTML(list) + '</div>';
   positionCards();
-  cmtAnchors().forEach(anchor => anchor.classList.toggle('on', anchor.getAttribute('data-cmt') === ui.cmtActive));
+  cmtAnchors().forEach(anchor => anchor.classList.toggle('on', anchor.getAttribute('data-cmt') === uiState.cmtActive));
 }
 
 /* the column shows or hides (opened while folded by zooming: the panes come back) */
@@ -120,7 +125,7 @@ function showCommentColumn(box, show) {
   box.hidden = !show;
   wrap.classList.toggle('withcmts', show);
   if (show && !wasShown && wrap.classList.contains('zfold')) {
-    ui.zfoldOff = true;
+    uiState.zfoldOff = true;
     setPaneFold(false);
   }
   if (wasShown !== show) relayout();
@@ -130,21 +135,21 @@ function showCommentColumn(box, show) {
 function updateCommentButton(list, show) {
   let button = $('cmtfab');
   if (!button) button = makeCommentButton();
-  button.hidden = !(isDocView() && list.length && isNarrow() && !(show && ui.cmtDrawer));
+  button.hidden = !(isDocView() && list.length && isNarrow() && !(show && uiState.cmtDrawer));
   button.innerHTML =
     '<span class="cmtico" style="--c:#6f7d8c">💬</span>' + list.length + ' comment' + (list.length === 1 ? '' : 's');
 }
 
 function makeCommentButton() {
-  const button = mk('button');
+  const button = makeElement('button');
   button.id = 'cmtfab';
   button.className = 'cmtfab';
   button.type = 'button';
   button.title = 'Show comments';
   document.body.appendChild(button);
   button.addEventListener('click', () => {
-    ui.cmtOpen = true;
-    ui.cmtDrawer = true;
+    uiState.cmtOpen = true;
+    uiState.cmtDrawer = true;
     renderComments();
   });
   return button;
@@ -159,13 +164,13 @@ function commentsHeadHTML(list) {
   });
   const filters = CMT_TYPES.filter(type => counts[type.id]).map(
     type =>
-      `<button data-cmtf="${type.id}" class="${ui.cmtFilter === type.id ? 'on' : ''}">` +
+      `<button data-cmtf="${type.id}" class="${uiState.cmtFilter === type.id ? 'on' : ''}">` +
       `<span class="cmtico" style="--c:${type.c}">${type.icon}</span>${counts[type.id]}</button>`
   );
   return (
     '<div class="cmthd"><b>Comments</b><span class="sp"></span>' +
     '<button class="x" data-cmtclose title="Hide comments">×</button></div><div class="cmtf">' +
-    `<button data-cmtf="" class="${ui.cmtFilter ? '' : 'on'}">All ${list.length}</button>` +
+    `<button data-cmtf="" class="${uiState.cmtFilter ? '' : 'on'}">All ${list.length}</button>` +
     filters.join('') +
     '</div>'
   );
@@ -173,7 +178,7 @@ function commentsHeadHTML(list) {
 
 function commentCardsHTML(list) {
   return list
-    .filter(anchor => !ui.cmtFilter || cmtType(anchor.getAttribute('data-ct')).id === ui.cmtFilter)
+    .filter(anchor => !uiState.cmtFilter || cmtType(anchor.getAttribute('data-ct')).id === uiState.cmtFilter)
     .map(commentCardHTML)
     .join('');
 }
@@ -182,9 +187,9 @@ function commentCardsHTML(list) {
 function commentCardHTML(anchor) {
   const type = cmtType(anchor.getAttribute('data-ct'));
   const id = anchor.getAttribute('data-cmt');
-  const open = ui.cmtActive === id;
+  const open = uiState.cmtActive === id;
   const words = anchor.textContent;
-  const quote = esc(words.slice(0, QUOTE_LENGTH)) + (words.length > QUOTE_LENGTH ? '…' : '');
+  const quote = escapeHtml(words.slice(0, QUOTE_LENGTH)) + (words.length > QUOTE_LENGTH ? '…' : '');
   return (
     `<div class="cmtcard${open ? ' on' : ''}" data-cmtid="${id}" style="--c:${type.c}">` +
     `<div class="cmtt"><span class="cmtico" style="--c:${type.c}">${type.icon}</span><span class="lab">${type.label}</span>` +
@@ -206,13 +211,13 @@ function styleMenuHTML(id, type) {
 
 function openNoteHTML(id, type, note) {
   return (
-    `<textarea data-cmtnote="${id}" placeholder="Write the ${type.label.toLowerCase()}">${esc(note)}</textarea>` +
+    `<textarea data-cmtnote="${id}" placeholder="Write the ${type.label.toLowerCase()}">${escapeHtml(note)}</textarea>` +
     `<div class="cmtbtns"><button data-cmtresolve="${id}">Resolve</button><button data-cmtdone>Done</button></div>`
   );
 }
 
 function closedNoteHTML(note) {
-  return `<div class="cmtn${note ? '' : ' empty'}">${note ? esc(note) : 'Click to write'}</div>`;
+  return `<div class="cmtn${note ? '' : ' empty'}">${note ? escapeHtml(note) : 'Click to write'}</div>`;
 }
 
 /* each card level with its text, pushed down below the one before (in a narrow window: the open card scrolled to) */
@@ -259,7 +264,7 @@ const COMMENT_CLICKS = [
 const onCommentsClick = e => {
   const target = e.target;
   const anchor = target.closest && target.closest('#ed span[data-cmt]');
-  if (anchor && (ui.cmtActive !== anchor.getAttribute('data-cmt') || !ui.cmtDrawer)) openFromText(anchor);
+  if (anchor && (uiState.cmtActive !== anchor.getAttribute('data-cmt') || !uiState.cmtDrawer)) openFromText(anchor);
   if (!target.closest || !target.closest('#cmts')) return;
   const hit = COMMENT_CLICKS.map(([selector, act]) => [target.closest(selector), act]).find(([el]) => el);
   if (hit) hit[1](hit[0]);
@@ -267,37 +272,42 @@ const onCommentsClick = e => {
 
 function openFromText(anchor) {
   unfoldForComments();
-  Object.assign(ui, { cmtActive: anchor.getAttribute('data-cmt'), cmtOpen: true, cmtDrawer: true, cmtFilter: null });
+  Object.assign(uiState, {
+    cmtActive: anchor.getAttribute('data-cmt'),
+    cmtOpen: true,
+    cmtDrawer: true,
+    cmtFilter: null
+  });
   renderComments();
 }
 
 /* the comments are wanted: if zooming in had folded the panes away, they come back (as when the column first opens) */
 export function unfoldForComments() {
   if (!$('bodywrap').classList.contains('zfold')) return;
-  ui.zfoldOff = true;
+  uiState.zfoldOff = true;
   setPaneFold(false);
 }
 
 /* the comments can be seen: open (the drawer, where they're one), and not folded away by zooming */
 export function commentsShowing() {
-  if (isNarrow()) return !!(ui.cmtOpen && ui.cmtDrawer && cmtAnchors().length);
-  return ui.cmtOpen && !$('bodywrap').classList.contains('zfold');
+  if (isNarrow()) return !!(uiState.cmtOpen && uiState.cmtDrawer && cmtAnchors().length);
+  return uiState.cmtOpen && !$('bodywrap').classList.contains('zfold');
 }
 
 /* in a narrow window the drawer closes; otherwise the column hides */
 function hideComments() {
-  if (isNarrow()) ui.cmtDrawer = false;
-  else ui.cmtOpen = false;
+  if (isNarrow()) uiState.cmtDrawer = false;
+  else uiState.cmtOpen = false;
   renderComments();
 }
 
 function setCommentFilter(filter) {
-  ui.cmtFilter = filter;
+  uiState.cmtFilter = filter;
   renderComments();
 }
 
 function setActiveComment(id) {
-  ui.cmtActive = id;
+  uiState.cmtActive = id;
   renderComments();
 }
 
@@ -308,7 +318,7 @@ function resolveComment(id) {
     while (anchor.firstChild) anchor.parentNode.insertBefore(anchor.firstChild, anchor);
     anchor.remove();
   }
-  ui.cmtActive = null;
+  uiState.cmtActive = null;
   saveDocSoon();
   renderComments();
   toast('Comment resolved');
@@ -316,7 +326,7 @@ function resolveComment(id) {
 
 /* a closed card opens, its text scrolled into view */
 function openCard(card) {
-  if (ui.cmtActive === card.dataset.cmtid) return;
+  if (uiState.cmtActive === card.dataset.cmtid) return;
   setActiveComment(card.dataset.cmtid);
   const anchor = cmtAnchor(card.dataset.cmtid);
   if (anchor) anchor.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -339,14 +349,14 @@ const onCommentsChange = e => {
   const anchor = menu && cmtAnchor(menu.dataset.cmttype);
   if (!anchor) return;
   anchor.setAttribute('data-ct', menu.value);
-  hydrateExtras(ed());
+  hydrateExtras(openEditor());
   saveDocSoon();
   renderComments();
 };
 
 export function initComments() {
-  ui.cmtOpen = true;
-  ui.cmtFilter = null;
+  uiState.cmtOpen = true;
+  uiState.cmtFilter = null;
   window.addEventListener('resize', onCommentsWindowResize);
   document.addEventListener('click', onCommentsClick);
   document.addEventListener('input', onCommentsInput);

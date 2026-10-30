@@ -1,14 +1,14 @@
-import { tbState } from './toolbar-state.js';
+import { updateToolbarState } from './toolbar-state.js';
 import { caretInto, restoreSel } from '../core/caret.js';
-import { $, curEd, ed, isDocView, toast, ui } from '../core/helpers-and-state.js';
+import { $, activeEditor, openEditor, isDocView, toast, uiState } from '../core/helpers-and-state.js';
 import { closestTag, fire, inEd } from '../core/caret.js';
-import { mk, sanitize } from '../core/paste-cleaning.js';
+import { makeElement, sanitize } from '../core/paste-cleaning.js';
 import { noteCaretCell, rangeWithinCell } from '../tables/table-grid.js';
 import { drawTableHandles, handledTable, tableLayer } from '../tables/table-handles.js';
 import { refreshTableTab } from '../tables/table-tab.js';
 import { toggleFocus } from '../view/focus-mode.js';
 import { titleMarks } from './highlight-key.js';
-import { openTbMenu } from './toolbar-menus.js';
+import { openToolbarMenu } from './toolbar-menus.js';
 import { openCiteCheck } from '../citations/citation-check.js';
 import { insertTOC } from './contents.js';
 import { insertFootnote } from './footnotes.js';
@@ -53,7 +53,7 @@ function markAround(range) {
   const node = range.commonAncestorContainer;
   const element = node.nodeType === 3 ? node.parentNode : node;
   const mark = element.closest && element.closest('mark');
-  return mark && curEd.contains(mark) ? mark : null;
+  return mark && activeEditor.contains(mark) ? mark : null;
 }
 
 function recolourMark(mark, colour) {
@@ -70,7 +70,7 @@ function unwrap(el) {
 
 /* the selection's HTML, its highlights taken out and (with a colour) each piece of its text marked */
 function highlightedHTML(range, colour) {
-  const box = mk('div');
+  const box = makeElement('div');
   box.appendChild(range.cloneContents());
   box.querySelectorAll('mark').forEach(unwrap);
   if (colour) markTexts(box, colour);
@@ -84,7 +84,7 @@ function markTexts(box, colour) {
   while (walker.nextNode()) texts.push(walker.currentNode);
   texts.forEach(text => {
     if (!text.nodeValue.trim() && /^(TABLE|TBODY|THEAD|TR|UL|OL)$/.test(text.parentNode.tagName)) return;
-    const mark = mk('mark');
+    const mark = makeElement('mark');
     mark.setAttribute('data-h', colour);
     text.parentNode.insertBefore(mark, text);
     mark.appendChild(text);
@@ -93,7 +93,7 @@ function markTexts(box, colour) {
 
 /* ---- commands ---- */
 export function runCommand(command) {
-  if (!curEd && command !== 'x' && command !== 'focus') {
+  if (!activeEditor && command !== 'x' && command !== 'focus') {
     toast('Click into a note first');
     return;
   }
@@ -104,7 +104,7 @@ export function runCommand(command) {
 
 /* a change to the text, after which the notes are saved and the toolbar updated (inline code does its own updating) */
 function formatCommand(command) {
-  curEd.focus();
+  activeEditor.focus();
   if (command === 'code') {
     inlineCode();
     return;
@@ -113,7 +113,7 @@ function formatCommand(command) {
   if (format) format();
   fire();
   tableState();
-  tbState();
+  updateToolbarState();
 }
 
 /* commands that do it all themselves: [is it this command, what to do] */
@@ -129,7 +129,7 @@ const SPECIAL_COMMANDS = [
   [c => c === 'foldall' || c === 'unfoldall', c => foldAll(c === 'foldall')],
   [c => c === 'hr', insertDivider],
   [c => c === 'media', chooseImages],
-  [c => c === 'link', () => openTbMenu(document.getElementById('tb-ins'), 'link')],
+  [c => c === 'link', () => openToolbarMenu(document.getElementById('tb-ins'), 'link')],
   [c => c === 'hl', highlightWithCurrentColour],
   [c => c === 'sources', toggleSources],
   [c => c === 'focus', toggleFocus]
@@ -162,15 +162,15 @@ function citeHere() {
 function insertDivider() {
   restoreSel();
   const block = mdTopBlock(getSelection().anchorNode);
-  const divider = mk('hr');
-  const after = mk('p');
+  const divider = makeElement('hr');
+  const after = makeElement('p');
   after.innerHTML = '<br>';
   if (block) {
     block.after(divider);
     divider.after(after);
   } else {
-    ed().appendChild(divider);
-    ed().appendChild(after);
+    openEditor().appendChild(divider);
+    openEditor().appendChild(after);
   }
   caretInto(after);
   fire();
@@ -178,23 +178,23 @@ function insertDivider() {
 
 /* the image picker, with the caret put back where the image goes */
 function chooseImages() {
-  if (ui.lastRange) {
-    curEd.focus({ preventScroll: true });
+  if (uiState.lastRange) {
+    activeEditor.focus({ preventScroll: true });
     const selection = getSelection();
     selection.removeAllRanges();
-    selection.addRange(ui.lastRange);
+    selection.addRange(uiState.lastRange);
   }
   $('mediain').click();
 }
 
 function highlightWithCurrentColour() {
-  applyHL(ui.hlColor || '1');
-  tbState();
+  applyHL(uiState.hlColor || '1');
+  updateToolbarState();
 }
 
 function toggleSources() {
-  ui.refsOpen = !ui.refsOpen;
-  if (!ui.refsOpen) endChoosing();
+  uiState.refsOpen = !uiState.refsOpen;
+  if (!uiState.refsOpen) endChoosing();
   else renderRefs();
 }
 
@@ -236,7 +236,7 @@ function insertTable() {
 
 /* one font, no stray styles */
 function tidyNote() {
-  curEd.innerHTML = sanitize(curEd.innerHTML, false);
+  activeEditor.innerHTML = sanitize(activeEditor.innerHTML, false);
   toast('Note tidied: one font, no stray styles');
 }
 
@@ -246,7 +246,7 @@ export function tableState() {
   noteCaretCell();
   $('tb').classList.toggle('intable', !!(inEd() && closestTag('table')));
   refreshTableTab();
-  const layer = ed() && tableLayer(ed());
+  const layer = openEditor() && tableLayer(openEditor());
   if (layer && layer._table !== handledTable()) drawTableHandles();
 }
 
@@ -255,13 +255,13 @@ const onEditorCommandsSelectionchange = function () {
   if (!isDocView()) return;
   tableState();
   const selection = getSelection();
-  const editor = ed();
+  const editor = openEditor();
   if (!editor || !selection.rangeCount || !editor.contains(selection.anchorNode)) return;
-  ui.lastRange = selection.getRangeAt(0).cloneRange();
-  tbState();
+  uiState.lastRange = selection.getRangeAt(0).cloneRange();
+  updateToolbarState();
 };
 
 export function initEditorCommands() {
   document.addEventListener('selectionchange', onEditorCommandsSelectionchange);
-  ui.hlColor = '1'; // set from the key once it loads (see 07-highlight-key)
+  uiState.hlColor = '1'; // set from the key once it loads (see 07-highlight-key)
 }

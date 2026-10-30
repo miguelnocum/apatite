@@ -1,5 +1,5 @@
 import { caretInto, fire, selectRange } from '../core/caret.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { anchorElement, mdBefore } from '../writing/writing.js';
 import { emptyLine } from './callouts.js';
 import { CALLOUTS } from '../core/callout-kinds.js';
@@ -116,7 +116,7 @@ function untitledBackspace(e, callout) {
 function titleBackspace(e, callout, title, body) {
   if (mdBefore(title) || body.some(hasContent)) return false;
   e.preventDefault();
-  const line = mk('p');
+  const line = makeElement('p');
   if (hasContent(title) && title.textContent.trim() !== CALLOUTS[callout.getAttribute('data-callout')])
     line.textContent = title.textContent;
   else line.innerHTML = '<br>';

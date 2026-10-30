@@ -1,5 +1,5 @@
 import { emit } from '../core/channel.js';
-import { ed } from '../core/helpers-and-state.js';
+import { openEditor } from '../core/helpers-and-state.js';
 import { titleMarks } from './highlight-key.js';
 import { renderTOC } from './contents.js';
 import { renderFootnotes } from './footnotes.js';
@@ -18,15 +18,15 @@ let commentsTimer = null;
 let contentsTimer = null;
 
 export function hydrateExtras(root) {
-  root = root || ed();
+  root = root || openEditor();
   if (!root) return;
   root.querySelectorAll('span[data-cmt]').forEach(styleComment);
-  if (root === ed()) setTimeout(() => renderComments(true), 0);
+  if (root === openEditor()) setTimeout(() => renderComments(true), 0);
   root.querySelectorAll('img').forEach(img => img.setAttribute('draggable', 'false'));
   titleMarks(root);
   renderTOC(root);
   root.querySelectorAll('span[data-fn]').forEach(styleFootnote);
-  if (root === ed()) hydrateEditor(root);
+  if (root === openEditor()) hydrateEditor(root);
 }
 
 /* a comment's colour and tooltip, from its style and note */
@@ -58,7 +58,7 @@ function hydrateEditor(root) {
 }
 
 /* after an edit: each thing that shows the notes catches up a moment after typing stops */
-export function edChanged() {
+export function notesEdited() {
   emit('notes-edited');
   clearTimeout(commentsTimer);
   commentsTimer = setTimeout(() => renderComments(true), COMMENTS_AFTER_EDIT);

@@ -1,5 +1,5 @@
 import { KEY } from './example-data.js';
-import { $, meta, pts, toast } from './helpers-and-state.js';
+import { $, meta, syllabusPoints, toast } from './helpers-and-state.js';
 import { SUB_POINT } from './saved-format.js';
 import { sanitize } from './paste-cleaning.js';
 
@@ -63,7 +63,7 @@ const storeSaveLocal = () => {
   try {
     localStorage.setItem(
       KEY,
-      JSON.stringify({ meta, pts: pts.map(point => Object.assign(strip(point), { id: point.id })) })
+      JSON.stringify({ meta, pts: syllabusPoints.map(point => Object.assign(strip(point), { id: point.id })) })
     );
   } catch (e) {}
 };

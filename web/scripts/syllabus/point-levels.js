@@ -1,4 +1,4 @@
-import { ptById, pts, toast, ui } from '../core/helpers-and-state.js';
+import { pointById, syllabusPoints, toast, uiState } from '../core/helpers-and-state.js';
 import { POINT, SUB_POINT } from '../core/saved-format.js';
 import { Store } from '../core/storage.js';
 import { renderSide } from './syllabus-view.js';
@@ -40,23 +40,28 @@ export function inferLevels(list) {
 
 /* a section never starts with a sub-point */
 export function normLevels(list) {
-  eachSection(list || pts, section => {
+  eachSection(list || syllabusPoints, section => {
     if (section[0] && section[0].lvl === SUB_POINT) section[0].lvl = POINT;
   });
 }
 
 /* the sub-points right under a point */
 export function kidsOf(point) {
-  const at = pts.indexOf(point);
+  const at = syllabusPoints.indexOf(point);
   const kids = [];
   if (at < 0 || lvl(point) === SUB_POINT) return kids;
-  for (let k = at + 1; k < pts.length && pts[k].sec === point.sec && lvl(pts[k]) === SUB_POINT; k++) kids.push(pts[k]);
+  for (
+    let k = at + 1;
+    k < syllabusPoints.length && syllabusPoints[k].sec === point.sec && lvl(syllabusPoints[k]) === SUB_POINT;
+    k++
+  )
+    kids.push(syllabusPoints[k]);
   return kids;
 }
 
 /* renumber a section 1.1, 1.1.1 … when its codes are plain numbers (textbook style); other schemes are left alone */
 export function numberSection(section, quiet) {
-  const list = pts.filter(point => point.sec === section);
+  const list = syllabusPoints.filter(point => point.sec === section);
   if (!list.length) return false;
   const prefix = sectionNumber(section, list);
   if (!prefix) {
@@ -93,10 +98,10 @@ function sectionNumber(section, list) {
 
 /* a point made a sub-point (or back); its section renumbered if it's numbered plainly */
 export function setLevel(id, to) {
-  const point = ptById(id);
+  const point = pointById(id);
   if (!point) return;
-  const at = pts.indexOf(point);
-  if (to === SUB_POINT && (at <= 0 || pts[at - 1].sec !== point.sec)) {
+  const at = syllabusPoints.indexOf(point);
+  if (to === SUB_POINT && (at <= 0 || syllabusPoints[at - 1].sec !== point.sec)) {
     toast('The first point in a section can’t be a sub-point');
     return;
   }
@@ -106,7 +111,7 @@ export function setLevel(id, to) {
   Store.savePoint(point);
   const renumbered = numberSection(point.sec, true);
   Store.saveLocal();
-  if (ui.edit) renderEdit();
+  if (uiState.edit) renderEdit();
   else render();
   renderSide();
   flash(document.getElementById('row-' + id));

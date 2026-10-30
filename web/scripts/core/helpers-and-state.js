@@ -17,15 +17,15 @@ export function $(id) {
 }
 
 /* the open notes or essay's editor (null when none is open) */
-export function ed() {
+export function openEditor() {
   return document.getElementById('ed');
 }
 
-export function esc(text) {
+export function escapeHtml(text) {
   return String(text == null ? '' : text).replace(/[&<>"]/g, c => HTML_ESCAPES[c]);
 }
 
-export function uid() {
+export function newId() {
   return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
@@ -43,15 +43,15 @@ export function setMeta(value) {
   meta = value;
   return value;
 }
-export let pts = [];
-export function setPts(value) {
-  pts = value;
+export let syllabusPoints = [];
+export function setSyllabusPoints(value) {
+  syllabusPoints = value;
   return value;
 }
-export function ptById(id) {
-  return pts.find(point => point.id === id);
+export function pointById(id) {
+  return syllabusPoints.find(point => point.id === id);
 }
-export const ui = {
+export const uiState = {
   view: 'syl',
   status: null,
   type: null,
@@ -65,9 +65,9 @@ export const ui = {
   secStyle: '', // how a pasted syllabus numbers its section titles ("1", "Topic 1"); empty: detected automatically
   ptStyle: '' // and its points ("1a", "1.1")
 };
-export let curEd = null;
-export function setCurEd(value) {
-  curEd = value;
+export let activeEditor = null;
+export function setActiveEditor(value) {
+  activeEditor = value;
   return value;
 }
 /* the essays (free writing on the same page, no syllabus) */
@@ -79,14 +79,14 @@ export function setEssays(value) {
 
 /* which document the open editor holds; saving follows the editor, not the tab */
 export function edEssayId() {
-  const editor = ed();
+  const editor = openEditor();
   return editor && editor.getAttribute('data-doc') === 'essay' ? editor.getAttribute('data-essay') : null;
 }
 
 export function isDocView() {
-  return ui.view === 'notes' || ui.view === 'essay';
+  return uiState.view === 'notes' || uiState.view === 'essay';
 }
 
 export function curEssay() {
-  return essays.find(essay => essay.id === ui.essayId) || null;
+  return essays.find(essay => essay.id === uiState.essayId) || null;
 }

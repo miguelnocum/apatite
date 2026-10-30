@@ -1,6 +1,6 @@
 import { getPref } from '../core/storage.js';
 import { KEY } from '../core/example-data.js';
-import { $, ed, isDocView, ui } from '../core/helpers-and-state.js';
+import { $, openEditor, isDocView, uiState } from '../core/helpers-and-state.js';
 import { renderSide } from '../syllabus/syllabus-view.js';
 import { markCur } from './page-render.js';
 import { applyFocusZoom, focusWheel, inFocus, setFocusZoom, stepFocusZoom } from './focus-mode.js';
@@ -61,7 +61,7 @@ function zoomedPage() {
 }
 
 function pageZoom() {
-  if (ui.zoom !== 'fit') return ui.zoom;
+  if (uiState.zoom !== 'fit') return uiState.zoom;
   if (inFocus()) return 1; // (the page fills the window already)
   const page = zoomedPage();
   if (!page) return 1;
@@ -72,7 +72,13 @@ function pageZoom() {
    so it's the same answer whether or not they're folded at the moment) */
 function zoomFold(zoom) {
   const wrap = $('bodywrap');
-  if (getPref('zfold') === '0' || ui.zoom === 'fit' || !wrap.classList.contains('notesview') || isNarrow() || inFocus())
+  if (
+    getPref('zfold') === '0' ||
+    uiState.zoom === 'fit' ||
+    !wrap.classList.contains('notesview') ||
+    isNarrow() ||
+    inFocus()
+  )
     return false;
   const right = wrap.classList.contains('withrefs')
     ? SOURCES_PANE
@@ -120,8 +126,8 @@ export function applyZoom() {
 /* the panes fold away while the page at its zoom needs the room (unless they were brought back) */
 function foldForZoom() {
   const need = zoomFold(pageZoom());
-  if (!need) ui.zfoldOff = false;
-  setPaneFold(need && !ui.zfoldOff);
+  if (!need) uiState.zfoldOff = false;
+  setPaneFold(need && !uiState.zfoldOff);
 }
 
 /* zoomed past the width of the window: the page narrows so the bigger text rewraps instead of running off the edges */
@@ -129,7 +135,7 @@ function narrowPage(page, zoom) {
   const room = writingRoom();
   let width = '';
   let padding = '';
-  if (ui.zoom !== 'fit' && room > 0 && PAGE_WIDTH * zoom > room) {
+  if (uiState.zoom !== 'fit' && room > 0 && PAGE_WIDTH * zoom > room) {
     const narrowed = Math.max(NARROWED_PAGE_MIN, Math.floor(room / zoom));
     const side = Math.round(Math.max(NARROWED_PAD_MIN, Math.min(NARROWED_PAD_MAX, narrowed * NARROWED_PAD_SHARE)));
     width = narrowed + 'px';
@@ -215,7 +221,7 @@ export function zoomPoint() {
 }
 
 function caretOnScreen(header) {
-  const editor = ed();
+  const editor = openEditor();
   const selection = getSelection();
   if (!(editor && selection.rangeCount && editor.contains(selection.anchorNode))) return null;
   const rects = selection.getRangeAt(0).getClientRects();
@@ -268,9 +274,9 @@ export function setZoom(zoom, point) {
     return;
   }
   const anchor = zoomAnchor(point || zoomPoint());
-  ui.zoom = zoom === 'fit' ? 'fit' : Math.min(ZMAX, Math.max(ZMIN, Math.round(zoom * 100) / 100));
+  uiState.zoom = zoom === 'fit' ? 'fit' : Math.min(ZMAX, Math.max(ZMIN, Math.round(zoom * 100) / 100));
   try {
-    localStorage.setItem(KEY + '-zoom', String(ui.zoom));
+    localStorage.setItem(KEY + '-zoom', String(uiState.zoom));
   } catch (e) {}
   const root = document.documentElement;
   const behavior = root.style.scrollBehavior;
@@ -320,7 +326,7 @@ const onZoomKeydown = e => {
 const onZoomGesturestart = e => {
   if (!isDocView()) return;
   e.preventDefault();
-  pinchFrom = inFocus() ? ui.fzoom : pageZoom();
+  pinchFrom = inFocus() ? uiState.fzoom : pageZoom();
 };
 const onZoomGesturechange = e => {
   if (!isDocView()) return;
@@ -335,7 +341,7 @@ const onZoomWheel = e => {
 };
 
 export function initZoom() {
-  ui.zoom = savedZoom();
+  uiState.zoom = savedZoom();
   window.addEventListener('resize', onZoomWindowResize);
   $('bodywrap').addEventListener('transitionend', onZoomBodywrapTransitionend);
   document.addEventListener('keydown', onZoomKeydown);

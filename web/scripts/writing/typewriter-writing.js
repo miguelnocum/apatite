@@ -1,7 +1,7 @@
-import { WS, WS_DEF, setWS } from '../core/writing-settings.js';
+import { writingSettings, DEFAULT_WRITING_SETTINGS, setWritingSettings } from '../core/writing-settings.js';
 import { inEd } from '../core/caret.js';
 import { KEY } from '../core/example-data.js';
-import { $, ed, isDocView, NATIVE, post } from '../core/helpers-and-state.js';
+import { $, openEditor, isDocView, NATIVE, post } from '../core/helpers-and-state.js';
 import { applyTableDefaults } from '../tables/table-look.js';
 import { headerHeight } from '../view/zoom.js';
 import { postFocus } from '../view/focus-mode.js';
@@ -16,7 +16,7 @@ const LAYOUT_SETTLE_DELAY = 30; // ms after a change of font or size before the 
 let typewriterFrame = 0;
 
 export function twScroll() {
-  if (!WS.tw || !inEd()) return;
+  if (!writingSettings.tw || !inEd()) return;
   const caret = caretBox();
   if (!caret) return;
   const header = headerHeight();
@@ -46,12 +46,12 @@ function caretBox() {
 /* the caret moving: typewriter scrolling follows it, and a fold it lands in opens */
 const onTypewriterWritingSelectionchange = () => {
   if (!isDocView()) return;
-  if (WS.tw) {
+  if (writingSettings.tw) {
     cancelAnimationFrame(typewriterFrame);
     typewriterFrame = requestAnimationFrame(twScroll);
   }
   const selection = getSelection();
-  const editor = ed();
+  const editor = openEditor();
   if (!(selection.rangeCount && selection.isCollapsed && editor && editor.contains(selection.anchorNode))) return;
   const block = mdTopBlock(selection.anchorNode);
   if (block && block.classList && block.classList.contains('fh')) revealInEd(block);
@@ -119,28 +119,30 @@ function loadWritingSettings() {
     saved = JSON.parse(localStorage.getItem(KEY + '-write') || '{}') || {};
   } catch (x) {}
   const settings = {};
-  Object.keys(WS_DEF).forEach(key => (settings[key] = saved[key] != null ? saved[key] : WS_DEF[key]));
+  Object.keys(DEFAULT_WRITING_SETTINGS).forEach(
+    key => (settings[key] = saved[key] != null ? saved[key] : DEFAULT_WRITING_SETTINGS[key])
+  );
   if (!THEMES[settings.theme]) settings.theme = 'graphite';
   if (!FONTS[settings.font]) settings.font = 'serif';
   return settings;
 }
 
-export function applyWS() {
+export function applyWritingSettings() {
   const root = document.documentElement;
-  root.setAttribute('data-skin', WS.theme);
-  if (ALWAYS_LIGHT_THEMES.has(WS.theme)) root.setAttribute('data-theme', 'light');
-  else if (ALWAYS_DARK_THEMES.has(WS.theme)) root.setAttribute('data-theme', 'dark');
+  root.setAttribute('data-skin', writingSettings.theme);
+  if (ALWAYS_LIGHT_THEMES.has(writingSettings.theme)) root.setAttribute('data-theme', 'light');
+  else if (ALWAYS_DARK_THEMES.has(writingSettings.theme)) root.setAttribute('data-theme', 'dark');
   else root.removeAttribute('data-theme');
-  root.style.setProperty('--edf', FONTS[WS.font][1]);
-  root.style.setProperty('--eds', WS.size + 'px');
-  root.style.setProperty('--edsb', WS.size + 'px'); // (focus mode's zoom scales it)
-  root.style.setProperty('--edl', String(WS.lh));
-  root.style.setProperty('--edp', WS.ps + 'em');
-  document.body.classList.toggle('twmode', !!WS.tw);
+  root.style.setProperty('--edf', FONTS[writingSettings.font][1]);
+  root.style.setProperty('--eds', writingSettings.size + 'px');
+  root.style.setProperty('--edsb', writingSettings.size + 'px'); // (focus mode's zoom scales it)
+  root.style.setProperty('--edl', String(writingSettings.lh));
+  root.style.setProperty('--edp', writingSettings.ps + 'em');
+  document.body.classList.toggle('twmode', !!writingSettings.tw);
   applyTableDefaults();
   if (NATIVE) postTheme(root);
   postFocus();
-  if (!ed()) return;
+  if (!openEditor()) return;
   setTimeout(drawFolds, LAYOUT_SETTLE_DELAY);
   if (!$('cmts').hidden) setTimeout(positionCards, LAYOUT_SETTLE_DELAY);
 }
@@ -151,7 +153,7 @@ function postTheme(root) {
   const colour = name => styles.getPropertyValue(name).trim();
   post({
     type: 'theme',
-    id: WS.theme,
+    id: writingSettings.theme,
     dark: root.getAttribute('data-theme') === 'dark',
     bg: colour('--bg'),
     panel: colour('--panel'),
@@ -165,6 +167,6 @@ function postTheme(root) {
 
 export function initTypewriterWriting() {
   document.addEventListener('selectionchange', onTypewriterWritingSelectionchange);
-  setWS(loadWritingSettings());
-  applyWS();
+  setWritingSettings(loadWritingSettings());
+  applyWritingSettings();
 }

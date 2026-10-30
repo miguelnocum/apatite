@@ -1,4 +1,4 @@
-import { pts, setPts, uid } from '../core/helpers-and-state.js';
+import { syllabusPoints, setSyllabusPoints, newId } from '../core/helpers-and-state.js';
 import { inferLevels, normLevels } from './point-levels.js';
 import { Store } from '../core/storage.js';
 
@@ -36,12 +36,12 @@ export function planApply(text, replace) {
   const parsed = typeof text === 'string' ? parseSyllabus(text) : text;
   inferLevels(parsed);
   const old = {};
-  pts.forEach(point => (old[pointKey(point)] = point));
+  syllabusPoints.forEach(point => (old[pointKey(point)] = point));
   const used = {};
   const next = parsed.map(point => matchedPoint(point, old, used));
   return {
-    next: replace ? next : pts.concat(next.filter(point => !old[pointKey(point)])),
-    removed: replace ? pts.filter(point => !used[pointKey(point)]) : [],
+    next: replace ? next : syllabusPoints.concat(next.filter(point => !old[pointKey(point)])),
+    removed: replace ? syllabusPoints.filter(point => !used[pointKey(point)]) : [],
     parsed
   };
 }
@@ -51,7 +51,7 @@ function matchedPoint(point, old, used) {
   const key = pointKey(point);
   const match = old[key] && !used[key] ? old[key] : null;
   const words = { sec: point.sec, code: point.code, text: point.text, guide: point.guide };
-  if (!match) return Object.assign({ id: uid() }, words, { status: 0, notes: '', lvl: point.lvl });
+  if (!match) return Object.assign({ id: newId() }, words, { status: 0, notes: '', lvl: point.lvl });
   used[key] = 1;
   return Object.assign(match, words, { lvl: point.lvl });
 }
@@ -60,17 +60,17 @@ function matchedPoint(point, old, used) {
 export function commit(list, removed) {
   normLevels(list);
   list.forEach((point, i) => (point.order = i + 1));
-  setPts(list);
+  setSyllabusPoints(list);
   (removed || []).forEach(point => Store.delPoint(point.id));
   Store.saveLocal();
-  pts.forEach(point => Store.savePoint(point));
+  syllabusPoints.forEach(point => Store.savePoint(point));
 }
 
 /* the points, section by section (idx counts every section, in order) */
 export function groups() {
   const sections = [];
   let section = null;
-  pts.forEach(point => {
+  syllabusPoints.forEach(point => {
     if (!section || section.sec !== point.sec) {
       section = { sec: point.sec, idx: sections.length, items: [], all: [] };
       sections.push(section);

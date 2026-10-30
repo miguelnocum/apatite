@@ -1,6 +1,6 @@
-import { $, ed, esc, pts, toast, ui } from '../core/helpers-and-state.js';
+import { $, openEditor, escapeHtml, syllabusPoints, toast, uiState } from '../core/helpers-and-state.js';
 import { lvl } from '../syllabus/point-levels.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { edBlocks } from '../essays/word-count.js';
 import { mdTopBlock } from '../writing/writing.js';
 import { spChanged } from './spec-point-tags.js';
@@ -24,7 +24,7 @@ export function closeSpPick() {
 class SpecPointPicker {
   constructor(range) {
     this.range = range;
-    const el = mk('div');
+    const el = makeElement('div');
     el.className = 'tagpop sppick';
     el.range = range;
     el.q = '';
@@ -45,7 +45,7 @@ class SpecPointPicker {
 
   matches() {
     const query = this.el.q.toLowerCase().trim();
-    return pts.filter(
+    return syllabusPoints.filter(
       point => !query || ((point.code || '') + ' ' + point.text + ' ' + point.sec).toLowerCase().indexOf(query) >= 0
     );
   }
@@ -55,7 +55,8 @@ class SpecPointPicker {
     if (this.el.active >= points.length) this.el.active = Math.max(0, points.length - 1);
     let section = null;
     const html = points.map((point, i) => {
-      const heading = point.sec !== section ? `<div class="spg">${esc(point.sec || 'Untitled section')}</div>` : '';
+      const heading =
+        point.sec !== section ? `<div class="spg">${escapeHtml(point.sec || 'Untitled section')}</div>` : '';
       section = point.sec;
       return heading + this.pointHTML(point, i);
     });
@@ -68,7 +69,7 @@ class SpecPointPicker {
     const className = (i === this.el.active ? 'on ' : '') + (lvl(point) === 3 ? 'sub' : '');
     return (
       `<button data-sppick="${point.id}" class="${className}"><i class="dot" style="background:var(--s${point.status || 0})"></i>` +
-      `<code>${esc(point.code || '')}</code><span>${esc(point.text)}</span></button>`
+      `<code>${escapeHtml(point.code || '')}</code><span>${escapeHtml(point.text)}</span></button>`
     );
   }
 
@@ -142,7 +143,7 @@ const onSpecPointPickerMousedown = e => {
 
 /* the Heading menu's "Tag with spec point…": the top-level blocks the selection touches */
 export function spTagSelection() {
-  const editor = ed();
+  const editor = openEditor();
   const selection = getSelection();
   const range = editor && selection.rangeCount ? selection.getRangeAt(0) : null;
   const first = range && mdTopBlock(range.startContainer);
@@ -160,9 +161,9 @@ export function spTagSelection() {
 
 function spApply(range, id) {
   closeSpPick();
-  ui.spMode = true;
+  uiState.spMode = true;
   range.forEach(block => block.setAttribute('data-sp', id));
-  ui.spCur = id;
+  uiState.spCur = id;
   spChanged();
 }
 

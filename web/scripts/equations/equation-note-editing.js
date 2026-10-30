@@ -1,5 +1,5 @@
 import { saveDocSoon } from '../core/save-doc.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { annList, annNoteHTML, annSave, mathKey } from './equation-drawing.js';
 import { annLayout } from './equation-note-layout.js';
 import { mathEd } from './equation-editor-parts.js';
@@ -40,7 +40,7 @@ function clickedOffset(card, note, at) {
 function noteField(el, card, i, note) {
   card.style.width = Math.max(card.offsetWidth, NOTE_EDIT_MIN_WIDTH) + 'px';
   card.classList.add('editing');
-  const field = mk('textarea');
+  const field = makeElement('textarea');
   field.className = 'mcta';
   field.rows = 1;
   field.spellcheck = true;

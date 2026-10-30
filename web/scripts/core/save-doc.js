@@ -1,5 +1,5 @@
 import { emit } from './channel.js';
-import { $, ed, edEssayId, essays } from './helpers-and-state.js';
+import { $, openEditor, edEssayId, essays } from './helpers-and-state.js';
 import { sanitize } from './paste-cleaning.js';
 import { Store, setSave } from './storage.js';
 
@@ -14,7 +14,7 @@ let docTimer = null;
 
 /* the open document as saved: cleaned, citations without their drawn text */
 export function serializeDoc() {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor) return docHTML || '';
   const copy = editor.cloneNode(true);
   copy.querySelectorAll('.cite').forEach(citation => (citation.textContent = ''));
@@ -31,7 +31,7 @@ export function saveDocSoon() {
 export function saveDocNow() {
   clearTimeout(docTimer);
   docTimer = null;
-  if (!ed()) return;
+  if (!openEditor()) return;
   const html = serializeDoc();
   const essayId = edEssayId();
   if (essayId) saveEssayDoc(essayId, html);

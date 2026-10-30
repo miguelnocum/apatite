@@ -1,10 +1,10 @@
-import { cmd } from '../core/commands.js';
+import { requestCommand } from '../core/commands.js';
 import { keyLabel, keyShown } from './highlight-colours.js';
-import { tbState } from './toolbar-state.js';
-import { closeTbMenu, setTbMenu, tbMenu } from '../core/toolbar-menu.js';
+import { updateToolbarState } from './toolbar-state.js';
+import { closeToolbarMenu, setToolbarMenu, toolbarMenu } from '../core/toolbar-menu.js';
 import { closestTag, fire, restoreSel } from '../core/caret.js';
-import { $, NATIVE, curEd, esc, toast, ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { $, NATIVE, activeEditor, escapeHtml, toast, uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { applyHL } from './editor-commands.js';
 import { ZOOMS, setZoom } from '../view/zoom.js';
 import {
@@ -35,18 +35,18 @@ const HEADING_STYLES = [
 ];
 
 /* opens a toolbar button's menu (the same button again closes it) */
-export function openTbMenu(button, kind) {
-  const wasOpen = tbMenu && tbMenu.kind === kind;
-  closeTbMenu();
+export function openToolbarMenu(button, kind) {
+  const wasOpen = toolbarMenu && toolbarMenu.kind === kind;
+  closeToolbarMenu();
   if (wasOpen) return;
-  if (!curEd && !MENUS_WITHOUT_CARET.includes(kind)) toast('Click into your notes first');
-  const menu = mk('div');
+  if (!activeEditor && !MENUS_WITHOUT_CARET.includes(kind)) toast('Click into your notes first');
+  const menu = makeElement('div');
   menu.className = 'tbmenu';
   menu.setAttribute('role', 'menu');
   menu.kind = kind;
   menu.innerHTML = MENU_HTML[kind] ? MENU_HTML[kind]() : '';
   document.body.appendChild(menu);
-  setTbMenu(menu);
+  setToolbarMenu(menu);
   if (kind === 'list') wireCalloutSub(menu);
   positionMenu(menu, button);
   wireMenu(menu);
@@ -83,7 +83,7 @@ function headingMenuHTML() {
   const block = closestTag('h1,h2,h3,h4,h5,h6');
   const current = block && !block.classList.contains('ref') ? block.tagName.toLowerCase() : 'p';
   const tagging =
-    ui.view === 'essay'
+    uiState.view === 'essay'
       ? ''
       : '<button data-mi="sptag"><span>Tag with spec point…<div class="sub">The paragraphs you’ve selected (or the ' +
         'one you’re in)</div></span></button><hr>';
@@ -130,8 +130,8 @@ function highlightMenuHTML() {
   const colours = keyShown()
     .map(
       k =>
-        `<button data-hc="${k.id}" class="${ui.hlColor === k.id ? 'on' : ''}"><i style="background:${k.hex}"></i>` +
-        `<span${k.meaning ? '' : ' class="none"'}>${esc(keyLabel(k))}</span></button>`
+        `<button data-hc="${k.id}" class="${uiState.hlColor === k.id ? 'on' : ''}"><i style="background:${k.hex}"></i>` +
+        `<span${k.meaning ? '' : ' class="none"'}>${escapeHtml(keyLabel(k))}</span></button>`
     )
     .join('');
   const editKey = NATIVE ? '<button data-mi="editkey">Edit key…</button>' : '';
@@ -140,10 +140,11 @@ function highlightMenuHTML() {
 
 function zoomMenuHTML() {
   const levels = ZOOMS.map(
-    z => `<button data-mi="zoom:${z}" class="${ui.zoom === z ? 'on' : ''}">${Math.round(z * 100)}%</button>`
+    z => `<button data-mi="zoom:${z}" class="${uiState.zoom === z ? 'on' : ''}">${Math.round(z * 100)}%</button>`
   );
   return (
-    levels.join('') + `<hr><button data-mi="zoom:fit" class="${ui.zoom === 'fit' ? 'on' : ''}">Fit to Window</button>`
+    levels.join('') +
+    `<hr><button data-mi="zoom:fit" class="${uiState.zoom === 'fit' ? 'on' : ''}">Fit to Window</button>`
   );
 }
 
@@ -159,7 +160,7 @@ function commentMenuHTML() {
 function linkMenuHTML() {
   const link = closestTag('a');
   return (
-    `<div class="lk"><input id="lkurl" type="url" placeholder="Paste or type a web address" value="${esc(link ? link.getAttribute('href') : '')}">` +
+    `<div class="lk"><input id="lkurl" type="url" placeholder="Paste or type a web address" value="${escapeHtml(link ? link.getAttribute('href') : '')}">` +
     `<button data-mi="linkok">${link ? 'Update' : 'Add'}</button></div>` +
     (link ? '<button data-mi="unlink">Remove link</button>' : '')
   );
@@ -193,33 +194,33 @@ const MENU_ACTIONS = [
   [(b, item) => item === 'linkok', addLinkFromBox],
   [(b, item) => item === 'unlink', () => inNotes(removeLink)],
   [(b, item) => item === 'hl0', () => inNotes(() => applyHL(0), true)],
-  [() => true, (b, item) => inNotes(() => cmd(item))]
+  [() => true, (b, item) => inNotes(() => requestCommand(item))]
 ];
 
 function afterMenu(then) {
-  closeTbMenu();
+  closeToolbarMenu();
   then();
 }
 
 /* the menu closes and the selection in the notes comes back before the item acts on it */
 function inNotes(then, updateToolbar) {
-  closeTbMenu();
+  closeToolbarMenu();
   restoreSel();
   then();
-  if (updateToolbar) tbState();
+  if (updateToolbar) updateToolbarState();
 }
 
 function chooseHighlightColour(id) {
-  ui.hlColor = id;
-  inNotes(() => applyHL(ui.hlColor), true);
+  uiState.hlColor = id;
+  inNotes(() => applyHL(uiState.hlColor), true);
 }
 
 /* (folded away by zooming, they're shown rather than hidden) */
 function toggleComments() {
   const open = !commentsShowing();
   if (isNarrow())
-    Object.assign(ui, { cmtOpen: true, cmtDrawer: open }); // (a drawer: it opens and closes)
-  else ui.cmtOpen = open;
+    Object.assign(uiState, { cmtOpen: true, cmtDrawer: open }); // (a drawer: it opens and closes)
+  else uiState.cmtOpen = open;
   if (open) unfoldForComments();
   renderComments();
   if (open && !cmtAnchors().length) toast('No comments yet: select text and add one');
@@ -228,17 +229,17 @@ function toggleComments() {
 /* the link box: an address without a scheme is taken as https:// */
 function addLinkFromBox() {
   let url = $('lkurl').value.trim();
-  closeTbMenu();
+  closeToolbarMenu();
   if (!url) return;
   if (!/^[a-z]+:/i.test(url)) url = 'https://' + url;
   restoreSel();
   const link = closestTag('a');
   if (link) link.setAttribute('href', url);
   else if (getSelection().isCollapsed)
-    document.execCommand('insertHTML', false, `<a href="${esc(url)}">${esc(url)}</a>`);
+    document.execCommand('insertHTML', false, `<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`);
   else document.execCommand('createLink', false, url);
   fire();
-  tbState();
+  updateToolbarState();
 }
 
 /* the link goes; its text stays */
@@ -249,7 +250,7 @@ function removeLink() {
     link.remove();
     fire();
   }
-  tbState();
+  updateToolbarState();
 }
 
 /* Return adds the link, Esc leaves it */
@@ -261,7 +262,7 @@ function wireLinkBox(menu) {
       e.preventDefault();
       menu.querySelector('[data-mi=linkok]').click();
     } else if (e.key === 'Escape') {
-      closeTbMenu();
+      closeToolbarMenu();
       restoreSel();
     }
   });
@@ -269,12 +270,12 @@ function wireLinkBox(menu) {
 
 /* a press anywhere else closes the menu (but not on the toolbar, whose buttons open and close menus themselves) */
 const onToolbarMenusMousedown = function (e) {
-  if (!tbMenu || tbMenu.contains(e.target)) return;
-  if (tbMenu.sub && tbMenu.sub.contains(e.target)) return;
-  if (!e.target.closest('#tb')) closeTbMenu();
+  if (!toolbarMenu || toolbarMenu.contains(e.target)) return;
+  if (toolbarMenu.sub && toolbarMenu.sub.contains(e.target)) return;
+  if (!e.target.closest('#tb')) closeToolbarMenu();
 };
 
 export function initToolbarMenus() {
   document.addEventListener('mousedown', onToolbarMenusMousedown);
-  window.addEventListener('resize', closeTbMenu);
+  window.addEventListener('resize', closeToolbarMenu);
 }

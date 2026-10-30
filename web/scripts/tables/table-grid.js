@@ -1,6 +1,6 @@
 import { closestTag, inEd } from '../core/caret.js';
-import { ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { refreshTableTab } from './table-tab.js';
 
 /* ===== tables, Word-style: the grid behind a table, where a merged cell takes several places, and the cells selected in it.
@@ -36,7 +36,7 @@ export function squareTable(table) {
 }
 
 export function emptyCell(tag) {
-  const cell = mk(tag);
+  const cell = makeElement(tag);
   cell.innerHTML = '<br>';
   return cell;
 }
@@ -121,16 +121,16 @@ export function selectCells(table, rect) {
   clearCellSelection();
   const grid = tableGrid(table);
   const whole = wholeRect(grid, rect);
-  ui.tsel = { table: table, rect: whole };
+  uiState.tsel = { table: table, rect: whole };
   cellsIn(grid, whole).forEach(cell => cell.classList.add('tsel'));
   table.classList.add('tselecting');
   refreshTableTab();
 }
 
 export function clearCellSelection() {
-  if (!ui.tsel) return;
-  const table = ui.tsel.table;
-  ui.tsel = null;
+  if (!uiState.tsel) return;
+  const table = uiState.tsel.table;
+  uiState.tsel = null;
   table.classList.remove('tselecting');
   if (!table.getAttribute('class')) table.removeAttribute('class');
   table.querySelectorAll('.tsel').forEach(cell => {
@@ -162,11 +162,12 @@ export function selectionKind(grid, rect) {
 
 /* ---- what a table command acts on: the selected cells, or the cell the caret is in ---- */
 export function tableTarget() {
-  const cell = ui.tblCell && ui.tblCell.isConnected ? ui.tblCell : null;
-  const table = ui.tsel && ui.tsel.table.isConnected ? ui.tsel.table : cell && cell.closest('table');
+  const cell = uiState.tblCell && uiState.tblCell.isConnected ? uiState.tblCell : null;
+  const table = uiState.tsel && uiState.tsel.table.isConnected ? uiState.tsel.table : cell && cell.closest('table');
   if (!table) return null;
   const grid = squareTable(table);
-  if (ui.tsel && ui.tsel.table === table) return { table: table, grid: grid, rect: wholeRect(grid, ui.tsel.rect) };
+  if (uiState.tsel && uiState.tsel.table === table)
+    return { table: table, grid: grid, rect: wholeRect(grid, uiState.tsel.rect) };
   if (!cell || !grid.at.has(cell)) return null;
   return { table: table, grid: grid, rect: cellRect(grid, cell), cell: cell };
 }
@@ -175,6 +176,6 @@ export function tableTarget() {
 export function noteCaretCell() {
   if (!inEd()) return;
   const cell = closestTag('td,th');
-  ui.tblCell = cell && cell.closest('.notes') ? cell : null;
-  if (ui.tsel && !(ui.tblCell && ui.tblCell.classList.contains('tsel'))) clearCellSelection();
+  uiState.tblCell = cell && cell.closest('.notes') ? cell : null;
+  if (uiState.tsel && !(uiState.tblCell && uiState.tblCell.classList.contains('tsel'))) clearCellSelection();
 }

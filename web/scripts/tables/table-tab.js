@@ -1,6 +1,6 @@
 import { caretInto, inEd } from '../core/caret.js';
 import { KEY } from '../core/example-data.js';
-import { $, isDocView, ui } from '../core/helpers-and-state.js';
+import { $, isDocView, uiState } from '../core/helpers-and-state.js';
 import { cellsIn, rowTag, selectCells, selectColumns, selectRows, tableTarget } from './table-grid.js';
 import {
   clearCells,
@@ -369,8 +369,8 @@ export function refreshTableTab() {
 function showTablePane(tab) {
   tab
     .querySelectorAll('[data-tpane]')
-    .forEach(button => button.setAttribute('aria-selected', button.dataset.tpane === ui.ttab ? 'true' : 'false'));
-  tab.querySelectorAll('.tpane').forEach(pane => (pane.hidden = pane.dataset.pane !== ui.ttab));
+    .forEach(button => button.setAttribute('aria-selected', button.dataset.tpane === uiState.ttab ? 'true' : 'false'));
+  tab.querySelectorAll('.tpane').forEach(pane => (pane.hidden = pane.dataset.pane !== uiState.ttab));
 }
 
 function showTableSettings(tab, t) {
@@ -454,7 +454,7 @@ const onTableTabClick = e => {
 };
 
 function chooseTablePane(pane) {
-  ui.ttab = pane;
+  uiState.ttab = pane;
   try {
     localStorage.setItem(KEY + '-ttab', pane);
   } catch (e) {}
@@ -495,11 +495,11 @@ const onTableTabKeydown = e => {
   if (e.key !== 'Enter' && e.key !== 'Escape') return;
   e.preventDefault();
   if (e.key === 'Escape') box.value = box.dataset.was || '';
-  if (ui.tblCell) caretInto(ui.tblCell);
+  if (uiState.tblCell) caretInto(uiState.tblCell);
 };
 
 export function initTableTab() {
-  ui.ttab = savedTablePane();
+  uiState.ttab = savedTablePane();
   document.addEventListener('mousedown', onTableTabMousedown);
   document.addEventListener('click', onTableTabClick);
   document.addEventListener('change', onTableTabChange);

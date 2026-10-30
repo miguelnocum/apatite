@@ -1,7 +1,7 @@
 import { caretInto } from '../core/caret.js';
-import { closeTbMenu, setTbMenu } from '../core/toolbar-menu.js';
-import { ed, ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { closeToolbarMenu, setToolbarMenu } from '../core/toolbar-menu.js';
+import { openEditor, uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { cellsIn, clearCellSelection, tableTarget } from './table-grid.js';
 import { tableChanged } from './table-handles.js';
 import { TABLE_ICONS, TABLE_TAB_COMMANDS } from './table-tab.js';
@@ -12,11 +12,11 @@ const MENU_EDGE = 8; // px a menu keeps from the window's edges
 
 const onTableMenuContextmenu = e => {
   const cell = e.target.closest && e.target.closest('#ed td, #ed th');
-  if (!cell || !ed().isContentEditable) return;
+  if (!cell || !openEditor().isContentEditable) return;
   e.preventDefault();
   if (!cell.classList.contains('tsel')) {
     clearCellSelection();
-    ui.tblCell = cell;
+    uiState.tblCell = cell;
     caretInto(cell);
   }
   const t = tableTarget();
@@ -24,14 +24,14 @@ const onTableMenuContextmenu = e => {
 };
 
 function openTableMenu(t, x, y) {
-  closeTbMenu();
-  const menu = mk('div');
+  closeToolbarMenu();
+  const menu = makeElement('div');
   menu.className = 'tbmenu tctx';
   menu.setAttribute('role', 'menu');
   menu.kind = 'table';
   menu.innerHTML = tableMenuHTML(t);
   document.body.appendChild(menu);
-  setTbMenu(menu);
+  setToolbarMenu(menu);
   const width = document.documentElement.clientWidth;
   const height = document.documentElement.clientHeight;
   menu.style.left = Math.max(MENU_EDGE, Math.min(x, width - menu.offsetWidth - MENU_EDGE)) + 'px';
@@ -97,7 +97,7 @@ function tableMenuItem(command, label, off) {
 function tableMenuClick(e) {
   const button = e.target.closest('button');
   if (!button || button.disabled) return;
-  closeTbMenu();
+  closeToolbarMenu();
   const t = tableTarget();
   const command = TABLE_TAB_COMMANDS[button.dataset.tmi];
   if (t && command) command(t);

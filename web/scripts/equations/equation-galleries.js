@@ -1,5 +1,5 @@
-import { esc, toast } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { escapeHtml, toast } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { texShowHTML } from './equation-tex.js';
 import { EQ_BUILTIN, EQ_MENUS, EQ_STRIP, EQ_SYMBOLS, eqPreview, eqStore } from './equation-menus.js';
 import { fitPreviews } from './equation-editor-parts.js';
@@ -36,7 +36,7 @@ export class EquationGalleries {
     const wasOpen = this.drop && this.drop.key === key;
     this.close();
     if (wasOpen) return null;
-    const drop = mk('div');
+    const drop = makeElement('div');
     drop.className = 'mp-drop' + (className ? ' ' + className : '');
     drop.key = key;
     drop.innerHTML = html;
@@ -63,7 +63,7 @@ export class EquationGalleries {
     const html = sections
       .map(([title, items], sectionIndex) => {
         const tiles = items.map((item, i) => this.tileHTML(`${menuIndex}:${sectionIndex}:${i}`, item)).join('');
-        return `<div class="mp-dh">${esc(title)}</div><div class="mp-grid">${tiles}</div>`;
+        return `<div class="mp-dh">${escapeHtml(title)}</div><div class="mp-grid">${tiles}</div>`;
       })
       .join('');
     this.open('c' + menuIndex, button, html);
@@ -71,7 +71,7 @@ export class EquationGalleries {
 
   tileHTML(path, [name, latex, size]) {
     const wide = size === 'w' ? ' wide' : '';
-    return `<button type="button" class="mp-tile${wide}" data-mptpl="${path}" title="${esc(name)}">${eqPreview(latex)}</button>`;
+    return `<button type="button" class="mp-tile${wide}" data-mptpl="${path}" title="${escapeHtml(name)}">${eqPreview(latex)}</button>`;
   }
 
   /* the LaTeX of a tile, from its data-mptpl "menu:section:item" */
@@ -97,12 +97,12 @@ export class EquationGalleries {
   symbolCellHTML(tex, inGallery) {
     const pinned = this.pins().includes(tex);
     const hint = inGallery ? '' : pinned ? ' · pinned (right-click to unpin)' : ' · right-click to pin';
-    const title = esc((this.symbolName(tex) || tex) + hint);
+    const title = escapeHtml((this.symbolName(tex) || tex) + hint);
     const pin = inGallery
-      ? `<span class="pin" data-pin="${esc(tex)}" title="${pinned ? UNPIN_TITLE : PIN_TITLE}"></span>`
+      ? `<span class="pin" data-pin="${escapeHtml(tex)}" title="${pinned ? UNPIN_TITLE : PIN_TITLE}"></span>`
       : '';
     return (
-      `<button type="button" class="mp-sym${pinned ? ' pinned' : ''}" data-symtex="${esc(tex)}" title="${title}">` +
+      `<button type="button" class="mp-sym${pinned ? ' pinned' : ''}" data-symtex="${escapeHtml(tex)}" title="${title}">` +
       `${eqPreview(tex)}${pin}</button>`
     );
   }
@@ -152,7 +152,8 @@ export class EquationGalleries {
 
   openSymbols(button) {
     const pinned = this.pins();
-    const group = (title, cells) => `<div class="mp-dh">${esc(title)}</div><div class="mp-symgrid">${cells}</div>`;
+    const group = (title, cells) =>
+      `<div class="mp-dh">${escapeHtml(title)}</div><div class="mp-symgrid">${cells}</div>`;
     const pinnedHTML = pinned.length ? group('Pinned', pinned.map(tex => this.symbolCellHTML(tex, true)).join('')) : '';
     const kindsHTML = EQ_SYMBOLS.map(([kind, symbols]) =>
       group(kind, symbols.map(([tex]) => this.symbolCellHTML(tex, true)).join(''))
@@ -181,8 +182,8 @@ export class EquationGalleries {
         ? ''
         : `<button type="button" class="mp-eqx" data-eqdel="${ownIndex}" title="Remove from your equations">×</button>`;
     return (
-      `<div class="mp-eqi"><button type="button" class="mp-eq" data-eqtex="${esc(tex)}" title="Put this equation in">` +
-      `<span class="mp-eqn">${esc(name)}</span><span class="mp-eqr">${texShowHTML(tex)}</span></button>${remove}</div>`
+      `<div class="mp-eqi"><button type="button" class="mp-eq" data-eqtex="${escapeHtml(tex)}" title="Put this equation in">` +
+      `<span class="mp-eqn">${escapeHtml(name)}</span><span class="mp-eqr">${texShowHTML(tex)}</span></button>${remove}</div>`
     );
   }
 

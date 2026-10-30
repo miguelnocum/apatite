@@ -1,7 +1,7 @@
 import { saveDocSoon } from '../core/save-doc.js';
 import { keyOf } from '../editor/highlight-colours.js';
-import { ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { titleMarks } from '../editor/highlight-key.js';
 import { MD, mdCaret, mdOff, mdSel } from './writing.js';
 import { renderIMath } from '../equations/inline-equations.js';
@@ -74,7 +74,7 @@ export function mdInline() {
 function convertInline(caret, match, tag) {
   const start = match.index + match[1].length;
   const typed = caret.before.slice(start);
-  const el = mk(tag);
+  const el = makeElement(tag);
   const { text, colour } = tag === 'mark' ? highlightColour(match[2]) : { text: match[2] };
   el.textContent = text;
   if (tag === 'mark') el.setAttribute('data-h', colour);
@@ -87,7 +87,7 @@ function convertInline(caret, match, tag) {
 /* the colour a coloured circle picks (if it's in the highlight key), else the colour in use */
 function highlightColour(text) {
   const emoji = Object.keys(HIGHLIGHT_EMOJI).find(circle => text.indexOf(circle) === 0);
-  if (!(emoji && keyOf(HIGHLIGHT_EMOJI[emoji]))) return { text, colour: ui.hlColor || '1' };
+  if (!(emoji && keyOf(HIGHLIGHT_EMOJI[emoji]))) return { text, colour: uiState.hlColor || '1' };
   return { text: text.slice(emoji.length).replace(/^\s+/, '') || text, colour: HIGHLIGHT_EMOJI[emoji] };
 }
 
@@ -98,7 +98,7 @@ export function mdIMath() {
   if (!match) return false;
   const start = match.index + match[1].length;
   const typed = caret.before.slice(start);
-  const equation = mk('span');
+  const equation = makeElement('span');
   equation.setAttribute('data-imath', match[2]);
   const after = replaceTyped(caret, start, equation);
   renderIMath(equation.parentNode);

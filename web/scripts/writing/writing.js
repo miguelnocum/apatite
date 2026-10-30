@@ -1,5 +1,5 @@
 import { selectRange } from '../core/caret.js';
-import { ed } from '../core/helpers-and-state.js';
+import { openEditor } from '../core/helpers-and-state.js';
 /* ===== Bear-style writing =====
    Typed shortcuts are commands: "**word**", "# ", "- " and friends turn into formatting the moment they are complete
    and the symbols are gone, never hidden in the text. ⌘Z straight after gives back exactly what was typed. */
@@ -34,7 +34,7 @@ export function mdCaret() {
 
 /* the editor's child that holds a node */
 export function mdTopBlock(node) {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor || !node) return null;
   if (node.nodeType === 3) node = node.parentNode;
   while (node && node.parentNode !== editor) node = node.parentNode;
@@ -53,7 +53,7 @@ export function mdPara() {
   if (!selection.rangeCount || !selection.isCollapsed || !selection.anchorNode) return null;
   const el = anchorElement(selection);
   const block = el.closest && el.closest('p,li,td,th,h1,h2,h3,h4,h5,h6,figcaption,blockquote');
-  if (!block || block.tagName !== 'P' || !ed().contains(block) || block.closest('li,td,th,figure')) return null;
+  if (!block || block.tagName !== 'P' || !openEditor().contains(block) || block.closest('li,td,th,figure')) return null;
   return block;
 }
 

@@ -1,8 +1,8 @@
-import { cmd } from '../core/commands.js';
-import { closeTbMenu } from '../core/toolbar-menu.js';
+import { requestCommand } from '../core/commands.js';
+import { closeToolbarMenu } from '../core/toolbar-menu.js';
 import { fire, restoreSel, selectRange } from '../core/caret.js';
-import { ed } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { CALLOUTS } from '../core/callout-kinds.js';
 import { mdTopBlock } from '../writing/writing.js';
 
@@ -42,7 +42,7 @@ export function wireCalloutSub(menu) {
 
 /* beside its item (on the left when there's no room on the right) */
 function openCalloutSubmenu(trigger) {
-  const submenu = mk('div');
+  const submenu = makeElement('div');
   submenu.className = 'tbmenu tbsub';
   submenu.setAttribute('role', 'menu');
   submenu.innerHTML = CALLOUT_SUBMENU_HTML();
@@ -55,9 +55,9 @@ function openCalloutSubmenu(trigger) {
   submenu.addEventListener('click', e => {
     const button = e.target.closest('button');
     if (!button) return;
-    closeTbMenu();
+    closeToolbarMenu();
     restoreSel();
-    cmd(button.dataset.mi);
+    requestCommand(button.dataset.mi);
   });
   return submenu;
 }
@@ -71,7 +71,7 @@ function placeSubmenu(submenu, box) {
 
 /* older callouts get a title line, as Bear's have */
 export function upgradeCallouts(root) {
-  (root || ed()).querySelectorAll('[data-callout]').forEach(callout => {
+  (root || openEditor()).querySelectorAll('[data-callout]').forEach(callout => {
     let kind = callout.getAttribute('data-callout');
     if (kind === 'warn') {
       kind = 'warning';
@@ -83,27 +83,27 @@ export function upgradeCallouts(root) {
 }
 
 function calloutTitle(kind) {
-  const title = mk('p');
+  const title = makeElement('p');
   title.setAttribute('data-cot', '');
   title.textContent = CALLOUTS[kind] || 'Note';
   return title;
 }
 
 export function emptyLine(tag = 'p') {
-  const line = mk(tag);
+  const line = makeElement(tag);
   line.innerHTML = '<br>';
   return line;
 }
 
 /* ---- a new callout where the caret is ---- */
 export function insertCallout(kind) {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor) return;
   restoreSel();
   const selection = getSelection();
   let block = selection.rangeCount ? mdTopBlock(selection.anchorNode) : null;
   if (block && block.closest && block.closest('[data-callout]')) block = block.closest('[data-callout]');
-  const callout = mk('div');
+  const callout = makeElement('div');
   callout.setAttribute('data-callout', kind);
   let first = fillCallout(callout, kind);
   first = putCallout(callout, block, kind, first, editor);

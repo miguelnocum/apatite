@@ -1,6 +1,6 @@
 import { caretInto, fire } from '../core/caret.js';
-import { toast, ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { toast, uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import {
   cellsIn,
   clearCellSelection,
@@ -80,7 +80,7 @@ export function insertRows(t, at, count) {
 
 function insertRowAt(table, at) {
   const grid = tableGrid(table);
-  const row = mk('tr');
+  const row = makeElement('tr');
   for (let c = 0; c < grid.width; ) {
     const cell = at < grid.rows.length ? grid.map[at][c] : null;
     const span = cell && grid.at.get(cell);
@@ -239,7 +239,7 @@ export function deleteTable(t) {
   const after = table.nextElementSibling;
   clearCellSelection();
   changeTable(table, () => table.remove());
-  ui.tblCell = null;
+  uiState.tblCell = null;
   if (after) caretInto(after);
   tableChanged();
 }
@@ -264,7 +264,7 @@ export function mergeCells(t) {
 
 function mergeInto(first, cell) {
   if (cellHasContent(cell)) {
-    if (cellHasContent(first)) first.appendChild(mk('br'));
+    if (cellHasContent(first)) first.appendChild(makeElement('br'));
     else first.innerHTML = '';
     while (cell.firstChild) first.appendChild(cell.firstChild);
   }

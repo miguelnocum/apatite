@@ -1,7 +1,7 @@
-import { cmd } from '../core/commands.js';
+import { requestCommand } from '../core/commands.js';
 import { saveDocSoon } from '../core/save-doc.js';
-import { tbState } from './toolbar-state.js';
-import { closeTbMenu, tbMenu } from '../core/toolbar-menu.js';
+import { updateToolbarState } from './toolbar-state.js';
+import { closeToolbarMenu, toolbarMenu } from '../core/toolbar-menu.js';
 import { closestTag, inEd } from '../core/caret.js';
 import { $ } from '../core/helpers-and-state.js';
 import { insertImages } from './pasting-and-images.js';
@@ -15,8 +15,8 @@ const TAB_SPACE = '\u2003\u2003'; // what Tab types in ordinary text: two em spa
 function onEditorShortcut(e) {
   const command = e.metaKey || e.ctrlKey;
   const key = e.key.toLowerCase();
-  if (e.key === 'Escape' && tbMenu) closeTbMenu();
-  else if (command && !e.shiftKey && key === 'k' && inEd()) shortcut(e, () => cmd('link'));
+  if (e.key === 'Escape' && toolbarMenu) closeToolbarMenu();
+  else if (command && !e.shiftKey && key === 'k' && inEd()) shortcut(e, () => requestCommand('link'));
   else if (command && e.altKey && (key === 'm' || e.code === 'KeyM') && inEd()) shortcut(e, () => addComment('note'));
   else if (command && !e.shiftKey && !e.altKey && inEd()) formatByKey(e);
   else if (e.key === 'Tab' && !command && !e.altKey && inEd()) shortcut(e, () => tab(e.shiftKey));
@@ -33,7 +33,7 @@ function formatByKey(e) {
   if (!format) return;
   e.preventDefault();
   document.execCommand(format);
-  tbState();
+  updateToolbarState();
 }
 
 /* Tab: the next table cell, or a bullet indented (⇧Tab outdents), otherwise a tab-width space; it never leaves the editor */
@@ -72,7 +72,7 @@ function indentListItem(item, outdent) {
     const list = moved && moved.parentElement;
     if (list && list.tagName === 'UL' && !list.hasAttribute('data-todo')) list.setAttribute('data-todo', '');
   }
-  tbState();
+  updateToolbarState();
 }
 
 /* pictures chosen with Insert ▸ Image */

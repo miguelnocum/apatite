@@ -1,8 +1,8 @@
 import { saveDocSoon } from '../core/save-doc.js';
 import { caretToStart } from '../core/caret.js';
-import { $, ed, toast } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
-import { edChanged } from '../editor/hydrate-and-changes.js';
+import { $, openEditor, toast } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
+import { notesEdited } from '../editor/hydrate-and-changes.js';
 import { startImgMove, startImgResize } from './image-resize-move.js';
 import { cancelCrop, openCrop } from './image-crop.js';
 
@@ -33,7 +33,7 @@ export function closeImgTool() {
 export function openImgTool(img) {
   closeImgTool();
   imgSel = img;
-  const toolbar = mk('div');
+  const toolbar = makeElement('div');
   toolbar.className = 'imgbar';
   toolbar.setAttribute('role', 'toolbar');
   toolbar.setAttribute('aria-label', 'Image');
@@ -124,7 +124,7 @@ export function placeImgTool() {
 function placeResizeFrame(img, box) {
   let frame = $('imgframe');
   if (!frame) {
-    frame = mk('div');
+    frame = makeElement('div');
     frame.id = 'imgframe';
     frame.innerHTML = '<span class="h bl" data-rs="-1"></span><span class="h br" data-rs="1"></span>';
     document.body.appendChild(frame);
@@ -136,7 +136,7 @@ function placeResizeFrame(img, box) {
     width: box.width + 'px',
     height: box.height + 'px'
   });
-  const line = (imgNode(img).parentElement || ed()).getBoundingClientRect().width || 1;
+  const line = (imgNode(img).parentElement || openEditor()).getBoundingClientRect().width || 1;
   frame.setAttribute('data-size', Math.round((box.width / line) * 100) + '%');
 }
 
@@ -149,7 +149,7 @@ const onImageToolbarWindowResize = () => {
 
 export function imgChanged() {
   saveDocSoon();
-  edChanged();
+  notesEdited();
   setTimeout(drawImgTool, 0);
 }
 
@@ -200,7 +200,7 @@ function deleteImage(img) {
   closeImgTool();
   if (parent && parent.tagName === 'P' && !parent.textContent.trim() && !parent.querySelector('img')) parent.remove();
   saveDocSoon();
-  edChanged();
+  notesEdited();
   toast('Image deleted');
 }
 
@@ -208,26 +208,26 @@ function removeCaption(img) {
   imgNode(img).replaceWith(img);
   closeImgTool();
   saveDocSoon();
-  edChanged();
+  notesEdited();
 }
 
 /* a numbered caption under the picture, the caret in it */
 function addCaption(img) {
-  const figure = mk('figure');
-  const caption = mk('figcaption');
+  const figure = makeElement('figure');
+  const caption = makeElement('figcaption');
   const host = img.parentNode;
   // a figure cannot sit inside a paragraph: take the paragraph's place, or follow it
-  if (host && host !== ed() && host.tagName === 'P') {
+  if (host && host !== openEditor() && host.tagName === 'P') {
     if (!host.textContent.trim() && host.querySelectorAll('img').length === 1) host.replaceWith(figure);
     else host.after(figure);
   } else img.before(figure);
   caption.innerHTML = '<br>';
   figure.append(img, caption);
   closeImgTool();
-  ed().focus({ preventScroll: true });
+  openEditor().focus({ preventScroll: true });
   caretToStart(caption);
   saveDocSoon();
-  edChanged();
+  notesEdited();
 }
 
 export function initImageToolbar() {

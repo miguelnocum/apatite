@@ -1,10 +1,10 @@
 import { CITE_NAR, CITE_PAR, citeCandidates } from './citation-matching.js';
 import { saveDocSoon } from '../core/save-doc.js';
-import { $, ed, esc, isDocView, toast, ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { $, openEditor, escapeHtml, isDocView, toast, uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { measure } from '../syllabus/syllabus-view.js';
 import { render } from '../view/page-render.js';
-import { edChanged } from '../editor/hydrate-and-changes.js';
+import { notesEdited } from '../editor/hydrate-and-changes.js';
 import { words } from '../essays/word-count.js';
 import { namePart, refById, yearLabels } from './references.js';
 import { hydrateCites, insertCitation } from './in-text-citations.js';
@@ -87,11 +87,11 @@ function ccSentence(text, a, b) {
 
 /* ---- finding the problems ---- */
 export function ccScan() {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor) return [];
   const years = yearLabels();
   const issues = ccBlocks(editor).flatMap(block => blockIssues(block, years));
-  return issues.sort(inDocumentOrder).filter(issue => !(ui.ccSkip || {})[ccKey(issue)]);
+  return issues.sort(inDocumentOrder).filter(issue => !(uiState.ccSkip || {})[ccKey(issue)]);
 }
 
 function blockIssues(block, years) {
@@ -145,10 +145,10 @@ function unlinkedIssue(map, match, form, years) {
 }
 
 function unlinkedNote(who, year, candidates, years) {
-  if (!candidates.length) return `There is no ${esc(who)} (${esc(year)}) in this project’s Works Cited.`;
+  if (!candidates.length) return `There is no ${escapeHtml(who)} (${escapeHtml(year)}) in this project’s Works Cited.`;
   const which =
     candidates.length === 1
-      ? esc(namePart(candidates[0])) + ', ' + esc(years[candidates[0].id])
+      ? escapeHtml(namePart(candidates[0])) + ', ' + escapeHtml(years[candidates[0].id])
       : 'one of ' + candidates.length + ' matching sources';
   return 'Link it to ' + which + ' so it follows your Works Cited.';
 }
@@ -250,7 +250,7 @@ function pageIssue(map, linked, start, end) {
     end: end,
     el: target.el,
     title: 'Quotation without a page number',
-    note: 'Add the page this quote is on to ' + esc(target.el.textContent) + '.'
+    note: 'Add the page this quote is on to ' + escapeHtml(target.el.textContent) + '.'
   };
 }
 
@@ -261,12 +261,12 @@ function ccKey(issue) {
 
 /* ---- the bar ---- */
 export function openCiteCheck() {
-  if (!isDocView() || !ed()) {
+  if (!isDocView() || !openEditor()) {
     toast('Open your notes or an essay first');
     return;
   }
   citeCheck = { items: [], i: 0, filter: 'all' };
-  ui.ccSkip = {};
+  uiState.ccSkip = {};
   ccRefresh(0);
 }
 
@@ -304,11 +304,11 @@ function ccShow() {
     range.selectNode(issue.el);
   }
   if (!range) return;
-  ed().focus({ preventScroll: true });
+  openEditor().focus({ preventScroll: true });
   const selection = getSelection();
   selection.removeAllRanges();
   selection.addRange(range);
-  ui.lastRange = range.cloneRange();
+  uiState.lastRange = range.cloneRange();
   (issue.el || issue.m.block).scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 
@@ -387,7 +387,7 @@ function linkActionsHTML(issue) {
         issue.cands
           .map(
             r =>
-              `<option value="${r.id}">${esc(namePart(r))}, ${esc(years[r.id])} — ${esc((r.raw || '').slice(0, 50))}</option>`
+              `<option value="${r.id}">${escapeHtml(namePart(r))}, ${escapeHtml(years[r.id])} — ${escapeHtml((r.raw || '').slice(0, 50))}</option>`
           )
           .join('') +
         '</select>'
@@ -408,7 +408,7 @@ function ccLink(issue, id) {
   const range = ccRange(issue.m, issue.start, issue.end);
   if (!range) return false;
   range.deleteContents();
-  const citation = mk('span');
+  const citation = makeElement('span');
   citation.setAttribute('data-cite', id);
   if (issue.form === 'n') citation.setAttribute('data-form', 'n');
   if (issue.pg) citation.setAttribute('data-pg', issue.pg);
@@ -427,14 +427,14 @@ function ccAct(action) {
   if (!handler || handler(issue) === 'done') return; // ('done': nothing in the notes changed)
   hydrateCites();
   saveDocSoon();
-  if (typeof edChanged === 'function') edChanged();
+  if (typeof notesEdited === 'function') notesEdited();
   ccRefresh(citeCheck.i);
 }
 
 /* each returns 'done' when nothing in the notes changed (or the bar has gone) */
 const CITE_CHECK_ACTIONS = {
   skip: issue => {
-    ui.ccSkip[ccKey(issue)] = 1;
+    uiState.ccSkip[ccKey(issue)] = 1;
     ccRefresh(citeCheck.i);
     return 'done';
   },
@@ -449,7 +449,7 @@ const CITE_CHECK_ACTIONS = {
       .forEach(issue => ccLink(issue, issue.cands[0].id)),
   addsrc: issue => {
     closeCiteCheck();
-    ui.view = 'wc';
+    uiState.view = 'wc';
     render();
     toast(`Add ${issue.who} (${issue.year}) here, then run Check citations again`);
     return 'done';
@@ -468,10 +468,10 @@ function addCitationAfterQuote(issue) {
   const range = ccRange(issue.m, issue.quoteEnd, issue.quoteEnd);
   if (!range) return 'done';
   const selection = getSelection();
-  ed().focus({ preventScroll: true });
+  openEditor().focus({ preventScroll: true });
   selection.removeAllRanges();
   selection.addRange(range);
-  ui.lastRange = range.cloneRange();
+  uiState.lastRange = range.cloneRange();
   const citation = insertCitation([]);
   if (citation) openSources(citation);
 }
@@ -524,7 +524,7 @@ export function ccSoon() {
   if (!citeCheck) return;
   clearTimeout(ccSoon.t);
   ccSoon.t = setTimeout(() => {
-    if (citeCheck && ed()) ccRefresh(citeCheck.i, true);
+    if (citeCheck && openEditor()) ccRefresh(citeCheck.i, true);
   }, CITE_CHECK_TYPING_DELAY);
 }
 

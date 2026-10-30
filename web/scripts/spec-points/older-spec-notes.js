@@ -1,9 +1,9 @@
 import { saveDocNow } from '../core/save-doc.js';
-import { ed, ptById } from '../core/helpers-and-state.js';
+import { openEditor, pointById } from '../core/helpers-and-state.js';
 import { KEY } from '../core/example-data.js';
 import { lvl } from '../syllabus/point-levels.js';
 import { Store } from '../core/storage.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { spShort } from './spec-point-tags.js';
 
 /* ===== older notes: spec points were headings in the text; they become tags on the notes under them ===== */
@@ -20,7 +20,7 @@ function isOldSpecHeading(node) {
 /* the notes as tags, or null when there's nothing to convert */
 export function convertSpecHeadings(html) {
   if (!html || !OLD_SPEC_MARKUP.test(html)) return null;
-  const box = mk('div');
+  const box = makeElement('div');
   box.innerHTML = html;
   let current = null;
   [...box.children].forEach(block => {
@@ -37,12 +37,12 @@ export function convertSpecHeadings(html) {
 /* a point's heading with notes under it becomes a short tagged heading (the point the notes after it are tagged
    with); one with nothing under it goes */
 function convertPointHeading(heading) {
-  const point = ptById(heading.getAttribute('data-pt'));
+  const point = pointById(heading.getAttribute('data-pt'));
   if (!(point && hasNotesUnder(heading))) {
     heading.remove();
     return null;
   }
-  const short = mk(lvl(point) === 3 ? 'h3' : 'h2');
+  const short = makeElement(lvl(point) === 3 ? 'h3' : 'h2');
   short.textContent = point.code || spShort(point.text);
   short.setAttribute('data-sp', point.id);
   if (heading.hasAttribute('data-fold')) short.setAttribute('data-fold', '');
@@ -61,7 +61,7 @@ function hasNotesUnder(heading) {
 /* leaving the page saves the notes, and whether the example syllabus is showing */
 const onOlderSpecNotesWindowPagehide = () => {
   try {
-    if (ed()) saveDocNow();
+    if (openEditor()) saveDocNow();
   } catch (e) {}
   try {
     localStorage.setItem(KEY + '-ex', Store.example ? '1' : '0');

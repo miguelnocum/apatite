@@ -1,6 +1,6 @@
 import { caretInto, inEd } from '../core/caret.js';
-import { ed, ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor, uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import {
   cellRect,
   clearCellSelection,
@@ -39,7 +39,7 @@ export function tableLayer(editor) {
   if (!page) return null;
   let layer = page.querySelector(':scope>.tbllayer');
   if (layer) return layer;
-  layer = mk('div');
+  layer = makeElement('div');
   layer.className = 'tbllayer';
   layer.setAttribute('contenteditable', 'false');
   page.appendChild(layer);
@@ -48,13 +48,17 @@ export function tableLayer(editor) {
 
 /* the table to show handles on: the one pointed at, else the one being worked in */
 export function handledTable() {
-  const editor = ed();
-  const candidates = [ui.thover, ui.tsel && ui.tsel.table, ui.tblCell && ui.tblCell.closest('table')];
+  const editor = openEditor();
+  const candidates = [
+    uiState.thover,
+    uiState.tsel && uiState.tsel.table,
+    uiState.tblCell && uiState.tblCell.closest('table')
+  ];
   return candidates.find(t => t && t.isConnected && editor && editor.contains(t)) || null;
 }
 
 export function drawTableHandles() {
-  const editor = ed();
+  const editor = openEditor();
   const layer = editor && tableLayer(editor);
   if (!layer) return;
   const table = editor.isContentEditable ? handledTable() : null;
@@ -136,10 +140,10 @@ function bordersHTML(f) {
 /* the rows and columns wholly selected, to show their grips as on */
 function selectedLines(table) {
   const out = { rows: new Set(), columns: new Set() };
-  if (!ui.tsel || ui.tsel.table !== table) return out;
+  if (!uiState.tsel || uiState.tsel.table !== table) return out;
   const grid = tableGrid(table);
-  const kind = selectionKind(grid, ui.tsel.rect);
-  const { r0, r1, c0, c1 } = ui.tsel.rect;
+  const kind = selectionKind(grid, uiState.tsel.rect);
+  const { r0, r1, c0, c1 } = uiState.tsel.rect;
   if (kind === 'rows' || kind === 'table') for (let r = r0; r <= r1; r++) out.rows.add(r);
   if (kind === 'columns' || kind === 'table') for (let c = c0; c <= c1; c++) out.columns.add(c);
   return out;
@@ -161,7 +165,15 @@ function gripDown(e) {
   if (!table) return;
   const kind = grip.dataset.tgr != null ? 'r' : grip.dataset.tgc != null ? 'c' : 'a';
   const index = +(grip.dataset.tgr != null ? grip.dataset.tgr : grip.dataset.tgc || 0);
-  ui.tgrip = { table: table, kind: kind, index: index, x: e.clientX, y: e.clientY, moved: false, shift: e.shiftKey };
+  uiState.tgrip = {
+    table: table,
+    kind: kind,
+    index: index,
+    x: e.clientX,
+    y: e.clientY,
+    moved: false,
+    shift: e.shiftKey
+  };
 }
 
 function borderDown(e) {
@@ -177,29 +189,29 @@ function borderDown(e) {
 function cellDown(e) {
   const cell = e.target.closest('td,th');
   const table = cell.closest('table');
-  const from = ui.tsel && ui.tsel.table === table ? ui.tsel.anchor : ui.tblCell;
+  const from = uiState.tsel && uiState.tsel.table === table ? uiState.tsel.anchor : uiState.tblCell;
   if (e.shiftKey && from && from.isConnected && from.closest('table') === table) {
     e.preventDefault();
     selectFromTo(table, from, cell);
     return;
   }
   clearCellSelection();
-  ui.tcellDrag = { table: table, anchor: cell };
+  uiState.tcellDrag = { table: table, anchor: cell };
 }
 
 function selectFromTo(table, from, to) {
   const grid = tableGrid(table);
   selectCells(table, joinRects(cellRect(grid, from), cellRect(grid, to)));
-  ui.tsel.anchor = from;
+  uiState.tsel.anchor = from;
 }
 
 const onTableHandlesMousemove = e => {
-  if (ui.tresize) {
-    if (ui.tresize.kind === 'c') dragColumnBorder(ui.tresize, e.clientX);
-    else dragRowBorder(ui.tresize, e.clientY);
+  if (uiState.tresize) {
+    if (uiState.tresize.kind === 'c') dragColumnBorder(uiState.tresize, e.clientX);
+    else dragRowBorder(uiState.tresize, e.clientY);
     drawTableHandles();
-  } else if (ui.tgrip) gripMove(e);
-  else if (ui.tcellDrag && e.buttons & 1) cellDragMove(e);
+  } else if (uiState.tgrip) gripMove(e);
+  else if (uiState.tcellDrag && e.buttons & 1) cellDragMove(e);
   else hoverTable(e);
 };
 
@@ -207,8 +219,8 @@ const onTableHandlesMousemove = e => {
 function hoverTable(e) {
   if (!e.target.closest || e.target.closest('.tbllayer')) return;
   const table = e.target.closest('#ed table');
-  if (table === ui.thover || (!table && ui.thover && nearTable(ui.thover, e))) return;
-  ui.thover = table;
+  if (table === uiState.thover || (!table && uiState.thover && nearTable(uiState.thover, e))) return;
+  uiState.thover = table;
   drawTableHandles();
 }
 
@@ -222,16 +234,16 @@ function nearTable(table, e) {
 }
 
 function cellDragMove(e) {
-  const drag = ui.tcellDrag;
+  const drag = uiState.tcellDrag;
   const cell = e.target.closest && e.target.closest('td,th');
   if (!cell || cell.closest('table') !== drag.table) return;
-  if (cell === drag.anchor && !ui.tsel) return;
+  if (cell === drag.anchor && !uiState.tsel) return;
   selectFromTo(drag.table, drag.anchor, cell);
   drawTableHandles();
 }
 
 function gripMove(e) {
-  const grip = ui.tgrip;
+  const grip = uiState.tgrip;
   if (!grip.moved && Math.hypot(e.clientX - grip.x, e.clientY - grip.y) < DRAG_THRESHOLD) return;
   if (grip.kind === 'a') return;
   grip.moved = true;
@@ -250,9 +262,9 @@ function dropIndex(grip, e) {
 }
 
 function showTableDropLine(grip) {
-  const layer = tableLayer(ed());
+  const layer = tableLayer(openEditor());
   let line = layer.querySelector('.tdrop');
-  if (!line) line = layer.appendChild(mk('div'));
+  if (!line) line = layer.appendChild(makeElement('div'));
   line.className = 'tdrop ' + (grip.kind === 'r' ? 'tdropr' : 'tdropc');
   const origin = layer.getBoundingClientRect();
   const scale = pageScale(layer);
@@ -268,11 +280,11 @@ function showTableDropLine(grip) {
 }
 
 const onTableHandlesMouseup = () => {
-  if (ui.tresize) endResize();
-  if (ui.tgrip) gripUp(ui.tgrip);
-  if (ui.tcellDrag && ui.tsel) caretInto(ui.tcellDrag.anchor);
-  ui.tgrip = null;
-  ui.tcellDrag = null;
+  if (uiState.tresize) endResize();
+  if (uiState.tgrip) gripUp(uiState.tgrip);
+  if (uiState.tcellDrag && uiState.tsel) caretInto(uiState.tcellDrag.anchor);
+  uiState.tgrip = null;
+  uiState.tcellDrag = null;
 };
 
 /* a grip let go: clicked, it selects its row or column (⇧: from the one selected to it); dragged, it moves them */
@@ -286,16 +298,16 @@ function gripUp(grip) {
 }
 
 function selectByGrip(t, grip) {
-  const held = ui.tsel && ui.tsel.table === t.table && grip.shift ? ui.tsel.rect : null;
+  const held = uiState.tsel && uiState.tsel.table === t.table && grip.shift ? uiState.tsel.rect : null;
   if (grip.kind === 'a') selectCells(t.table, { r0: 0, r1: t.grid.rows.length - 1, c0: 0, c1: t.grid.width - 1 });
   else if (grip.kind === 'r') selectRows(t.table, held ? held.r0 : grip.index, grip.index);
   else selectColumns(t.table, held ? held.c0 : grip.index, grip.index);
-  caretInto(t.grid.map[ui.tsel.rect.r0][ui.tsel.rect.c0]);
+  caretInto(t.grid.map[uiState.tsel.rect.r0][uiState.tsel.rect.c0]);
 }
 
 /* the selected rows (or columns) move, if the grip dragged is one of them; otherwise just its own */
 function moveByGrip(t, grip) {
-  const held = ui.tsel && ui.tsel.table === t.table ? ui.tsel.rect : null;
+  const held = uiState.tsel && uiState.tsel.table === t.table ? uiState.tsel.rect : null;
   const kind = held ? selectionKind(t.grid, held) : '';
   if (grip.kind === 'r') {
     const inHeld = kind === 'rows' && grip.index >= held.r0 && grip.index <= held.r1;
@@ -310,7 +322,7 @@ function moveByGrip(t, grip) {
 
 /* ---- keys, while cells are selected: Delete deletes them, Escape lets go, typing goes into the first ---- */
 const onTableHandlesKeydown = e => {
-  if (!ui.tsel || !inEd() || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (!uiState.tsel || !inEd() || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === 'Backspace' || e.key === 'Delete') {
     e.preventDefault();
     e.stopImmediatePropagation();
@@ -324,7 +336,7 @@ const onTableHandlesKeydown = e => {
 
 /* the handles move with the table as it's typed in and as the window changes */
 const onTableHandlesInput = e => {
-  const layer = e.target && e.target.id === 'ed' && tableLayer(ed());
+  const layer = e.target && e.target.id === 'ed' && tableLayer(openEditor());
   if (layer && layer._table) requestAnimationFrame(drawTableHandles);
 };
 const onTableHandlesWindowResize = () => requestAnimationFrame(drawTableHandles);

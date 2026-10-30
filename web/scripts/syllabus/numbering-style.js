@@ -1,4 +1,4 @@
-import { $, esc, ui } from '../core/helpers-and-state.js';
+import { $, escapeHtml, uiState } from '../core/helpers-and-state.js';
 import { SyllabusDetector } from './syllabus-detector.js';
 
 /* ===== a pasted syllabus read by the numbering the user describes: "1" for section titles, "1a" for points, and so on.
@@ -123,10 +123,10 @@ class StyledSyllabusDetector extends SyllabusDetector {
 
 /* "4 section titles and 23 points match", under the style boxes, as the user types */
 function styleMatchSummary() {
-  const sectionPattern = styleToRegex(ui.secStyle);
-  const pointPattern = styleToRegex(ui.ptStyle);
+  const sectionPattern = styleToRegex(uiState.secStyle);
+  const pointPattern = styleToRegex(uiState.ptStyle);
   if (!sectionPattern && !pointPattern) return 'Leave both empty to detect the numbering automatically.';
-  const lines = (ui.paste || '').split('\n').map(line => unlisted(line.trim()));
+  const lines = (uiState.paste || '').split('\n').map(line => unlisted(line.trim()));
   const points = pointPattern ? lines.filter(line => pointPattern.test(line)) : [];
   const sections = sectionPattern ? lines.filter(line => !points.includes(line) && sectionPattern.test(line)) : [];
   const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
@@ -143,12 +143,12 @@ export function showStyleMatches() {
 
 export function numberingStyleHTML() {
   const box = (id, value, label, example) =>
-    `<label class="stylebox">${label}<input id="${id}" value="${esc(value || '')}" placeholder="auto" spellcheck="false" ` +
+    `<label class="stylebox">${label}<input id="${id}" value="${escapeHtml(value || '')}" placeholder="auto" spellcheck="false" ` +
     `aria-label="${label}"><span>e.g. ${example}</span></label>`;
   return (
     '<div class="numstyle"><div class="numstyle-head">Numbering <span>(optional)</span></div><div class="row">' +
-    box('secstyle', ui.secStyle, 'Section titles look like', '1, Topic 1, A, Unit I, 第一课时') +
-    box('ptstyle', ui.ptStyle, 'Points look like', '1a, 1.1, (a), i., 第一课时-第一章节') +
-    `</div><div class="stylehint" id="stylehint">${esc(styleMatchSummary())}</div></div>`
+    box('secstyle', uiState.secStyle, 'Section titles look like', '1, Topic 1, A, Unit I, 第一课时') +
+    box('ptstyle', uiState.ptStyle, 'Points look like', '1a, 1.1, (a), i., 第一课时-第一章节') +
+    `</div><div class="stylehint" id="stylehint">${escapeHtml(styleMatchSummary())}</div></div>`
   );
 }

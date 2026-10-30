@@ -1,5 +1,5 @@
 import { KEY, STATUS } from '../core/example-data.js';
-import { $, esc, ui } from '../core/helpers-and-state.js';
+import { $, escapeHtml, uiState } from '../core/helpers-and-state.js';
 import { kidsOf, lvl } from './point-levels.js';
 import { groups } from './model.js';
 import { renderEdit } from './syllabus-editing.js';
@@ -22,8 +22,8 @@ const SYLLABUS_HINT =
 export function cfHTML(point) {
   const rating = point.status || 0;
   const title =
-    esc(rating ? rating + ': ' + STATUS[rating] : 'Not rated') + ' (click for next, shift-click for previous)';
-  const label = 'Confidence: ' + esc(rating ? rating + ', ' + STATUS[rating] : 'not rated');
+    escapeHtml(rating ? rating + ': ' + STATUS[rating] : 'Not rated') + ' (click for next, shift-click for previous)';
+  const label = 'Confidence: ' + escapeHtml(rating ? rating + ', ' + STATUS[rating] : 'not rated');
   return `<button class="cf" data-cyc="${point.id}" data-n="${rating}" title="${title}" aria-label="${label}">${rating || ''}</button>`;
 }
 
@@ -72,7 +72,7 @@ export function toggleSide() {
   }
   const wrap = $('bodywrap');
   if (wrap.classList.contains('zfold')) {
-    ui.zfoldOff = true;
+    uiState.zfoldOff = true;
     applyZoom();
   } else {
     wrap.classList.toggle('nosd');
@@ -87,8 +87,8 @@ export function toggleSide() {
 
 /* the essays, the spec points, or (in the syllabus) its sections with how confident you are in each */
 export function renderSide() {
-  if (ui.view === 'essay') renderEssaySide();
-  else if (ui.view === 'notes') renderSpPanel();
+  if (uiState.view === 'essay') renderEssaySide();
+  else if (uiState.view === 'notes') renderSpPanel();
   else {
     const sections = groups();
     $('side').innerHTML = sections.length
@@ -100,14 +100,14 @@ export function renderSide() {
 function sectionLinkHTML(section) {
   const confident = ratingCounts(section.all)[CONFIDENT];
   return (
-    `<a href="#sec-${section.idx}" data-gosec="${section.idx}"><div class="t"><span>${esc(section.sec || 'Untitled section')}</span>` +
+    `<a href="#sec-${section.idx}" data-gosec="${section.idx}"><div class="t"><span>${escapeHtml(section.sec || 'Untitled section')}</span>` +
     `<em title="Points rated 4 (confident)">${confident}/${section.all.length}</em></div>` +
     `<div class="prog" aria-hidden="true">${ratingBarHTML(section.all)}</div></a>`
   );
 }
 
 export function renderSyl() {
-  if (ui.edit) {
+  if (uiState.edit) {
     renderEdit();
     return;
   }
@@ -124,13 +124,13 @@ export function renderSyl() {
 
 /* a section's heading row, then a row per point (sub-points indented, parents marked) */
 function sectionRowsHTML(section) {
-  const heading = `<tr class="sr" id="sec-${section.idx}" data-secidx="${section.idx}"><td colspan="4">${esc(section.sec || 'Untitled section')}</td></tr>`;
+  const heading = `<tr class="sr" id="sec-${section.idx}" data-secidx="${section.idx}"><td colspan="4">${escapeHtml(section.sec || 'Untitled section')}</td></tr>`;
   const rows = section.items.map(point => {
     const kind = lvl(point) === 3 ? ' sub' : kidsOf(point).length ? ' par' : '';
     return (
       `<tr class="pr${kind}" id="row-${point.id}" data-s="${point.status || 0}"><td class="cfc">${cfHTML(point)}</td>` +
-      `<td class="c">${esc(point.code)}</td><td><a href="#pt-${point.id}" data-open="${point.id}" title="Open notes">` +
-      `${esc(point.text)}</a></td><td class="g">${esc(point.guide)}</td></tr>`
+      `<td class="c">${escapeHtml(point.code)}</td><td><a href="#pt-${point.id}" data-open="${point.id}" title="Open notes">` +
+      `${escapeHtml(point.text)}</a></td><td class="g">${escapeHtml(point.guide)}</td></tr>`
     );
   });
   return heading + rows.join('');

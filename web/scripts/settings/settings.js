@@ -1,16 +1,16 @@
-import { saveWS, WS, WS_DEF } from '../core/writing-settings.js';
+import { saveWritingSettings, writingSettings, DEFAULT_WRITING_SETTINGS } from '../core/writing-settings.js';
 import { saveDocNow } from '../core/save-doc.js';
-import { HLKEY, keyOf } from '../editor/highlight-colours.js';
-import { closeTbMenu } from '../core/toolbar-menu.js';
+import { HIGHLIGHT_KEY, keyOf } from '../editor/highlight-colours.js';
+import { closeToolbarMenu } from '../core/toolbar-menu.js';
 import { KEY } from '../core/example-data.js';
-import { ed, esc, essays, isDocView, NATIVE, post, toast, ui } from '../core/helpers-and-state.js';
+import { openEditor, escapeHtml, essays, isDocView, NATIVE, post, toast, uiState } from '../core/helpers-and-state.js';
 import { getPref, setPref, Store } from '../core/storage.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { ZOOMS, applyZoom } from '../view/zoom.js';
 import { texShowHTML } from '../equations/equation-tex.js';
 import { eqPreview, eqStore } from '../equations/equation-menus.js';
 import { sylInfo } from '../editor/caret-and-keys.js';
-import { FONTS, THEMES, applyWS, twScroll } from '../writing/typewriter-writing.js';
+import { FONTS, THEMES, applyWritingSettings, twScroll } from '../writing/typewriter-writing.js';
 
 /* ===== Settings (⌘,): which syllabus each document follows, writing, themes, the highlight key, equations, zoom, the library ===== */
 const SETTINGS_SECTIONS = [
@@ -43,14 +43,14 @@ let keySaveTimer = null;
 /* ---- the sheet ---- */
 export function openSettings(section) {
   const known = SETTINGS_SECTIONS.some(([id]) => id === section);
-  ui.setSec = known ? section : ui.setSec || DEFAULT_SECTION;
-  closeTbMenu();
+  uiState.setSec = known ? section : uiState.setSec || DEFAULT_SECTION;
+  closeToolbarMenu();
   if (!settingsSheet) settingsSheet = makeSettingsSheet();
   drawSettings();
 }
 
 function makeSettingsSheet() {
-  const sheet = mk('div');
+  const sheet = makeElement('div');
   sheet.className = 'setov';
   sheet.innerHTML = settingsSheetHTML();
   document.body.appendChild(sheet);
@@ -60,7 +60,7 @@ function makeSettingsSheet() {
 
 function settingsSheetHTML() {
   const nav = SETTINGS_SECTIONS.map(
-    ([id, name]) => `<button type="button" data-setsec="${id}">${esc(name)}</button>`
+    ([id, name]) => `<button type="button" data-setsec="${id}">${escapeHtml(name)}</button>`
   ).join('');
   return (
     '<div class="setwin" role="dialog" aria-modal="true" aria-label="Settings">' +
@@ -81,7 +81,7 @@ const nbOpenSettings = function (section) {
 };
 
 function drawSettings() {
-  const section = ui.setSec;
+  const section = uiState.setSec;
   settingsSheet.querySelectorAll('[data-setsec]').forEach(button => {
     button.classList.toggle('on', button.dataset.setsec === section);
   });
@@ -111,7 +111,7 @@ function settingsNote(text) {
 
 function settingsRow(title, note, control) {
   const noteHTML = note ? `<div class="setrn">${note}</div>` : '';
-  return `<div class="setrow"><div><div class="setrt">${esc(title || 'Untitled')}</div>${noteHTML}</div>${control}</div>`;
+  return `<div class="setrow"><div><div class="setrt">${escapeHtml(title || 'Untitled')}</div>${noteHTML}</div>${control}</div>`;
 }
 
 /* Syllabus: every notebook, essay and deck with the syllabus it follows */
@@ -152,7 +152,7 @@ function essayRowsHTML() {
   if (!essays.length) return settingsNote('No essays yet.');
   return essays
     .map(es => {
-      const open = es.id === ui.essayId && ui.view === 'essay';
+      const open = es.id === uiState.essayId && uiState.view === 'essay';
       return settingsRow(
         es.title || 'Untitled essay',
         open ? 'Open now' : '',
@@ -168,22 +168,22 @@ function syllabusPicker(kind, id, current, canMakeNew) {
   const options = sylInfo()
     .list.map(
       s =>
-        `<option value="${esc(s.id)}"${s.id === current ? ' selected' : ''}>${esc(s.title || 'Untitled syllabus')}</option>`
+        `<option value="${escapeHtml(s.id)}"${s.id === current ? ' selected' : ''}>${escapeHtml(s.title || 'Untitled syllabus')}</option>`
     )
     .join('');
   const makeNew = canMakeNew ? '<option value="__new">New syllabus…</option>' : '';
-  return `<select data-setsyl="${kind}" data-id="${esc(id)}"><option value="">None</option>${options}${makeNew}</select>`;
+  return `<select data-setsyl="${kind}" data-id="${escapeHtml(id)}"><option value="">None</option>${options}${makeNew}</select>`;
 }
 
 /* Writing: font, size and spacing, typewriter scrolling, with a preview */
 function writingSectionHTML() {
   const fonts = Object.keys(FONTS)
-    .map(k => `<option value="${k}"${WS.font === k ? ' selected' : ''}>${FONTS[k][0]}</option>`)
+    .map(k => `<option value="${k}"${writingSettings.font === k ? ' selected' : ''}>${FONTS[k][0]}</option>`)
     .join('');
   return (
     `<div class="setgrid"><label class="setfield"><span>Font</span><select id="wsfont">${fonts}</select></label>` +
     WRITING_RANGES.map(writingRangeHTML).join('') +
-    `<label class="wstw"><input type="checkbox" id="wstw"${WS.tw ? ' checked' : ''}> Typewriter scrolling ` +
+    `<label class="wstw"><input type="checkbox" id="wstw"${writingSettings.tw ? ' checked' : ''}> Typewriter scrolling ` +
     '<span class="k">⌃⌘T</span><span class="setrn">Keeps the line you’re writing in the middle of the window</span></label></div>' +
     '<div class="setprev docbody notes"><p>Supervised learning models define mappings from one or more inputs to one or more ' +
     'outputs.</p><p>The model itself is just a mathematical equation containing parameters, which training adjusts until its ' +
@@ -193,7 +193,7 @@ function writingSectionHTML() {
 }
 
 function writingRangeHTML([setting, id, label, min, max, step, format]) {
-  const value = WS[setting];
+  const value = writingSettings[setting];
   return (
     `<label class="wsr"><span>${label}</span><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" ` +
     `value="${value}"><output>${format(value)}</output></label>`
@@ -224,15 +224,15 @@ function themeTileHTML(k) {
   const background = isSystem ? `linear-gradient(135deg,${page} 50%,${darkPage} 50%)` : page;
   const colour = isSystem ? '#7d8a97' : text;
   return (
-    `<button type="button" data-wst="${k}" class="${WS.theme === k ? 'on' : ''}" title="${esc(description || name)}">` +
-    `<span class="sw" style="background:${background};color:${colour}">Aa</span><span class="tn">${esc(name)}</span></button>`
+    `<button type="button" data-wst="${k}" class="${writingSettings.theme === k ? 'on' : ''}" title="${escapeHtml(description || name)}">` +
+    `<span class="sw" style="background:${background};color:${colour}">Aa</span><span class="tn">${escapeHtml(name)}</span></button>`
   );
 }
 
 /* Highlight key: each colour and what it means; removed ones can be put back */
 function keySectionHTML() {
-  const shown = HLKEY.filter(k => !k.hidden);
-  const gone = HLKEY.filter(k => k.hidden);
+  const shown = HIGHLIGHT_KEY.filter(k => !k.hidden);
+  const gone = HIGHLIGHT_KEY.filter(k => k.hidden);
   return (
     settingsNote(
       'What each highlighter colour is for. It shows when you choose a colour, and when you point at a highlight, in notes, ' +
@@ -244,10 +244,10 @@ function keySectionHTML() {
 }
 
 function keyRowHTML(k) {
-  const id = esc(k.id);
+  const id = escapeHtml(k.id);
   return (
-    `<div class="setkr"><input type="color" value="${esc(k.hex)}" data-keyhex="${id}" aria-label="Colour">` +
-    `<input type="text" value="${esc(k.meaning || '')}" placeholder="What this colour means" data-keymean="${id}">` +
+    `<div class="setkr"><input type="color" value="${escapeHtml(k.hex)}" data-keyhex="${id}" aria-label="Colour">` +
+    `<input type="text" value="${escapeHtml(k.meaning || '')}" placeholder="What this colour means" data-keymean="${id}">` +
     `<button type="button" class="setkx" data-keyhide="${id}" title="Remove from the key (highlights already made keep their ` +
     'colour)">×</button></div>'
   );
@@ -255,7 +255,9 @@ function keyRowHTML(k) {
 
 function putBackHTML(gone) {
   if (!gone.length) return '';
-  const options = gone.map(k => `<option value="${esc(k.id)}">${esc(k.meaning || k.hex)}</option>`).join('');
+  const options = gone
+    .map(k => `<option value="${escapeHtml(k.id)}">${escapeHtml(k.meaning || k.hex)}</option>`)
+    .join('');
   return `<select data-keyback><option value="">Put back…</option>${options}</select>`;
 }
 
@@ -287,7 +289,7 @@ function savedEquationsHTML(saved) {
     );
   const rows = saved.map(
     (eq, i) =>
-      `<div class="seteq"><input type="text" value="${esc(eq.n)}" data-eqname="${i}" aria-label="Name">` +
+      `<div class="seteq"><input type="text" value="${escapeHtml(eq.n)}" data-eqname="${i}" aria-label="Name">` +
       `<div class="seteqr">${texShowHTML(eq.t)}</div><button type="button" class="setkx" data-eqdel2="${i}" title="Remove">×</button></div>`
   );
   return `<div class="seteqs">${rows.join('')}</div>`;
@@ -332,7 +334,7 @@ function librarySectionHTML() {
     );
   return (
     settingsNote('Everything saves automatically as you type, into your library folder on this Mac.') +
-    `<div class="setrow"><div><div class="setrt">Library folder</div><div class="setrn setpath">${esc(window.__NBLIB__ || '')}` +
+    `<div class="setrow"><div><div class="setrt">Library folder</div><div class="setrn setpath">${escapeHtml(window.__NBLIB__ || '')}` +
     '</div></div><button type="button" class="setbtn" data-revlib>Show in Finder</button></div>'
   );
 }
@@ -396,15 +398,15 @@ const SETTINGS_CHANGES = [
 ];
 
 function showSettingsSection(section) {
-  ui.setSec = section;
+  uiState.setSec = section;
   drawSettings();
 }
 
 /* ---- writing and themes ---- */
 function changeWriting(setting, value) {
-  WS[setting] = value;
-  saveWS();
-  applyWS();
+  writingSettings[setting] = value;
+  saveWritingSettings();
+  applyWritingSettings();
 }
 
 function chooseTheme(button) {
@@ -426,18 +428,18 @@ function changeTypewriter(checkbox) {
 
 /* everything but the theme back to how it started */
 function resetWriting() {
-  const theme = WS.theme;
-  Object.keys(WS_DEF).forEach(k => (WS[k] = WS_DEF[k]));
-  WS.theme = theme;
-  saveWS();
-  applyWS();
+  const theme = writingSettings.theme;
+  Object.keys(DEFAULT_WRITING_SETTINGS).forEach(k => (writingSettings[k] = DEFAULT_WRITING_SETTINGS[k]));
+  writingSettings.theme = theme;
+  saveWritingSettings();
+  applyWritingSettings();
   drawSettings();
 }
 
 /* ---- the highlight key ---- */
 function saveKey() {
-  if (NATIVE) post({ type: 'setKey', key: HLKEY });
-  else window.nbSetKey(HLKEY);
+  if (NATIVE) post({ type: 'setKey', key: HIGHLIGHT_KEY });
+  else window.nbSetKey(HIGHLIGHT_KEY);
 }
 
 /* typing and colour picking save a moment after the last change */
@@ -458,9 +460,9 @@ function setKeyColourHidden(id, hidden) {
 }
 
 function addKeyColour() {
-  const used = HLKEY.map(k => k.hex.toUpperCase());
+  const used = HIGHLIGHT_KEY.map(k => k.hex.toUpperCase());
   const hex = EXTRA_KEY_COLOURS.find(c => !used.includes(c)) || FALLBACK_KEY_COLOUR;
-  HLKEY.push({ id: 'k' + Math.random().toString(36).slice(2, 10), meaning: '', hex: hex, hidden: false });
+  HIGHLIGHT_KEY.push({ id: 'k' + Math.random().toString(36).slice(2, 10), meaning: '', hex: hex, hidden: false });
   saveKey();
   drawSettings();
   const meanings = settingsSheet.querySelectorAll('[data-keymean]');
@@ -516,11 +518,11 @@ function linkEssaySyllabus(id, syllabusId) {
 
 /* the open notebook: the Mac app reloads the page with the new syllabus, and Settings opens again after */
 function linkOpenNotebookSyllabus(syllabusId) {
-  if (ed()) saveDocNow();
+  if (openEditor()) saveDocNow();
   try {
     sessionStorage.setItem(KEY + '-reopenset', 'syl');
   } catch (x) {}
-  post({ type: 'linkSyllabus', id: syllabusId, view: ui.view });
+  post({ type: 'linkSyllabus', id: syllabusId, view: uiState.view });
 }
 
 /* ⌘, in the web version (the Mac app's own Settings… menu item does it there) */

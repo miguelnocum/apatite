@@ -1,4 +1,4 @@
-import { $, esc, essays, meta, toast, ui } from '../core/helpers-and-state.js';
+import { $, escapeHtml, essays, meta, toast, uiState } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import {
   citeCount,
@@ -20,13 +20,13 @@ import { citeText } from './in-text-citations.js';
 
 /* ===== the Works Cited tab: add, edit, order and delete references ===== */
 export function renderWC() {
-  const selected = ui.wcSel || (ui.wcSel = {});
+  const selected = uiState.wcSel || (uiState.wcSel = {});
   const labels = yearLabels();
   const src = ownerDoc();
   const selectedCount = refs.filter(r => selected[r.id]).length;
   const items = orderedRefs().map(r => {
     const citedCount = citeCount(r.id, src);
-    return ui.refEdit === r.id ? editingItemHTML(r, citedCount) : itemHTML(r, citedCount, selected, labels);
+    return uiState.refEdit === r.id ? editingItemHTML(r, citedCount) : itemHTML(r, citedCount, selected, labels);
   });
   const empty = refs.length
     ? ''
@@ -43,8 +43,8 @@ export function renderWC() {
 function ownerHTML() {
   const option = (value, label) => `<option value="${value}"${refOwner === value ? ' selected' : ''}>${label}</option>`;
   const options =
-    option('notes', 'Notebook — ' + esc(meta.title || 'Notebook')) +
-    essays.map(essay => option(essay.id, 'Essay — ' + esc(essay.title || 'Untitled essay'))).join('');
+    option('notes', 'Notebook — ' + escapeHtml(meta.title || 'Notebook')) +
+    essays.map(essay => option(essay.id, 'Essay — ' + escapeHtml(essay.title || 'Untitled essay'))).join('');
   return (
     `<div class="wc-owner"><label for="wcowner">Sources for</label><select id="wcowner">${options}</select>` +
     '<span class="rhint">Each notebook and essay keeps its own list.</span></div>'
@@ -73,7 +73,7 @@ function barHTML(selectedCount) {
 }
 
 function selectionHTML(selectedCount) {
-  const deleteLabel = ui.confirm === 'wcdel' ? `Delete ${selectedCount}? Some are cited in your notes` : 'Delete';
+  const deleteLabel = uiState.confirm === 'wcdel' ? `Delete ${selectedCount}? Some are cited in your notes` : 'Delete';
   return (
     `<span class="wc-n">${selectedCount} selected</span>` +
     `<button class="btn sm danger" id="wcdel">${deleteLabel}</button>` +
@@ -87,13 +87,13 @@ function countHTML() {
 
 /* a reference being edited: its text, the surnames and year its citations use */
 function editingItemHTML(r, citedCount) {
-  const deleteLabel = ui.confirm === 'one' + r.id ? `Delete? It is cited ${citedCount}×` : 'Delete reference';
+  const deleteLabel = uiState.confirm === 'one' + r.id ? `Delete? It is cited ${citedCount}×` : 'Delete reference';
   return (
     `<li class="wci editing" data-id="${r.id}"><div class="wced">` +
     `<div class="wc-in" contenteditable="true" id="wced" aria-label="Reference text">${refHTML(r)}</div>` +
     '<div class="row"><label class="fld">Surnames used in the in-text citation, in order' +
-    `<input type="text" data-rfa="${r.id}" value="${esc(r.authors.join(', '))}"></label>` +
-    `<label class="fld" style="flex:0 0 110px">Year<input type="text" data-rfy="${r.id}" value="${esc(r.year)}"></label></div>` +
+    `<input type="text" data-rfa="${r.id}" value="${escapeHtml(r.authors.join(', '))}"></label>` +
+    `<label class="fld" style="flex:0 0 110px">Year<input type="text" data-rfy="${r.id}" value="${escapeHtml(r.year)}"></label></div>` +
     `<div class="row"><button class="btn sm pri" data-wcsave="${r.id}">Save</button>` +
     '<button class="btn sm" data-wccancel="1">Cancel</button><span class="sp"></span>' +
     `<button class="btn sm danger" data-wcdelone="${r.id}">${deleteLabel}</button></div></div></li>`
@@ -102,13 +102,13 @@ function editingItemHTML(r, citedCount) {
 
 function itemHTML(r, citedCount, selected, labels) {
   const on = selected[r.id];
-  const deleteLabel = ui.confirm === 'one' + r.id ? `Delete? Cited ${citedCount}×` : 'Delete';
+  const deleteLabel = uiState.confirm === 'one' + r.id ? `Delete? Cited ${citedCount}×` : 'Delete';
   return (
     `<li class="wci${on ? ' on' : ''}" data-id="${r.id}" draggable="true">` +
     '<span class="grip" title="Drag to reorder" aria-hidden="true">⠿</span>' +
     `<input type="checkbox" data-wcsel="${r.id}"${on ? ' checked' : ''} aria-label="Select reference">` +
     `<div class="wct">${refHTML(r)}</div>` +
-    `<div class="wcm"><span class="wcin" title="In-text citation">${esc(citeText([r.id], labels) || '')}</span>` +
+    `<div class="wcm"><span class="wcin" title="In-text citation">${escapeHtml(citeText([r.id], labels) || '')}</span>` +
     `<span>${citedCount ? 'cited ' + citedCount + '×' : 'not cited yet'}</span>` +
     `<div class="wcacts"><button class="btn sm" data-wcedit="${r.id}">Edit</button>` +
     `<button class="btn sm danger" data-wcdelone="${r.id}">${deleteLabel}</button></div></div></li>`
@@ -150,7 +150,7 @@ const WORKS_CITED_ACTIONS = [
 ];
 
 const onWorksCitedTabClick = e => {
-  if (ui.view !== 'wc') return;
+  if (uiState.view !== 'wc') return;
   const button = e.target.closest('button');
   if (!button) return;
   const action = WORKS_CITED_ACTIONS.find(([matches]) => matches(button, button.dataset));
@@ -185,16 +185,16 @@ function setRefSort(sort) {
 }
 
 function startEditingRef(id) {
-  ui.refEdit = id;
-  ui.confirm = null;
+  uiState.refEdit = id;
+  uiState.confirm = null;
   renderWC();
   const text = $('wced');
   if (text) text.focus();
 }
 
 function stopEditingRef() {
-  ui.refEdit = null;
-  ui.confirm = null;
+  uiState.refEdit = null;
+  uiState.confirm = null;
   renderWC();
 }
 
@@ -213,57 +213,57 @@ function saveEditedRef(id) {
     .map(name => name.trim())
     .filter(Boolean);
   r.year = document.querySelector('[data-rfy="' + r.id + '"]').value.trim() || 'n.d.';
-  ui.refEdit = null;
+  uiState.refEdit = null;
   saveAndRenderWC();
   toast('Reference saved');
 }
 
 function selectedRefIds() {
-  return refs.filter(r => ui.wcSel[r.id]).map(r => r.id);
+  return refs.filter(r => uiState.wcSel[r.id]).map(r => r.id);
 }
 
 function clearRefSelection() {
-  ui.wcSel = {};
-  ui.confirm = null;
+  uiState.wcSel = {};
+  uiState.confirm = null;
   renderWC();
 }
 
 /* references that are cited ask first (the button asks; a second click deletes) */
 function deleteRefs(ids, confirmKey) {
   const src = ownerDoc();
-  if (ids.some(id => citeCount(id, src)) && ui.confirm !== confirmKey) {
-    ui.confirm = confirmKey;
+  if (ids.some(id => citeCount(id, src)) && uiState.confirm !== confirmKey) {
+    uiState.confirm = confirmKey;
     renderWC();
     return;
   }
   setRefs(refs.filter(r => !ids.includes(r.id)));
-  if (confirmKey === 'wcdel') ui.wcSel = {};
-  else ui.refEdit = null;
-  ui.confirm = null;
+  if (confirmKey === 'wcdel') uiState.wcSel = {};
+  else uiState.refEdit = null;
+  uiState.confirm = null;
   saveAndRenderWC();
   if (confirmKey === 'wcdel') toast(ids.length + ' deleted');
 }
 
 /* ---- selecting ---- */
 const onWorksCitedTabChange = e => {
-  if (ui.view !== 'wc') return;
+  if (uiState.view !== 'wc') return;
   const box = e.target;
   if (box.id === 'wcall') selectAllRefs(box.checked);
   else if (box.dataset && box.dataset.wcsel) selectRef(box.dataset.wcsel, box.checked);
 };
 
 function selectAllRefs(on) {
-  ui.wcSel = {};
-  if (on) refs.forEach(r => (ui.wcSel[r.id] = 1));
-  ui.confirm = null;
+  uiState.wcSel = {};
+  if (on) refs.forEach(r => (uiState.wcSel[r.id] = 1));
+  uiState.confirm = null;
   renderWC();
 }
 
 function selectRef(id, on) {
-  ui.wcSel = ui.wcSel || {};
-  if (on) ui.wcSel[id] = 1;
-  else delete ui.wcSel[id];
-  ui.confirm = null;
+  uiState.wcSel = uiState.wcSel || {};
+  if (on) uiState.wcSel[id] = 1;
+  else delete uiState.wcSel[id];
+  uiState.confirm = null;
   renderWC();
 }
 
@@ -276,7 +276,7 @@ const clearDropMarks = classes =>
 const onWorksCitedTabDragstart = e => {
   const item = e.target.closest && e.target.closest('.wci[draggable="true"]');
   if (!item) return;
-  ui.dragId = item.dataset.id;
+  uiState.dragId = item.dataset.id;
   item.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
   try {
@@ -286,7 +286,7 @@ const onWorksCitedTabDragstart = e => {
 
 /* the reference dragged over shows which side it would go */
 const onWorksCitedTabDragover = e => {
-  if (!ui.dragId) return;
+  if (!uiState.dragId) return;
   const item = e.target.closest && e.target.closest('.wci');
   if (!item) return;
   e.preventDefault();
@@ -296,17 +296,17 @@ const onWorksCitedTabDragover = e => {
 };
 
 const onWorksCitedTabDrop = e => {
-  if (!ui.dragId) return;
+  if (!uiState.dragId) return;
   const item = e.target.closest && e.target.closest('.wci');
   if (!item) return;
   e.preventDefault();
-  const id = ui.dragId;
-  ui.dragId = null;
+  const id = uiState.dragId;
+  uiState.dragId = null;
   moveRef(id, item.dataset.id, item.classList.contains('dropa'));
 };
 
 const onWorksCitedTabDragend = () => {
-  ui.dragId = null;
+  uiState.dragId = null;
   clearDropMarks(['dragging', 'dropa', 'dropb']);
 };
 

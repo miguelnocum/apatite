@@ -1,7 +1,7 @@
 import { saveDocSoon } from '../core/save-doc.js';
 import { restoreSel } from '../core/caret.js';
-import { ed, toast } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor, toast } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { texShow } from './equation-tex.js';
 import { caretAfterMath, mathEd } from './equation-editor-parts.js';
 import { openMathEditor } from './equation-editor.js';
@@ -11,7 +11,7 @@ import { caretAnchors } from '../editor/caret-and-keys.js';
 const INLINE_KATEX_OPTIONS = { displayMode: false, throwOnError: false, strict: 'ignore' };
 
 export function renderIMath(root) {
-  (root || ed()).querySelectorAll('[data-imath]').forEach(drawInlineEquation);
+  (root || openEditor()).querySelectorAll('[data-imath]').forEach(drawInlineEquation);
 }
 
 function drawInlineEquation(el) {
@@ -35,7 +35,7 @@ function drawInlineEquation(el) {
 
 /* an inline equation where the caret is: the selected text becomes its LaTeX, or an empty one opens to be written */
 export function insertIMath() {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor) return;
   restoreSel();
   const selection = getSelection();
@@ -52,7 +52,7 @@ export function insertIMath() {
 
 function replaceWithInlineEquation(range, tex) {
   range.deleteContents();
-  const equation = mk('span');
+  const equation = makeElement('span');
   equation.setAttribute('data-imath', tex);
   range.insertNode(equation);
   renderIMath(equation.parentNode);

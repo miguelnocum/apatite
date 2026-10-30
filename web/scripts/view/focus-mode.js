@@ -1,6 +1,6 @@
 import { switchView } from './page-render.js';
 import { KEY } from '../core/example-data.js';
-import { $, curEssay, isDocView, meta, NATIVE, post, toast, ui } from '../core/helpers-and-state.js';
+import { $, curEssay, isDocView, meta, NATIVE, post, toast, uiState } from '../core/helpers-and-state.js';
 import { measure } from '../syllabus/syllabus-view.js';
 import { alignToolbar, applyZoom, keepAnchor, zoomAnchor, zoomPoint } from './zoom.js';
 import { renderComments } from '../editor/comments.js';
@@ -19,25 +19,25 @@ function savedFocus() {
 
 /* focus mode is on and showing */
 export function inFocus() {
-  return ui.focus && isDocView();
+  return uiState.focus && isDocView();
 }
 
 /* on or off (turned on from the syllabus, it goes to the notes) */
 function setFocus(on) {
-  ui.focus = !!on;
+  uiState.focus = !!on;
   try {
-    localStorage.setItem(KEY + '-focus', ui.focus ? '1' : '0');
+    localStorage.setItem(KEY + '-focus', uiState.focus ? '1' : '0');
   } catch (e) {}
-  if (ui.focus && !isDocView()) switchView('notes');
+  if (uiState.focus && !isDocView()) switchView('notes');
   else {
     applyFocus();
     renderComments(true); // (a column beside the page, or a drawer over it)
   }
-  toast(ui.focus ? 'Focus mode: ⇧⌘F to bring everything back' : 'Focus mode off');
+  toast(uiState.focus ? 'Focus mode: ⇧⌘F to bring everything back' : 'Focus mode off');
 }
 
 export function toggleFocus() {
-  setFocus(!ui.focus);
+  setFocus(!uiState.focus);
 }
 
 /* the page laid out for it (after every render), and the Mac app told, so its window can follow */
@@ -88,16 +88,16 @@ export function applyFocusZoom(page, wrap) {
   });
   if (wrap.style.width) wrap.style.width = '';
   if (wrap.style.height) wrap.style.height = '';
-  document.documentElement.style.setProperty('--fz', String(ui.fzoom));
-  $('zlab').textContent = Math.round(ui.fzoom * 100) + '%';
+  document.documentElement.style.setProperty('--fz', String(uiState.fzoom));
+  $('zlab').textContent = Math.round(uiState.fzoom * 100) + '%';
 }
 
 /* the nearest step to a zoom, keeping your place (the caret, or what's under the pointer, stays where it is) */
 export function setFocusZoom(zoom, point) {
   const next = nearestFocusZoom(zoom === 'fit' ? 1 : zoom);
-  if (next === ui.fzoom) return;
+  if (next === uiState.fzoom) return;
   const anchor = zoomAnchor(point || zoomPoint());
-  ui.fzoom = next;
+  uiState.fzoom = next;
   try {
     localStorage.setItem(KEY + '-fzoom', String(next));
   } catch (e) {}
@@ -115,7 +115,7 @@ function nearestFocusZoom(zoom) {
 }
 
 export function stepFocusZoom(direction) {
-  const at = FOCUS_ZOOMS.indexOf(ui.fzoom);
+  const at = FOCUS_ZOOMS.indexOf(uiState.fzoom);
   setFocusZoom(FOCUS_ZOOMS[Math.max(0, Math.min(FOCUS_ZOOMS.length - 1, at + direction))]);
 }
 
@@ -132,7 +132,7 @@ export function focusWheel(e) {
 function showFocusTitle() {
   const title = $('focustitle');
   if (!title) return;
-  const essay = ui.view === 'essay' && curEssay();
+  const essay = uiState.view === 'essay' && curEssay();
   title.textContent = essay ? essay.title || 'Untitled essay' : meta.title || '';
 }
 
@@ -152,9 +152,9 @@ export function initFocusMode() {
   /* ===== focus mode, as in Bear: just the notes (or essay) and the formatting bar, for writing in a small window beside
    others. The title row, panes and page edges go, the page fills the window and rewraps as it narrows, and the bar
    floats at the bottom. It only applies to the notes and essays, and is remembered. ⇧⌘F, or the bar's last button ===== */
-  ui.focus = savedFocus();
+  uiState.focus = savedFocus();
   if (NATIVE) document.documentElement.classList.add('native');
-  ui.fzoom = savedFocusZoom();
+  uiState.fzoom = savedFocusZoom();
   window.addEventListener('scroll', onFocusModeWindowScroll, { passive: true });
   document.addEventListener('keydown', onFocusModeKeydown);
   /* the Mac app's View menu */

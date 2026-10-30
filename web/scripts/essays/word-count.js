@@ -1,6 +1,6 @@
 import { saveDocNow } from '../core/save-doc.js';
-import { ed, ui, uid } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor, uiState, newId } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { renderWordCount, updateEssayListCounts } from './word-count-sidebar.js';
 import { drawBoxes } from './word-count-boxes.js';
 import { hydrateCites } from '../citations/in-text-citations.js';
@@ -96,7 +96,7 @@ export function tagCounts(root, options) {
 
 /* a saved essay's total, counted from its HTML */
 export function essayTotal(essay) {
-  const box = mk('div');
+  const box = makeElement('div');
   box.innerHTML = essay.doc || '';
   hydrateCites(box);
   return tagCounts(box, wcOpts(essay)).total;
@@ -111,7 +111,7 @@ export function tagNamed(options, name) {
   const found = options.tags.find(tag => tag.name.toLowerCase() === name.toLowerCase());
   if (found) return found;
   const tag = {
-    id: 't' + uid(),
+    id: 't' + newId(),
     name,
     color: TAG_COLORS[options.tags.length % TAG_COLORS.length],
     exclude: WC_EXCLUDE_RE.test(name),
@@ -123,10 +123,10 @@ export function tagNamed(options, name) {
 
 /* the paragraphs' tags changed: saved (the text is unlocked for that), and everything that shows counts redrawn */
 export function tagsChanged() {
-  const editor = ed();
+  const editor = openEditor();
   editor.setAttribute('contenteditable', 'true');
   saveDocNow();
-  editor.setAttribute('contenteditable', ui.wcMode ? 'false' : 'true');
+  editor.setAttribute('contenteditable', uiState.wcMode ? 'false' : 'true');
   renderWordCount();
   updateEssayListCounts();
   drawBoxes();

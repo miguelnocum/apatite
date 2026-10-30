@@ -1,10 +1,10 @@
 import { saveDocSoon } from '../core/save-doc.js';
 import { selectRange } from '../core/caret.js';
-import { ed, isDocView, ui } from '../core/helpers-and-state.js';
+import { openEditor, isDocView, uiState } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { flash, render } from '../view/page-render.js';
-import { edChanged } from '../editor/hydrate-and-changes.js';
+import { notesEdited } from '../editor/hydrate-and-changes.js';
 import { parseOne, refById, refs } from '../citations/references.js';
 import { hydrateCites } from '../citations/in-text-citations.js';
 import { emptyLine } from '../editor/callouts.js';
@@ -15,14 +15,16 @@ import { emptyLine } from '../editor/callouts.js';
    was (else at the end); returns the range to put the quote in, or null without an editor */
 function pdfInsertRange(o) {
   if (!isDocView()) {
-    ui.view = 'notes';
+    uiState.view = 'notes';
     render();
   }
-  const editor = ed();
+  const editor = openEditor();
   if (!editor) return null;
   addPdfSource(o);
   const range =
-    ui.lastRange && editor.contains(ui.lastRange.startContainer) ? ui.lastRange.cloneRange() : endOfNotes(editor);
+    uiState.lastRange && editor.contains(uiState.lastRange.startContainer)
+      ? uiState.lastRange.cloneRange()
+      : endOfNotes(editor);
   editor.focus({ preventScroll: true });
   selectRange(range);
   if (!range.collapsed) range.deleteContents();
@@ -57,13 +59,13 @@ function afterPdfInsert(after) {
   range.setStart(after, 1);
   range.collapse(true);
   selectRange(range);
-  ui.lastRange = range.cloneRange();
+  uiState.lastRange = range.cloneRange();
   hydrateCites();
   saveDocSoon();
 }
 
 function pdfCitation(o, withAnchor) {
-  const citation = mk('span');
+  const citation = makeElement('span');
   citation.setAttribute('data-cite', o.refId);
   if (o.pg) citation.setAttribute('data-pg', o.pg);
   if (withAnchor && o.anchor) citation.setAttribute('data-anchor', o.anchor);
@@ -108,7 +110,7 @@ const nbInsertNote = o => {
   fragment.append(...pieces, after);
   range.insertNode(fragment);
   afterPdfInsert(after);
-  if (typeof edChanged === 'function') edChanged();
+  if (typeof notesEdited === 'function') notesEdited();
   if (citation) citation.scrollIntoView({ block: 'center' });
   return true;
 };

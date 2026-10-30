@@ -1,6 +1,6 @@
-import { cmd } from '../core/commands.js';
+import { requestCommand } from '../core/commands.js';
 import { saveDocNow, saveDocSoon } from '../core/save-doc.js';
-import { closeTbMenu } from '../core/toolbar-menu.js';
+import { closeToolbarMenu } from '../core/toolbar-menu.js';
 import { EXAMPLE } from '../core/example-data.js';
 import {
   $,
@@ -9,11 +9,11 @@ import {
   meta,
   NATIVE,
   post,
-  pts,
-  setCurEd,
-  setPts,
+  syllabusPoints,
+  setActiveEditor,
+  setSyllabusPoints,
   toast,
-  ui
+  uiState
 } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { commit, planApply } from '../syllabus/model.js';
@@ -23,9 +23,9 @@ import { showStyleMatches } from '../syllabus/numbering-style.js';
 import { backToSyl, markCur, render, switchView } from '../view/page-render.js';
 import { tableState } from '../editor/editor-commands.js';
 import { stepZoom } from '../view/zoom.js';
-import { openTbMenu } from '../editor/toolbar-menus.js';
+import { openToolbarMenu } from '../editor/toolbar-menus.js';
 import { hydrate } from '../editor/notes-document.js';
-import { edChanged } from '../editor/hydrate-and-changes.js';
+import { notesEdited } from '../editor/hydrate-and-changes.js';
 import { deleteEssay, newEssay, openEssay, openPoint, renderEssaySide } from '../essays/essays.js';
 import { exportHTML } from '../editor/export.js';
 import { useRefs } from '../citations/references.js';
@@ -41,7 +41,7 @@ const CONFIDENCE_LEVELS = 5; // 0 (not rated) to 4
 const onEventsFocusin = function (e) {
   const notes = e.target.closest && e.target.closest('.notes');
   if (!notes) return;
-  setCurEd(notes);
+  setActiveEditor(notes);
   tableState();
 };
 
@@ -62,7 +62,7 @@ const onEventsInput = function (e) {
 const PAGE_INPUTS = [
   [t => t.id === 'etitle', renameEssay],
   [t => t.id === 'ed', notesTyped],
-  [t => t.dataset.ds != null, t => (ui.draft[+t.dataset.ds].title = t.value)],
+  [t => t.dataset.ds != null, t => (uiState.draft[+t.dataset.ds].title = t.value)],
   [t => t.dataset.dc != null, t => (draftItem(t.dataset.dc).code = t.value)],
   [t => t.dataset.dt != null, t => (draftItem(t.dataset.dt).text = t.value)],
   [t => t.id === 'paste', pasteTyped],
@@ -73,13 +73,13 @@ const PAGE_INPUTS = [
 ];
 
 function pasteTyped(field) {
-  ui.paste = field.value;
+  uiState.paste = field.value;
   showStyleMatches();
 }
 
 /* a numbering style typed: kept, and the count of lines it matches shown */
 function styleTyped(key, value) {
-  ui[key] = value;
+  uiState[key] = value;
   showStyleMatches();
 }
 
@@ -98,7 +98,7 @@ function renameEssay(field) {
 /* the notes changed: saved soon; a citation typed as text is made into one */
 function notesTyped(editor) {
   saveDocSoon();
-  edChanged();
+  notesEdited();
   if (editor.querySelector('span[data-cite]:not(.cite)')) {
     hydrate();
     renderSide();
@@ -108,12 +108,12 @@ function notesTyped(editor) {
 /* a point in the syllabus draft, from its "section.item" */
 function draftItem(path) {
   const [section, item] = path.split('.').map(Number);
-  return ui.draft[section].items[item];
+  return uiState.draft[section].items[item];
 }
 
 function chooseDraftMode(radio) {
-  ui.mode = radio.value;
-  ui.confirmApply = null;
+  uiState.mode = radio.value;
+  uiState.confirmApply = null;
 }
 
 function renameNotebook(field) {
@@ -131,12 +131,12 @@ const onEventsTbClick = function (e) {
   const button = e.target.closest('button');
   if (!button) return;
   if (button.dataset.menu) {
-    openTbMenu(button, button.dataset.menu);
+    openToolbarMenu(button, button.dataset.menu);
     return;
   }
-  closeTbMenu();
+  closeToolbarMenu();
   if (button.dataset.zoom) stepZoom(+button.dataset.zoom);
-  else if (button.dataset.cmd) cmd(button.dataset.cmd);
+  else if (button.dataset.cmd) requestCommand(button.dataset.cmd);
 };
 
 /* ---- the page's buttons and links ---- */
@@ -181,17 +181,17 @@ function afterSaving(then) {
 function chooseEssay(link, e) {
   e.preventDefault();
   const id = link.dataset.essay;
-  if (id !== ui.essayId) afterSaving(() => openEssay(id));
+  if (id !== uiState.essayId) afterSaving(() => openEssay(id));
   $('side').classList.remove('open');
 }
 
 /* the first click asks; the second deletes */
 function askThenDeleteEssay(button) {
-  if (ui.delSure) {
+  if (uiState.delSure) {
     deleteEssay();
     return;
   }
-  ui.delSure = true;
+  uiState.delSure = true;
   button.classList.add('sure');
   button.textContent = 'Click again to delete this essay';
 }
@@ -201,13 +201,13 @@ function askThenDeleteEssay(button) {
    that's showing goes back to the notes or essay you came from */
 function chooseView(tab) {
   const view = tab.dataset.view;
-  if (NATIVE && view === ui.view && !isDocView()) switchView(ui.lastDoc || 'notes');
+  if (NATIVE && view === uiState.view && !isDocView()) switchView(uiState.lastDoc || 'notes');
   else switchView(view);
 }
 
 /* a confidence circle: one step up (⇧ one down), round from 4 to not rated */
 function rateConfidence(circle, e) {
-  const point = pts.find(p => p.id === circle.dataset.cyc);
+  const point = syllabusPoints.find(p => p.id === circle.dataset.cyc);
   if (!point) return;
   const step = e.shiftKey ? CONFIDENCE_LEVELS - 1 : 1;
   point.status = ((point.status || 0) + step) % CONFIDENCE_LEVELS;
@@ -235,58 +235,58 @@ function openPointFromLink(link, e) {
 
 /* Edit syllabus / Done editing (editbtn2 only ever finishes; data-edit only ever starts) */
 function toggleSyllabusEditing(button) {
-  ui.view = 'syl';
-  ui.edit = !ui.edit && !(button.id === 'editbtn2');
-  if (button.dataset.edit) ui.edit = true;
-  ui.confirm = null;
-  ui.confirmApply = null;
+  uiState.view = 'syl';
+  uiState.edit = !uiState.edit && !(button.id === 'editbtn2');
+  if (button.dataset.edit) uiState.edit = true;
+  uiState.confirm = null;
+  uiState.confirmApply = null;
   render();
-  if (!ui.edit) Store.saveLocal();
+  if (!uiState.edit) Store.saveLocal();
 }
 
 /* ---- a pasted syllabus: detected, reviewed as a draft, then added ---- */
 function detectSyllabus() {
-  ui.paste = $('paste').value;
-  if (!ui.paste.trim()) {
+  uiState.paste = $('paste').value;
+  if (!uiState.paste.trim()) {
     toast('Paste some text first');
     return;
   }
-  ui.draft = detect(ui.paste);
-  ui.confirmApply = null;
+  uiState.draft = detect(uiState.paste);
+  uiState.confirmApply = null;
   renderSetup();
   const review = $('review');
   if (review) review.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function suggestFromPaste() {
-  ui.paste = $('paste').value;
+  uiState.paste = $('paste').value;
   suggestGrouping();
 }
 
 /* a line of the draft goes; a section left empty goes with it */
 function removeDraftItem(path) {
   const [sectionIndex, itemIndex] = path.split('.').map(Number);
-  const section = ui.draft[sectionIndex];
+  const section = uiState.draft[sectionIndex];
   section.items.splice(itemIndex, 1);
-  if (!section.items.length) ui.draft.splice(sectionIndex, 1);
-  if (!ui.draft.length) ui.draft = null;
+  if (!section.items.length) uiState.draft.splice(sectionIndex, 1);
+  if (!uiState.draft.length) uiState.draft = null;
   renderSetup();
 }
 
 function addDraftItem(sectionIndex) {
-  ui.draft[sectionIndex].items.push({ code: '', text: '', guide: '' });
+  uiState.draft[sectionIndex].items.push({ code: '', text: '', guide: '' });
   renderSetup();
 }
 
 function discardDraft() {
-  ui.draft = null;
-  ui.confirmApply = null;
+  uiState.draft = null;
+  uiState.confirmApply = null;
   renderSetup();
 }
 
 /* adds the draft (or replaces the syllabus with it: that asks first if it would delete points with notes or ratings) */
 function confirmDraft() {
-  const replacing = ui.mode === 'replace';
+  const replacing = uiState.mode === 'replace';
   const points = draftPoints();
   if (!points.length) {
     toast('Nothing to add');
@@ -294,23 +294,23 @@ function confirmDraft() {
   }
   const plan = planApply(points, replacing);
   const atRisk = plan.removed.filter(p => (p.notes || '').trim() || p.status).length;
-  if (replacing && atRisk && !ui.confirmApply) {
-    ui.confirmApply = atRisk;
+  if (replacing && atRisk && !uiState.confirmApply) {
+    uiState.confirmApply = atRisk;
     renderSetup();
     return;
   }
   commit(plan.next, plan.removed);
-  ui.draft = null;
-  ui.paste = '';
-  ui.confirmApply = null;
+  uiState.draft = null;
+  uiState.paste = '';
+  uiState.confirmApply = null;
   showNewSyllabus(points.length + ' point' + (points.length === 1 ? '' : 's') + ' processed', false);
 }
 
 /* the draft's points (empty lines left out; missing numbers made from the section's) */
 function draftPoints() {
-  const firstSection = ui.mode === 'add' ? sectionNames().length : 0;
+  const firstSection = uiState.mode === 'add' ? sectionNames().length : 0;
   const points = [];
-  ui.draft.forEach((section, si) => {
+  uiState.draft.forEach((section, si) => {
     section.items.forEach((item, j) => {
       const text = (item.text || '').trim();
       if (!text) return;
@@ -324,8 +324,8 @@ function draftPoints() {
 /* back to the syllabus, at the top, with the work done */
 function showNewSyllabus(message, isExample) {
   Store.example = isExample;
-  ui.view = 'syl';
-  ui.edit = false;
+  uiState.view = 'syl';
+  uiState.edit = false;
   render();
   window.scrollTo(0, 0);
   toast(message);
@@ -333,18 +333,18 @@ function showNewSyllabus(message, isExample) {
 
 /* "Load Biology example" / "Start with an empty syllabus": asks first if there are notes or ratings to lose */
 function startSyllabusOver(button) {
-  const hasWork = pts.some(p => (p.notes || '').trim() || p.status);
-  if (hasWork && ui.confirmReplace !== button.id) {
-    ui.confirmReplace = button.id;
+  const hasWork = syllabusPoints.some(p => (p.notes || '').trim() || p.status);
+  if (hasWork && uiState.confirmReplace !== button.id) {
+    uiState.confirmReplace = button.id;
     button.textContent = 'Replace everything? Click again';
     return;
   }
-  ui.confirmReplace = null;
+  uiState.confirmReplace = null;
   const example = button.id === 'ex';
-  const gone = pts;
-  setPts([]);
+  const gone = syllabusPoints;
+  setSyllabusPoints([]);
   commit(example ? planApply(EXAMPLE, true).next : [], gone);
-  ui.draft = null;
+  uiState.draft = null;
   showNewSyllabus(example ? 'Example loaded' : 'Empty syllabus', example);
 }
 
@@ -353,7 +353,7 @@ const onEventsWindowScroll = function () {
   if (markCur.t) return;
   markCur.t = requestAnimationFrame(() => {
     markCur.t = 0;
-    if (ui.view !== 'setup') markCur();
+    if (uiState.view !== 'setup') markCur();
   });
 };
 

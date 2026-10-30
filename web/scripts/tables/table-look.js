@@ -1,6 +1,6 @@
-import { saveWS, WS } from '../core/writing-settings.js';
-import { toast, ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { saveWritingSettings, writingSettings } from '../core/writing-settings.js';
+import { toast, uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { cellsIn, rowTag } from './table-grid.js';
 import { changeTable } from './table-edits.js';
 import { setTableVar, tableVar } from './table-sizing.js';
@@ -62,11 +62,11 @@ export function toggleHeaderRow(t) {
 }
 
 function retagCell(cell, tag) {
-  const copy = mk(tag);
+  const copy = makeElement(tag);
   [...cell.attributes].forEach(a => copy.setAttribute(a.name, a.value));
   while (cell.firstChild) copy.appendChild(cell.firstChild);
   cell.replaceWith(copy);
-  if (ui.tblCell === cell) ui.tblCell = copy;
+  if (uiState.tblCell === cell) uiState.tblCell = copy;
 }
 
 /* ---- the selected cells ---- */
@@ -100,19 +100,19 @@ export function setTablePadding(t, padding) {
 /* what the table's text looks like now: its own setting, or the default */
 export function tableTextLook(table) {
   return {
-    size: parseFloat(tableVar(table, '--tfs')) || WS.tfs || TABLE_DEFAULT_SIZE,
-    spacing: tableVar(table, '--tlh') || WS.tlh || '',
-    padding: table.hasAttribute('data-tpad') ? table.getAttribute('data-tpad') : WS.tpad || ''
+    size: parseFloat(tableVar(table, '--tfs')) || writingSettings.tfs || TABLE_DEFAULT_SIZE,
+    spacing: tableVar(table, '--tlh') || writingSettings.tlh || '',
+    padding: table.hasAttribute('data-tpad') ? table.getAttribute('data-tpad') : writingSettings.tpad || ''
   };
 }
 
 /* this table's text becomes the default for every table (and this one then just follows the default) */
 export function makeTableTextDefault(t) {
   const look = tableTextLook(t.table);
-  WS.tfs = look.size;
-  WS.tlh = look.spacing;
-  WS.tpad = look.padding;
-  saveWS();
+  writingSettings.tfs = look.size;
+  writingSettings.tlh = look.spacing;
+  writingSettings.tpad = look.padding;
+  saveWritingSettings();
   applyTableDefaults();
   changeTable(t.table, () => {
     setTableVar(t.table, '--tfs', '');
@@ -125,8 +125,8 @@ export function makeTableTextDefault(t) {
 /* the defaults, as CSS variables every table falls back on */
 export function applyTableDefaults() {
   const root = document.documentElement;
-  const padding = TABLE_PADDINGS.find(p => p[0] === (WS.tpad || '')) || TABLE_PADDINGS[1];
-  root.style.setProperty('--tfs-d', (WS.tfs || TABLE_DEFAULT_SIZE) + 'px');
-  root.style.setProperty('--tlh-d', WS.tlh || 'var(--edl, 1.65)');
+  const padding = TABLE_PADDINGS.find(p => p[0] === (writingSettings.tpad || '')) || TABLE_PADDINGS[1];
+  root.style.setProperty('--tfs-d', (writingSettings.tfs || TABLE_DEFAULT_SIZE) + 'px');
+  root.style.setProperty('--tlh-d', writingSettings.tlh || 'var(--edl, 1.65)');
   root.style.setProperty('--tpad-d', padding[2]);
 }

@@ -1,6 +1,6 @@
 import { docHTML, serializeDoc } from '../core/save-doc.js';
 import { KEY } from '../core/example-data.js';
-import { ed, edEssayId, esc, essays, toast, ui } from '../core/helpers-and-state.js';
+import { openEditor, edEssayId, escapeHtml, essays, toast, uiState } from '../core/helpers-and-state.js';
 import { Store, setSave, track } from '../core/storage.js';
 
 /* ===== the references of a Works Cited, and how they're kept ===== */
@@ -65,17 +65,17 @@ export function useRefs(owner) {
     refs = essay.refs || (essay.refs = []);
     refSort = essay.refSort || 'auto';
   }
-  ui.wcSel = {};
-  ui.refEdit = null;
-  ui.confirm = null;
+  uiState.wcSel = {};
+  uiState.refEdit = null;
+  uiState.confirm = null;
 }
 
 /* the open list's document, as HTML (for "cited 3 times" and delete warnings) */
 export function ownerDoc() {
   const essayId = edEssayId();
-  const open = ed() ? serializeDoc() : null;
+  const open = openEditor() ? serializeDoc() : null;
   if (refOwner === 'notes') {
-    const notesOpen = open != null && !essayId && ed().getAttribute('data-doc') === 'notes';
+    const notesOpen = open != null && !essayId && openEditor().getAttribute('data-doc') === 'notes';
     return (notesOpen ? open : docHTML) || '';
   }
   return (essayId === refOwner && open != null ? open : (ownerEssay() || {}).doc) || '';
@@ -158,7 +158,7 @@ export function parseOne(raw, html) {
   return {
     id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
     raw,
-    html: html || esc(raw),
+    html: html || escapeHtml(raw),
     authors: names,
     year
   };
@@ -217,7 +217,7 @@ class ReferenceSplitter {
       /\n/.test(node.nodeValue) && node.parentNode && /^(PRE|BODY|DIV)$/.test(node.parentNode.tagName);
     node.nodeValue.split(/\n\s*\n|\n/).forEach((part, i) => {
       if (i > 0 && breaksLines) this.flush();
-      this.html += esc(part);
+      this.html += escapeHtml(part);
       this.text += part;
     });
   }
@@ -255,7 +255,7 @@ export function orderedRefs() {
 }
 
 export function refHTML(r) {
-  return r.html || esc(r.raw);
+  return r.html || escapeHtml(r.raw);
 }
 
 /* how many citations in a document's HTML name this reference */

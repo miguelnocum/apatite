@@ -1,6 +1,6 @@
-import { saveWS, WS } from '../core/writing-settings.js';
-import { cmd } from '../core/commands.js';
-import { tbState } from '../editor/toolbar-state.js';
+import { saveWritingSettings, writingSettings } from '../core/writing-settings.js';
+import { requestCommand } from '../core/commands.js';
+import { updateToolbarState } from '../editor/toolbar-state.js';
 import { closestTag, fire, inEd } from '../core/caret.js';
 import { isDocView, toast } from '../core/helpers-and-state.js';
 import { MD, anchorElement, mdCaret, mdOff, mdPara, mdSel, textAfterCaret } from './writing.js';
@@ -10,7 +10,7 @@ import { codeExit } from './inline-code.js';
 import { insertMath } from '../equations/equation-drawing.js';
 import { ZW, blockBackspace, joinLocked, listBackspace } from '../editor/caret-and-keys.js';
 import { calloutBackspace, calloutEnter } from '../editor/callout-keys.js';
-import { applyWS, twScroll } from './typewriter-writing.js';
+import { applyWritingSettings, twScroll } from './typewriter-writing.js';
 
 /* ===== typing in the notes: smart quotes and pairs, stepping out of formatting, the shortcuts, and their ⌘Z ===== */
 const PAIRS = { '(': ')', '[': ']', '{': '}', '“': '”' };
@@ -198,7 +198,7 @@ function commandKey(e) {
   if (!command) return false;
   e.preventDefault();
   e.stopImmediatePropagation();
-  cmd(command);
+  requestCommand(command);
   return true;
 }
 
@@ -211,10 +211,10 @@ function typewriterKey(e) {
 }
 
 function toggleTypewriter() {
-  WS.tw = !WS.tw;
-  saveWS();
-  applyWS();
-  toast('Typewriter scrolling ' + (WS.tw ? 'on' : 'off'));
+  writingSettings.tw = !writingSettings.tw;
+  saveWritingSettings();
+  applyWritingSettings();
+  toast('Typewriter scrolling ' + (writingSettings.tw ? 'on' : 'off'));
   twScroll();
 }
 
@@ -227,7 +227,7 @@ function undoShortcut(e) {
   MD.esc = null;
   undo.undo();
   fire();
-  tbState();
+  updateToolbarState();
 }
 
 /* Backspace between an empty pair deletes both; then the editor's own Backspaces, in turn */

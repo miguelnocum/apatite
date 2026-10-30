@@ -1,6 +1,6 @@
 import { saveDocNow } from '../core/save-doc.js';
-import { closeTbMenu } from '../core/toolbar-menu.js';
-import { $, ed, isDocView, NATIVE, pts, ui } from '../core/helpers-and-state.js';
+import { closeToolbarMenu } from '../core/toolbar-menu.js';
+import { $, openEditor, isDocView, NATIVE, syllabusPoints, uiState } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { measure, renderSide, renderSyl } from '../syllabus/syllabus-view.js';
 import { alignToolbar, headerHeight } from './zoom.js';
@@ -19,14 +19,14 @@ const CITATION_CHECK_REFRESH_DELAY = 50;
 
 /* the points of a section, by its index in the syllabus being edited */
 export function secPts(index) {
-  const ids = (ui.secMap && ui.secMap[index]) || [];
-  return pts.filter(p => ids.includes(p.id));
+  const ids = (uiState.secMap && uiState.secMap[index]) || [];
+  return syllabusPoints.filter(p => ids.includes(p.id));
 }
 
 export function render() {
-  if (ed()) saveDocNow();
-  closeTbMenu();
-  if (ui.view === 'setup') ui.view = 'syl';
+  if (openEditor()) saveDocNow();
+  closeToolbarMenu();
+  if (uiState.view === 'setup') uiState.view = 'syl';
   renderHeader();
   layoutForView();
   applyFocus();
@@ -35,8 +35,8 @@ export function render() {
   else if (citeCheck) setTimeout(() => citeCheck && ccRefresh(0), CITATION_CHECK_REFRESH_DELAY);
   renderViewContent();
   $('side').classList.remove('open');
-  $('back').hidden = !(ui.back && ui.view === 'notes');
-  if (!isDocView()) ui.citeTarget = null;
+  $('back').hidden = !(uiState.back && uiState.view === 'notes');
+  if (!isDocView()) uiState.citeTarget = null;
   renderRefs();
   measure();
   alignToolbar();
@@ -45,36 +45,36 @@ export function render() {
 /* the view buttons, the toolbar (notes and essays only) and the Edit syllabus button */
 function renderHeader() {
   document.querySelectorAll('.tabs button').forEach(b => {
-    const on = b.dataset.view === ui.view;
+    const on = b.dataset.view === uiState.view;
     b.setAttribute('aria-pressed', on);
     if (NATIVE && !b.classList.contains('doctab'))
-      b.title = on ? 'Back to your ' + (ui.lastDoc === 'essay' ? 'essay' : 'notes') : '';
+      b.title = on ? 'Back to your ' + (uiState.lastDoc === 'essay' ? 'essay' : 'notes') : '';
   });
   $('tb').style.display = isDocView() ? '' : 'none';
-  $('tb').classList.toggle('essay', ui.view === 'essay');
+  $('tb').classList.toggle('essay', uiState.view === 'essay');
   const edit = $('editbtn');
-  edit.hidden = ui.view !== 'syl';
-  edit.textContent = ui.edit ? 'Done editing' : 'Edit syllabus';
-  edit.classList.toggle('pri', !!ui.edit);
+  edit.hidden = uiState.view !== 'syl';
+  edit.textContent = uiState.edit ? 'Done editing' : 'Edit syllabus';
+  edit.classList.toggle('pri', !!uiState.edit);
   measure();
 }
 
 function layoutForView() {
-  $('bodywrap').classList.toggle('wcview', ui.view === 'wc');
+  $('bodywrap').classList.toggle('wcview', uiState.view === 'wc');
   $('bodywrap').classList.toggle('notesview', isDocView());
-  if (ui.view === 'essay') return;
-  ui.wcMode = false;
+  if (uiState.view === 'essay') return;
+  uiState.wcMode = false;
   closeTagPop();
 }
 
 function renderViewContent() {
-  if (ui.view === 'notes') {
+  if (uiState.view === 'notes') {
     renderNotes();
     renderSide();
-  } else if (ui.view === 'essay') {
+  } else if (uiState.view === 'essay') {
     renderEssay();
     renderSide();
-  } else if (ui.view === 'wc') {
+  } else if (uiState.view === 'wc') {
     $('side').innerHTML = '';
     renderWC();
   } else {
@@ -103,10 +103,10 @@ export function flash(el) {
 
 /* "Back to syllabus" from a point's notes: to where the syllabus was, the point flashed */
 export function backToSyl() {
-  if (ed()) saveDocNow();
-  const back = ui.back;
-  ui.back = null;
-  ui.view = 'syl';
+  if (openEditor()) saveDocNow();
+  const back = uiState.back;
+  uiState.back = null;
+  uiState.view = 'syl';
   render();
   window.scrollTo(0, back ? back.scroll : 0);
   if (back) flash(document.getElementById('row-' + back.id));
@@ -119,17 +119,17 @@ export function addBanner() {
     'afterbegin',
     '<div class="banner"><span>This is an example syllabus (topic 2 of your Biology file). Ratings and notes you add are saved. ' +
       'Replace it with your own whenever you like.</span>' +
-      `<button class="btn sm" data-edit="1"${ui.edit ? ' style="visibility:hidden"' : ''}>Edit syllabus</button></div>`
+      `<button class="btn sm" data-edit="1"${uiState.edit ? ' style="visibility:hidden"' : ''}>Edit syllabus</button></div>`
   );
 }
 
 export function switchView(view) {
-  if (isDocView()) ui.lastDoc = ui.view;
-  ui.scroll[ui.view] = window.scrollY;
-  if (view === 'syl') ui.back = null;
-  ui.view = view;
-  ui.confirm = null;
-  ui.confirmApply = null;
+  if (isDocView()) uiState.lastDoc = uiState.view;
+  uiState.scroll[uiState.view] = window.scrollY;
+  if (view === 'syl') uiState.back = null;
+  uiState.view = view;
+  uiState.confirm = null;
+  uiState.confirmApply = null;
   render();
-  window.scrollTo(0, ui.scroll[view] || 0);
+  window.scrollTo(0, uiState.scroll[view] || 0);
 }

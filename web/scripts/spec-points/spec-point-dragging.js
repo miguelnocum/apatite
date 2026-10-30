@@ -1,5 +1,5 @@
-import { $, ed, ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { $, openEditor, uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { headerHeight } from '../view/zoom.js';
 import { edBlocks } from '../essays/word-count.js';
 import { setWcEatClick } from '../essays/word-count-boxes.js';
@@ -26,7 +26,7 @@ let spScrollRaf = 0;
 function spBlockAt(y) {
   let best = null;
   let bestDistance = Infinity;
-  edBlocks(ed()).forEach(block => {
+  edBlocks(openEditor()).forEach(block => {
     if (!block.offsetHeight) return;
     const box = block.getBoundingClientRect();
     const distance = y < box.top ? box.top - y : y > box.bottom ? y - box.bottom : 0;
@@ -39,7 +39,7 @@ function spBlockAt(y) {
 }
 
 function spRange(drag) {
-  const blocks = edBlocks(ed());
+  const blocks = edBlocks(openEditor());
   const from = blocks.indexOf(drag.anchor);
   const to = blocks.indexOf(drag.cur);
   if (from < 0 || to < 0) return [];
@@ -64,7 +64,7 @@ export function spTemp() {
 function layerChild(layerOf, id, className) {
   let el = $(id);
   if (el) return el;
-  el = mk('div');
+  el = makeElement('div');
   el.id = id;
   el.className = className;
   layerOf().appendChild(el);
@@ -110,7 +110,7 @@ function dragTo(block) {
 
 /* a bracket's label goes to its point; its handles resize it; the margin starts a new one */
 const onSpecPointDraggingMousedown = e => {
-  if (ui.view !== 'notes' || !ui.spMode || e.button !== 0 || !ed()) return;
+  if (uiState.view !== 'notes' || !uiState.spMode || e.button !== 0 || !openEditor()) return;
   const label = e.target.closest && e.target.closest('[data-splab]');
   if (label) {
     e.preventDefault();

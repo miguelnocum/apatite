@@ -2,18 +2,18 @@ import { KEY } from '../core/example-data.js';
 import {
   $,
   curEssay,
-  ed,
+  openEditor,
   edEssayId,
-  esc,
+  escapeHtml,
   essays,
   NATIVE,
-  ptById,
-  pts,
-  setCurEd,
+  pointById,
+  syllabusPoints,
+  setActiveEditor,
   setEssays,
   toast,
-  ui,
-  uid
+  uiState,
+  newId
 } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { renderSide, sideHd } from '../syllabus/syllabus-view.js';
@@ -30,13 +30,13 @@ import { spGo } from '../spec-points/spec-point-panel.js';
 /* ===== essays: free writing on the same page, no syllabus ===== */
 function rememberEssay() {
   try {
-    localStorage.setItem(KEY + '-essay', ui.essayId || '');
+    localStorage.setItem(KEY + '-essay', uiState.essayId || '');
   } catch (e) {}
 }
 
 export function blankEssay() {
   return {
-    id: uid(),
+    id: newId(),
     title: '',
     doc: '<p><br></p>',
     refs: [],
@@ -56,11 +56,11 @@ export function newEssay() {
 }
 
 export function openEssay(id) {
-  ui.essayId = id;
-  ui.delSure = false;
+  uiState.essayId = id;
+  uiState.delSure = false;
   rememberEssay();
-  if (ui.view !== 'essay') {
-    ui.view = 'essay';
+  if (uiState.view !== 'essay') {
+    uiState.view = 'essay';
     render();
   } else {
     renderEssay();
@@ -69,10 +69,10 @@ export function openEssay(id) {
 }
 
 export function deleteEssay() {
-  setEssays(essays.filter(essay => essay.id !== ui.essayId));
-  ui.delSure = false;
+  setEssays(essays.filter(essay => essay.id !== uiState.essayId));
+  uiState.delSure = false;
   Store.saveEssays();
-  ui.essayId = essays.length ? essays[0].id : null;
+  uiState.essayId = essays.length ? essays[0].id : null;
   rememberEssay();
   renderEssay();
   renderSide();
@@ -81,7 +81,7 @@ export function deleteEssay() {
 
 /* the open essay (there's always one), its title above the page */
 export function renderEssay() {
-  ui.wcMode = false;
+  uiState.wcMode = false;
   closeTagPop();
   const essay = openableEssay();
   useRefs(essay.id);
@@ -92,12 +92,12 @@ export function renderEssay() {
   }
   $('main').innerHTML =
     '<div class="zwrap" id="zwrap"><div class="doc">' +
-    `<input class="etitle" id="etitle" type="text" placeholder="Untitled essay" aria-label="Essay title" value="${esc(essay.title)}">` +
+    `<input class="etitle" id="etitle" type="text" placeholder="Untitled essay" aria-label="Essay title" value="${escapeHtml(essay.title)}">` +
     `<div id="ed" class="notes docbody" data-doc="essay" data-essay="${essay.id}" contenteditable="true" spellcheck="true" ` +
     `aria-label="Essay">${essay.doc || '<p><br></p>'}</div></div></div>`;
-  const editor = ed();
+  const editor = openEditor();
   hydrate(editor);
-  setCurEd(editor);
+  setActiveEditor(editor);
   watchZoom();
 }
 
@@ -108,7 +108,7 @@ function openableEssay() {
     Store.saveEssays();
   }
   if (!curEssay()) {
-    ui.essayId = essays[0].id;
+    uiState.essayId = essays[0].id;
     rememberEssay();
   }
   return curEssay();
@@ -116,7 +116,7 @@ function openableEssay() {
 
 /* the sidebar: the essays with their word counts (on the web), the word count, and Delete */
 export function renderEssaySide() {
-  if (ui.view !== 'essay') return;
+  if (uiState.view !== 'essay') return;
   const box = $('wcbox');
   if (document.activeElement && box && box.contains(document.activeElement)) {
     updateEssayListCounts(); // typing in the word count's settings: they stay as they are
@@ -133,10 +133,10 @@ export function renderEssaySide() {
 
 function essayListHTML() {
   const items = essays.map(essay => {
-    const count = essay.id === edEssayId() ? tagCounts(ed(), wcOpts(essay)).total : essayTotal(essay);
+    const count = essay.id === edEssayId() ? tagCounts(openEditor(), wcOpts(essay)).total : essayTotal(essay);
     return (
-      `<a href="#" data-essay="${essay.id}" class="${essay.id === ui.essayId ? 'cur' : ''}">` +
-      `<div class="t"><span>${esc(essay.title || 'Untitled essay')}</span></div>` +
+      `<a href="#" data-essay="${essay.id}" class="${essay.id === uiState.essayId ? 'cur' : ''}">` +
+      `<div class="t"><span>${escapeHtml(essay.title || 'Untitled essay')}</span></div>` +
       `<span class="wc">${count.toLocaleString()} word${count === 1 ? '' : 's'}</span></a>`
     );
   });
@@ -148,10 +148,10 @@ function essayListHTML() {
 
 /* point -> notes: jump to it, or add it in the right section */
 export function openPoint(id) {
-  if (!ptById(id)) return;
-  ui.back = { scroll: window.scrollY, id };
-  ui.scroll.syl = window.scrollY;
-  ui.view = 'notes';
+  if (!pointById(id)) return;
+  uiState.back = { scroll: window.scrollY, id };
+  uiState.scroll.syl = window.scrollY;
+  uiState.view = 'notes';
   render();
   spGo(id);
 }
@@ -160,13 +160,13 @@ export function openPoint(id) {
 export function buildDocFromPoints() {
   let html = '';
   let section = null;
-  pts.forEach(point => {
+  syllabusPoints.forEach(point => {
     if (!(point.notes || '').trim()) return;
     if (point.sec !== section) {
       section = point.sec;
-      html += `<h2 data-sec="${esc(section)}"></h2>`;
+      html += `<h2 data-sec="${escapeHtml(section)}"></h2>`;
     }
-    html += `<h3 data-pt="${esc(point.id)}"></h3>` + point.notes;
+    html += `<h3 data-pt="${escapeHtml(point.id)}"></h3>` + point.notes;
   });
   return html;
 }

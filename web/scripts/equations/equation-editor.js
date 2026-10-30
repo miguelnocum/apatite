@@ -1,6 +1,6 @@
-import { ed } from '../core/helpers-and-state.js';
+import { openEditor } from '../core/helpers-and-state.js';
 import { KEY } from '../core/example-data.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { texLines, texShow } from './equation-tex.js';
 import { renderMath } from './equation-drawing.js';
 import { editCard } from './equation-note-editing.js';
@@ -48,7 +48,7 @@ class MathEditor {
   }
 
   makePopup() {
-    const popup = mk('div');
+    const popup = makeElement('div');
     popup.className =
       'mathpop' + (this.inline ? ' inline' : '') + (this.showTex ? ' showtex' : '') + (EQ_BOXES ? '' : ' noboxes');
     popup.el = this.el;
@@ -116,7 +116,7 @@ class MathEditor {
     const latex = this.input.value;
     this.el.setAttribute(this.attr, latex);
     if (this.inline) renderIMath(this.el.parentNode);
-    else renderMath(this.el.parentNode || ed());
+    else renderMath(this.el.parentNode || openEditor());
     this.popup.querySelector('.mp-err').textContent = this.showTex ? latexError(latex) : '';
     this.place();
   }

@@ -1,7 +1,7 @@
 import { docHTML, saveDocNow } from '../core/save-doc.js';
-import { HLKEY } from './highlight-colours.js';
-import { NATIVE, esc, meta, post, toast, ui } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { HIGHLIGHT_KEY } from './highlight-colours.js';
+import { NATIVE, escapeHtml, meta, post, toast, uiState } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { tableVar } from '../tables/table-sizing.js';
 import { TABLE_PADDINGS, tableTextLook } from '../tables/table-look.js';
 import { orderedRefs, refHTML, yearLabels } from '../citations/references.js';
@@ -29,8 +29,8 @@ const EXPORT_CSS =
   'td[data-shade="6"],th[data-shade="6"]{background:#e8daf4}td[data-shade="7"],th[data-shade="7"]{background:#e5e7eb}';
 
 export function exportHTML() {
-  if (ui.view === 'notes') saveDocNow();
-  const box = mk('div');
+  if (uiState.view === 'notes') saveDocNow();
+  const box = makeElement('div');
   box.innerHTML = docHTML || '';
   box.querySelectorAll('[data-imath]').forEach(exportInlineEquation);
   box.querySelectorAll('[data-math]').forEach(exportEquation);
@@ -38,7 +38,7 @@ export function exportHTML() {
   box.querySelectorAll('table').forEach(exportTable);
   const references = exportCitations(box);
   box.querySelectorAll('img').forEach(img => {
-    const note = mk('em');
+    const note = makeElement('em');
     note.textContent = '[image not exported]';
     img.replaceWith(note);
   });
@@ -46,7 +46,7 @@ export function exportHTML() {
 }
 
 function exportInlineEquation(equation) {
-  const code = mk('code');
+  const code = makeElement('code');
   code.textContent = '$' + (equation.getAttribute('data-imath') || '') + '$';
   equation.replaceWith(code);
 }
@@ -67,13 +67,13 @@ function exportTable(table) {
 
 /* an equation as its LaTeX, each explained part under it in its colour with its note */
 function exportEquation(equation) {
-  const line = mk('p');
-  const code = mk('code');
+  const line = makeElement('p');
+  const code = makeElement('code');
   code.textContent = '$$ ' + (equation.getAttribute('data-math') || '') + ' $$';
   line.appendChild(code);
   annList(equation).forEach(note => {
-    const row = mk('div');
-    const part = mk('code');
+    const row = makeElement('div');
+    const part = makeElement('code');
     row.style.cssText = 'margin-left:2em;border-left:3px solid ' + annColor(note) + ';padding-left:8px';
     part.style.color = annColor(note);
     part.textContent = note.t;
@@ -103,10 +103,10 @@ function exportCitations(box) {
 }
 
 function exportPage(body) {
-  const highlights = HLKEY.map(key => `mark[data-h="${key.id}"]{background:${key.hex}}`).join('');
+  const highlights = HIGHLIGHT_KEY.map(key => `mark[data-h="${key.id}"]{background:${key.hex}}`).join('');
   return (
-    `<!doctype html><html><head><meta charset="utf-8"><title>${esc(meta.title)}</title>` +
-    `<style>${EXPORT_CSS}${highlights}</style></head><body><h1>${esc(meta.title)}</h1>${body}</body></html>`
+    `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(meta.title)}</title>` +
+    `<style>${EXPORT_CSS}${highlights}</style></head><body><h1>${escapeHtml(meta.title)}</h1>${body}</body></html>`
   );
 }
 

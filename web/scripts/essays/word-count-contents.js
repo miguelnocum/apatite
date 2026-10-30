@@ -1,4 +1,4 @@
-import { curEssay, ed, esc, toast, ui } from '../core/helpers-and-state.js';
+import { curEssay, openEditor, escapeHtml, toast, uiState } from '../core/helpers-and-state.js';
 import { Store } from '../core/storage.js';
 import { flash } from '../view/page-render.js';
 import { countedIn, edBlocks, tagById, tagNamed, tagsChanged, wcOpts } from './word-count.js';
@@ -50,7 +50,7 @@ function rangeTag(options, blocks) {
 
 export function contentsPanel(editor, options) {
   const ranges = headingRanges(editor);
-  const head = `<details class="wctoc"${ui.wcTocOpen !== false ? ' open' : ''}><summary>Contents</summary>`;
+  const head = `<details class="wctoc"${uiState.wcTocOpen !== false ? ' open' : ''}><summary>Contents</summary>`;
   if (!ranges.length)
     return (
       head + '<p class="wchint">Add headings (Heading 1 for chapters) to tag whole sections from here.</p></details>'
@@ -71,11 +71,11 @@ function contentsRowHTML(range, i, options) {
   if (own) tip = 'Tagged as ' + tag.name;
   else if (tag) tip = 'Counted in ' + tag.name + '. Click to count it separately';
   const end = own
-    ? `<button type="button" class="untag" data-wctocun="${i}" aria-label="Untag ${esc(range.title)}">×</button>`
+    ? `<button type="button" class="untag" data-wctocun="${i}" aria-label="Untag ${escapeHtml(range.title)}">×</button>`
     : '<span class="plus" aria-hidden="true">+</span>';
   return (
-    `<div class="wctoci lv${range.level}${own ? ' on' : tag ? ' inh' : ''}" data-wctoc="${i}" title="${esc(tip)}">` +
-    `<i class="dot" style="${tag ? 'background:' + tag.color : ''}"></i><span class="nm">${esc(range.title)}</span>` +
+    `<div class="wctoci lv${range.level}${own ? ' on' : tag ? ' inh' : ''}" data-wctoc="${i}" title="${escapeHtml(tip)}">` +
+    `<i class="dot" style="${tag ? 'background:' + tag.color : ''}"></i><span class="nm">${escapeHtml(range.title)}</span>` +
     `<b>${countedIn(range.blocks, options).toLocaleString()}</b>${end}</div>`
   );
 }
@@ -89,21 +89,21 @@ function tagRanges(ranges) {
     const tag = tagNamed(essay.wc, sectionName(range.title));
     range.blocks.forEach(block => block.setAttribute('data-wct', tag.id));
   });
-  const used = new Set(edBlocks(ed()).map(block => block.getAttribute('data-wct')));
+  const used = new Set(edBlocks(openEditor()).map(block => block.getAttribute('data-wct')));
   essay.wc.tags = essay.wc.tags.filter(tag => used.has(tag.id));
   Store.saveEssays();
   tagsChanged();
 }
 
 function tagEveryChapter() {
-  const ranges = headingRanges(ed());
+  const ranges = headingRanges(openEditor());
   const level = topLevel(ranges);
   tagRanges(ranges.filter(range => range.level === level));
   toast('Tagged every chapter');
 }
 
 function untagRange(button) {
-  const range = headingRanges(ed())[+button.dataset.wctocun];
+  const range = headingRanges(openEditor())[+button.dataset.wctocun];
   if (!range) return;
   range.blocks.forEach(block => block.removeAttribute('data-wct'));
   tagRanges([]);
@@ -111,7 +111,7 @@ function untagRange(button) {
 
 /* a row already tagged as itself shows where it is; any other is tagged */
 function contentsRowClicked(row) {
-  const range = headingRanges(ed())[+row.dataset.wctoc];
+  const range = headingRanges(openEditor())[+row.dataset.wctoc];
   if (!range) return;
   if (!row.classList.contains('on')) {
     tagRanges([range]);
@@ -139,7 +139,7 @@ const onWordCountContentsClick = e => {
 };
 
 const onWordCountContentsToggle = e => {
-  if (e.target.classList && e.target.classList.contains('wctoc')) ui.wcTocOpen = e.target.open;
+  if (e.target.classList && e.target.classList.contains('wctoc')) uiState.wcTocOpen = e.target.open;
 };
 
 export function initWordCountContents() {

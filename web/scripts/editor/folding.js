@@ -1,7 +1,7 @@
 import { saveDocSoon } from '../core/save-doc.js';
 import { selectRange } from '../core/caret.js';
-import { $, ed } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { $, openEditor } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { positionCards } from './comments.js';
 import { edBlocks } from '../essays/word-count.js';
 import { mdTopBlock } from '../writing/writing.js';
@@ -59,7 +59,7 @@ function roomy(block) {
 }
 
 export function ensureRoom(root) {
-  root = root || ed();
+  root = root || openEditor();
   if (!root || root.classList.contains('wcmode')) return false;
   let added = false;
   [...root.children].forEach(block => {
@@ -78,7 +78,7 @@ export function ensureRoom(root) {
 
 /* a click in the gap under a heading or picture puts the caret on the line below it */
 const onFoldingMousedown = e => {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor || e.target !== editor || e.button !== 0 || editor.classList.contains('wcmode')) return;
   const above = blockAbove(editor, e.clientY);
   if (!above || !roomy(above) || above.getBoundingClientRect().bottom > e.clientY) return;
@@ -125,7 +125,7 @@ function hasSolidContent(block) {
 
 /* folded headings hide what's under them; a fold with nothing to hide (or an empty heading) is dropped */
 export function applyFolds() {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor) return;
   let hiding = 0;
   const blocks = edBlocks(editor);
@@ -142,7 +142,7 @@ export function applyFolds() {
 
 /* an arrow beside each shown heading with something to fold */
 export function drawFolds() {
-  const editor = ed();
+  const editor = openEditor();
   const layer = foldLayer(editor);
   if (!layer) return;
   if (editor.classList.contains('wcmode')) {
@@ -167,7 +167,7 @@ function foldLayer(editor) {
   if (!page) return null;
   let layer = page.querySelector(':scope>.foldlayer');
   if (layer) return layer;
-  layer = mk('div');
+  layer = makeElement('div');
   layer.className = 'foldlayer';
   layer.setAttribute('contenteditable', 'false');
   page.appendChild(layer);
@@ -209,7 +209,7 @@ const onFoldingMousedown2 = e => {
 
 /* the caret or a jump landing in folded text opens the fold */
 export function revealInEd(node) {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor || !node || !editor.contains(node)) return;
   const block = mdTopBlock(node);
   let steps = 0;
@@ -232,7 +232,7 @@ function openFoldAbove(editor, block) {
 }
 
 export function foldAll(on) {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor) return;
   const blocks = edBlocks(editor);
   blocks.forEach((block, i) => {
@@ -245,7 +245,7 @@ export function foldAll(on) {
 
 /* the arrows (and spec point brackets) follow the notes as they change size */
 export function watchFolds() {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor || !window.ResizeObserver) return;
   if (foldRO) foldRO.disconnect();
   foldRO = new ResizeObserver(() => {

@@ -1,5 +1,5 @@
-import { ed } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { placeBetweenLines } from '../editor/pasting-and-images.js';
 import { imgChanged, imgNode, imgSel, placeImgTool } from './image-toolbar.js';
 
@@ -18,7 +18,7 @@ export function startImgResize(e) {
   const direction = +handle.dataset.rs;
   const startX = e.clientX;
   const startWidth = img.getBoundingClientRect().width;
-  const line = (imgNode(img).parentElement || ed()).getBoundingClientRect().width;
+  const line = (imgNode(img).parentElement || openEditor()).getBoundingClientRect().width;
   /* a picture in line grows on both sides, so it follows the mouse twice as fast */
   const speed = () => (img.getAttribute('data-wrap') ? 1 : 2);
   dragWithMouse(
@@ -54,8 +54,8 @@ export function startImgMove(e) {
   const img = imgSel;
   if (!img) return;
   const node = imgNode(img);
-  const root = ed();
-  const line = mk('div');
+  const root = openEditor();
+  const line = makeElement('div');
   line.id = 'imgdropline';
   document.body.appendChild(line);
   document.body.classList.add('imgmoving');

@@ -1,7 +1,7 @@
 import { saveDocSoon } from '../core/save-doc.js';
 import { restoreSel } from '../core/caret.js';
-import { ed, esc } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { openEditor, escapeHtml } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { mdTopBlock } from '../writing/writing.js';
 import { KT_OPTS, texInline, texLines, texShow } from './equation-tex.js';
 import { annCandidates, annotateTex } from './equation-parts.js';
@@ -49,13 +49,15 @@ export function annNoteHTML(text) {
   if (!text) return '<i>Click to explain</i>';
   return String(text)
     .split(/(\$[^$\n]+\$)/)
-    .map(piece => (/^\$[^$\n]+\$$/.test(piece) ? texInline(piece.slice(1, -1)) : esc(piece).replace(/\n/g, '<br>')))
+    .map(piece =>
+      /^\$[^$\n]+\$$/.test(piece) ? texInline(piece.slice(1, -1)) : escapeHtml(piece).replace(/\n/g, '<br>')
+    )
     .join('');
 }
 
 /* every equation in a part of the page, drawn (unless it's drawn already from the same LaTeX and notes) */
 export function renderMath(root) {
-  (root || ed()).querySelectorAll('[data-math]').forEach(drawEquation);
+  (root || openEditor()).querySelectorAll('[data-math]').forEach(drawEquation);
 }
 
 function drawEquation(el) {
@@ -95,10 +97,10 @@ function putLines(el, lines, list) {
 
 /* the lines, each drawn by KaTeX, with the explained parts in their colours */
 function equationLines(source, list, candidates) {
-  const lines = mk('div');
+  const lines = makeElement('div');
   lines.className = 'meqs';
   texLines(source).forEach(line => {
-    const eq = mk('div');
+    const eq = makeElement('div');
     eq.className = 'meq';
     try {
       if (window.katex) katex.render(annotateTex(texShow(line), list, candidates), eq, KT_OPTS);
@@ -117,13 +119,13 @@ function equationLines(source, list, candidates) {
 
 /* the notes: boxes above and below, each with a line to its part */
 function withNotes(lines, list) {
-  const wrap = mk('div');
+  const wrap = makeElement('div');
   wrap.className = 'mwrap';
   wrap.innerHTML =
     '<div class="mrow mtop"></div><div class="mrow mbot"></div><svg class="mlines" aria-hidden="true"></svg>';
   wrap.insertBefore(lines, wrap.children[1]);
   list.forEach((note, i) => {
-    const card = mk('div');
+    const card = makeElement('div');
     card.className = 'mcard';
     card.setAttribute('data-ai', i);
     card.style.setProperty('--ac', annColor(note));
@@ -135,11 +137,11 @@ function withNotes(lines, list) {
 
 /* a new equation where the caret is: in place of an empty line (or "$$"), else after the line; its editor opens */
 export function insertMath(replace) {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor) return;
   restoreSel();
   const block = replace || mdTopBlock(getSelection().anchorNode);
-  const equation = mk('div');
+  const equation = makeElement('div');
   equation.setAttribute('data-math', '');
   if (block && block.getAttribute && block.getAttribute('data-sp'))
     equation.setAttribute('data-sp', block.getAttribute('data-sp'));

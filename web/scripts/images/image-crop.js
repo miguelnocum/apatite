@@ -1,5 +1,5 @@
 import { $ } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
+import { makeElement } from '../core/paste-cleaning.js';
 import { drawImgTool, imgChanged, imgOrig, imgTool } from './image-toolbar.js';
 import { dragWithMouse } from './image-resize-move.js';
 
@@ -18,7 +18,7 @@ class Cropper {
     this.img = img;
     this.rect = img.getBoundingClientRect();
     this.box = { x: 0, y: 0, w: this.rect.width, h: this.rect.height };
-    this.el = mk('div');
+    this.el = makeElement('div');
     this.el.id = 'cropper';
     this.el.innerHTML = CROP_HTML;
     this.frame = this.el.querySelector('.cbox');

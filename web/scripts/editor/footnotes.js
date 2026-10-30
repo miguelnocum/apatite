@@ -1,8 +1,8 @@
 import { saveDocSoon } from '../core/save-doc.js';
 import { selectRange } from '../core/caret.js';
-import { $, ed, esc, toast } from '../core/helpers-and-state.js';
-import { mk } from '../core/paste-cleaning.js';
-import { edChanged, hydrateExtras } from './hydrate-and-changes.js';
+import { $, openEditor, escapeHtml, toast } from '../core/helpers-and-state.js';
+import { makeElement } from '../core/paste-cleaning.js';
+import { notesEdited, hydrateExtras } from './hydrate-and-changes.js';
 
 /* ===== footnotes: a marker in the text, the numbered notes under the page; click one to write it ===== */
 const FOOTNOTE_POPUP_MARGIN = 12; // px the footnote box keeps from the window's edges
@@ -14,7 +14,7 @@ const FOOTNOTE_POPUP_HTML =
 export let fnPop = null;
 
 export function renderFootnotes() {
-  const editor = ed();
+  const editor = openEditor();
   if (!editor) return;
   const markers = [...editor.querySelectorAll('.fn')];
   let list = $('fnlist');
@@ -23,7 +23,7 @@ export function renderFootnotes() {
     return;
   }
   if (!list) {
-    list = mk('ol');
+    list = makeElement('ol');
     list.id = 'fnlist';
     list.className = 'fnlist';
     editor.after(list);
@@ -33,12 +33,12 @@ export function renderFootnotes() {
 
 function footnoteItemHTML(marker, i) {
   const note = marker.getAttribute('data-fn') || '';
-  return `<li data-fni="${i}" class="${note ? '' : 'empty'}">${note ? esc(note) : 'Empty footnote, click to write it'}</li>`;
+  return `<li data-fni="${i}" class="${note ? '' : 'empty'}">${note ? escapeHtml(note) : 'Empty footnote, click to write it'}</li>`;
 }
 
 /* a marker after the selection, its box open to write in */
 export function insertFootnote() {
-  const editor = ed();
+  const editor = openEditor();
   const selection = getSelection();
   if (!editor || !selection.rangeCount || !editor.contains(selection.anchorNode)) {
     toast('Click in the text where the footnote goes');
@@ -46,7 +46,7 @@ export function insertFootnote() {
   }
   const marker = putFootnoteMarker(selection.getRangeAt(0), editor);
   saveDocSoon();
-  edChanged();
+  notesEdited();
   // after this click has finished bubbling, or the click-outside handler would close it again
   setTimeout(() => openFn(marker), 0);
 }
@@ -54,7 +54,7 @@ export function insertFootnote() {
 /* a marker at the end of the range, the caret after it */
 function putFootnoteMarker(range, editor) {
   range.collapse(false);
-  const marker = mk('span');
+  const marker = makeElement('span');
   marker.setAttribute('data-fn', '');
   range.insertNode(marker);
   hydrateExtras(editor);
@@ -74,8 +74,8 @@ export function closeFn() {
 
 export function openFn(marker) {
   closeFn();
-  const number = [...ed().querySelectorAll('.fn')].indexOf(marker) + 1;
-  const pop = mk('div');
+  const number = [...openEditor().querySelectorAll('.fn')].indexOf(marker) + 1;
+  const pop = makeElement('div');
   pop.className = 'fnpop';
   pop.target = marker;
   marker.classList.add('sel');
@@ -108,7 +108,7 @@ function listenToFootnote(pop, field, marker) {
     marker.setAttribute('data-fn', field.value);
     marker.title = field.value || 'Empty footnote';
     saveDocSoon();
-    edChanged();
+    notesEdited();
   });
   field.addEventListener('keydown', e => {
     if (e.key !== 'Escape' && !(e.key === 'Enter' && !e.shiftKey)) return;
@@ -127,7 +127,7 @@ function deleteFootnote(marker) {
   marker.remove();
   closeFn();
   saveDocSoon();
-  edChanged();
+  notesEdited();
   renderFootnotes();
   toast('Footnote deleted');
 }

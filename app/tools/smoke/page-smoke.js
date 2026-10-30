@@ -1,13 +1,26 @@
 /* Page smoke test: drives the notebook page's features and returns a report of what they produced.
-   A refactor must leave the report unchanged. Serve the project root (python3 app/tools/smoke/serve.py, port 8766),
-   build both pages (app/tools/smoke/build-old.sh: notebook-old.html from HEAD, notebook.html from the working copy),
-   then for each page: clear the site's storage, open it, and in its console run
-     eval(await (await fetch('/app/tools/smoke/page-smoke.js')).text());
-     runSmoke().then(r => fetch('/smoke-report/old', { method: 'POST', body: JSON.stringify(r, null, 1) }));
-   (…/new for the other page) and compare with python3 app/tools/smoke/compare.py old new.
+   A refactor must leave the report unchanged.
+
+   Run it on the page as the Mac app runs it (the "native" page: serve.py puts a fake WKWebView bridge and a fixture
+   notebook in front of notebook.html, see fake-bridge.js; the page's scripts are not touched):
+     python3 app/tools/smoke/serve.py                 (port 8766; leave it running)
+     app/tools/smoke/build-old.sh [rev=HEAD]          notebook-old.html from that commit (a tag will do, e.g. phase0-baseline)
+                                                      and notebook.html from the working copy
+   then, for each page (old, new), in the browser pane (or any browser) with that page in FRONT:
+     1. in the console: localStorage.clear(); sessionStorage.clear();   then open the page afresh (not a reload from the console):
+        http://localhost:8766/native/notebook-old.html   (new: …/native/notebook.html; the web page, for comparison: …/app/Resources/notebook.html)
+     2. in its console (don't await it: a run takes 5 to 10 minutes, and the console would time out):
+        eval(await (await fetch('/app/tools/smoke/page-smoke.js')).text()); runSmokeTo('old');
+        (…'new' for the other page.) The report is saved as app/tools/smoke/reports/<name>.json, and what the page sent the
+        bridge as <name>-bridge.json. app/tools/smoke/wait.sh <name> waits for it.
+   and compare: python3 app/tools/smoke/compare.py old new      (prints SAME, or the steps that differ)
+   The report of the baseline commit is kept in app/tools/smoke/baseline/native.json (see baseline/README.txt for what in it
+   is expected to fail): to check a change against it without building the old page, run the new one and
+     python3 app/tools/smoke/compare.py baseline/native.json new
+
    Keep the page in front while it runs: a hidden page's timers are throttled, which changes what some steps see
    (the empty line added after a quote 400ms after an edit, for one). Driving the wait from the page itself keeps it
-   awake. A run takes about a minute and a half. */
+   awake. */
 window.runSmoke = async function () {
   const report = {};
   const errors = [];
@@ -42,7 +55,11 @@ window.runSmoke = async function () {
       new KeyboardEvent('keydown', Object.assign({ key: k, bubbles: true, cancelable: true }, opts))
     );
   const view = async v => {
-    click($('[data-view="' + v + '"]'));
+    const tab = $('[data-view="' + v + '"]');
+    /* in the Mac app (and so on the native page) the Syllabus or Works Cited tab that is showing goes back to the notes
+       when clicked; a step that wants the view shown has it already */
+    if (!(window.__posted && (v === 'syl' || v === 'wc') && tab && tab.getAttribute('aria-pressed') === 'true'))
+      click(tab);
     await wait(250);
   };
   /* the caret at the end of the editor's last paragraph */
@@ -2168,5 +2185,29 @@ window.runSmoke = async function () {
   window.removeEventListener('error', onError);
   window.removeEventListener('unhandledrejection', onError);
   report.errors = errors;
+  return report;
+};
+
+/* Runs the test and posts its report to serve.py as /smoke-report/<name>. On the native page (/native/…, see serve.py) it
+   also posts what the page sent the fake Mac bridge, as <name>-bridge: the kinds of message and how many of each, and
+   whether the last save is a whole notebook (compare it with diff: the counts matched between runs here, but they follow timing). */
+window.runSmokeTo = async function (name) {
+  const report = await window.runSmoke();
+  await fetch('/smoke-report/' + name, { method: 'POST', body: JSON.stringify(report, null, 1) });
+  if (window.__posted) {
+    const counts = {};
+    window.__posted.forEach(m => (counts[m.type] = (counts[m.type] || 0) + 1));
+    const saves = window.__posted.filter(m => m.type === 'save');
+    let last = null;
+    try {
+      last = JSON.parse(saves[saves.length - 1].json);
+    } catch (e) {}
+    const bridge = {
+      messages: counts,
+      lastSaveKeys: last && Object.keys(last).sort(),
+      lastSaveTitle: last && last.meta && last.meta.title
+    };
+    await fetch('/smoke-report/' + name + '-bridge', { method: 'POST', body: JSON.stringify(bridge, null, 1) });
+  }
   return report;
 };

@@ -1,12 +1,16 @@
 #!/bin/bash
-# Builds the page as last committed (or as of a given commit) into app/Resources/notebook-old.html,
-# so the smoke test can compare it with the working copy's app/Resources/notebook.html.
-# Usage: app/tools/smoke/build-old.sh [commit=HEAD]
+# Builds the page as of a commit or tag (default: the last commit) into app/Resources/notebook-old.html, and the working
+# copy's into app/Resources/notebook.html, so the smoke test can compare them (see page-smoke.js).
+# Usage: app/tools/smoke/build-old.sh [rev=HEAD]        e.g.  build-old.sh phase0-baseline
+# serve.py serves them as /native/notebook-old.html and /native/notebook.html (with the fake Mac bridge in front) and as
+# /app/Resources/… (the web page, as it is). Both files are generated and not kept in git.
 set -euo pipefail
 cd "$(dirname "$0")/../../.."
+REV=${1:-HEAD}
+git rev-parse --verify --quiet "$REV^{commit}" >/dev/null || { echo "no such commit or tag: $REV" >&2; exit 1; }
 TMP=$(mktemp -d)
-git archive "${1:-HEAD}" web | tar -x -C "$TMP"
+trap 'rm -rf "$TMP"' EXIT
+git archive "$REV" web | tar -x -C "$TMP"
 python3 app/tools/make_notebook.py "$TMP/web" app/Resources/notebook-old.html >/dev/null
 python3 app/tools/make_notebook.py web app/Resources/notebook.html >/dev/null
-rm -rf "$TMP"
-echo "built notebook-old.html (${1:-HEAD}) and notebook.html (working copy)"
+echo "built notebook-old.html ($REV) and notebook.html (working copy)"

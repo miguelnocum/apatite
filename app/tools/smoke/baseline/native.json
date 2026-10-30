@@ -1,0 +1,770 @@
+{
+ "syllabus view": {
+  "rows": 90,
+  "start": "CONF. CODE STATEMENT GUIDANCE 2.1 MOLECULES TO METABOLISM 2.1.U1 Molecular biology explains living processes in terms of the chemical substances involved. 2.1.U2 Carbon atoms can form four covalent bonds allowing a diversity of stable compounds to exist. 2.1.U3 Life is based on carbon compounds incl"
+ },
+ "works cited view": "Sources for Notebook — Molecular Biology notebook Each notebook and essay keeps its own list. Add references Copy your citations from MyBib (or anywhere) and paste them here, one reference per line. Italics are kept. Add to Works Cited Clear Harvard style 0 references Auto sort A–Z Manual order No r",
+ "essay view": {
+  "main": "",
+  "side": "Word count«Word count mode0wordsWhole essay0Use Word count mode to box paragraphs as Introduction, Body paragraphs, Conclusion…ContentsAdd headings (Heading 1 for chapters) to tag whole sections from here.Figures, captions & tablesFootnotesIn-text citationsUntagged textWord limit Delete this essay"
+ },
+ "notes view": {
+  "toolbar": 14,
+  "start": ""
+ },
+ "typing": "Smoke line one with some words to format",
+ "bold and italic": "<b>Smoke</b><i> li</i>ne one with some words to format",
+ "highlight": "<span style=\"background-color: color(srgb 0.476863 0.449961 0.316);\">Highlight</span>&nbsp;me please",
+ "menu head": [
+  "Tag with spec point… The paragraphs you’ve selected (or the one you’re in)",
+  "Body",
+  "Title ⌘1",
+  "Heading 2 ⌘2",
+  "Heading 3 ⌘3",
+  "Heading 4 ⌘4",
+  "Heading 5 ⌘5",
+  "Heading 6 ⌘6"
+ ],
+ "menu list": [
+  "• Bulleted list ⌘L",
+  "1. Numbered list ⇧⌘L",
+  "☐ Checklist []",
+  "❝ Quote ⇧⌘T",
+  "▤ Callout ›",
+  "— Divider ⌥⌘S",
+  "∑ Equation $$ ↩",
+  "π Inline equation $x$ · ⇧⌘E"
+ ],
+ "menu ins": [
+  "Image or paste",
+  "Table",
+  "Link ⌘K",
+  "Footnote",
+  "Table of contents",
+  "Underline ⌘U",
+  "Strikethrough ~~text~~",
+  "Inline code `text`",
+  "Check citations…",
+  "Fold all sections",
+  "Unfold all sections",
+  "Tidy this note fonts"
+ ],
+ "menu hl": [
+  "General",
+  "Key ideas",
+  "Read more / secondary references",
+  "Case studies & examples",
+  "Controversial ideas",
+  "Remove highlight",
+  "Edit key…"
+ ],
+ "menu cmt": [
+  "💬 Comment ⌥⌘M",
+  "? Question",
+  "i Explanation",
+  "! Needs research",
+  "✎ To fix",
+  "Show comments"
+ ],
+ "menu zoom": [
+  "50%",
+  "75%",
+  "100%",
+  "125%",
+  "150%",
+  "200%",
+  "Fit to Window"
+ ],
+ "heading 2": "<h2>A smoke heading</h2>",
+ "bullet list": "<ul><li>First bullet</li></ul>",
+ "comment": {
+  "mark": "<span data-cmt=\"<id>\" data-ct=\"note\" data-note=\"\" class=\"cmt on\" title=\"Comment\" style=\"--cc: #6f7d8c;\">Comment</span> on this text",
+  "cards": 1
+ },
+ "toolbar actions": {
+  "link": "<a href=\"https://example.com\">Link</a> this text",
+  "unlinked": "Link this text",
+  "highlightColour": "<span style=\"background-color: color(srgb 0.313804 0.407137 0.508706);\">Colour</span>&nbsp;this text",
+  "highlightRemoved": "Col<span style=\"background-color: color(srgb 0.313804 0.407137 0.508706);\">our</span>&nbsp;this text",
+  "boldKey": "<b>Bold</b> by key",
+  "indented": "<ul><li><br></li><ul><li>Inner bulletOuter bullet</li></ul></ul>",
+  "outdented": "<ul><li><br></li><li><span>Inner bulletOuter bullet</span></li></ul>",
+  "ticked": "1",
+  "tableTab": "1 of 9",
+  "commentToggle": "Hide comments",
+  "commentToggleAfter": "Show comments",
+  "zoomMenu": "150%",
+  "zoomFit": "25%"
+ },
+ "zoom": [
+  "25%",
+  "50%",
+  "75%",
+  "50%",
+  "50%",
+  "50%"
+ ],
+ "settings": {
+  "syl": "Each notebook, essay and deck can follow a syllabus: its points are what you rate, tag notes and cards with, and check your coverage against. NOTEBOOKS Molecula",
+  "write": "Font Source Serif New York Charter Iowan Old Style Georgia Hanken Grotesk San Francisco Avenir Next IBM Plex Mono Size 15.5 pt Line height 1.65 Paragraph spacin",
+  "theme": "The theme applies to the whole app: notes, essays, the reader and decks. Aa System LIGHT Aa Paper Aa Catppuccin Latte Aa Everforest Light Aa Rosé Pine Dawn Aa T",
+  "key": "What each highlighter colour is for. It shows when you choose a colour, and when you point at a highlight, in notes, essays and PDFs. × × × × × + Add colour Put",
+  "eq": "TYPING EQUATIONS Visual Boxes to fill in, as in Word LaTeX The code behind the boxes YOUR SAVED EQUATIONS None yet: in the equation editor, open the π Equation ",
+  "zoom": "When a document opens Use the last zoom Fit to window 50% 75% 100% 125% 150% 200% Fold panes away when zoomed in Once the page is wider than the room beside the",
+  "lib": "Everything saves automatically as you type, into your library folder on this Mac. Library folder /Users/fixture/Documents/Apatite Show in Finder",
+  "themeAfter": "nord/dark",
+  "closed": true
+ },
+ "settings actions": {
+  "writeOutputs": [
+   "18 pt",
+   "1.90",
+   "1.2"
+  ],
+  "writeStored": "-eqpins=[\"\\\\alpha\",\"\\\\beta\",\"\\\\gamma\"] | -eqsaved=[{\"n\":\"Saved one\",\"t\":\"a^2\"},{\"n\":\"Saved two\",\"t\":\"b_1\"}] | -write={\"theme\":\"graphite\",\"font\":\"charter\",\"size\":18,\"lh\":1.9,\"ps\":1.2,\"tw\":true,\"tfs\":14,\"tlh\":\"\",\"tpad\":\"\"}",
+  "cssVars": [
+   "Charter,\"Bitstream Charter\",Georgia,serif",
+   "18px",
+   "1.9",
+   "1.2em"
+  ],
+  "afterReset": "-eqpins=[\"\\\\alpha\",\"\\\\beta\",\"\\\\gamma\"] | -eqsaved=[{\"n\":\"Saved one\",\"t\":\"a^2\"},{\"n\":\"Saved two\",\"t\":\"b_1\"}] | -write={\"theme\":\"graphite\",\"font\":\"serif\",\"size\":15.5,\"lh\":1.65,\"ps\":0.6,\"tw\":false,\"tfs\":14,\"tlh\":\"\",\"tpad\":\"\"}",
+  "keyAfterHide": "What each highlighter colour is for. It shows when you choose a colour, and when you point at a highlight, in notes, essays and PDFs. × × × × × + Add colour Put back… General #A8E8C0",
+  "keyAfterPutBack": "<div class=\"setkr\"><input type=\"color\" value=\"#123456\" data-keyhex=\"1\" aria-label=\"Colour\"><input type=\"text\" value=\"General\" placeholder=\"What this colour means\" data-keymean=\"1\"><button type=\"button\" class=\"setkx\" data-keyhide=\"1\" title=\"Remove from the key (highlights already made keep their colour)\">×</button></div><div class=\"setkr\"><input type=\"color\" value=\"#9CCBFF\" data-keyhex=\"5\" aria-label=\"Colour\"><input type=\"text\" value=\"Key ideas\" placeholder=\"What this colour means\" data-keymean=\"5\"><button type=\"button\" class=\"setkx\" data-keyhide=\"5\" title=\"Remove from the key (highlights already made keep their colour)\">×</button></div><div class=\"setkr\"><input type=\"color\" value=\"#CDB6FF\" data-keyhex=\"4\" aria-label=\"Colour\"><input type=\"text\" value=\"Read more / secondary references\" placeholder=\"What this colour means\" data-keymean=\"4\"><button type=\"button\" class=\"setkx\" data-keyhide=\"4",
+  "eqAfterEdits": "TYPING EQUATIONS Visual Boxes to fill in, as in Word LaTeX The code behind the boxes YOUR SAVED EQUATIONS 𝑏 1 b 1 ​ × PINNED SYMBOLS 𝛼 α × 𝛾 γ × Unpin all",
+  "eqStored": "-eqpins=[] | -eqsaved=[{\"n\":\"Renamed two\",\"t\":\"b_1\"}] | -latex=1 | -write={\"theme\":\"graphite\",\"font\":\"serif\",\"size\":15.5,\"lh\":1.65,\"ps\":0.6,\"tw\":false,\"tfs\":14,\"tlh\":\"\",\"tpad\":\"\"}",
+  "zoomStored": "-eqpins=[] | -eqsaved=[{\"n\":\"Renamed two\",\"t\":\"b_1\"}] | -latex=1 | -write={\"theme\":\"graphite\",\"font\":\"serif\",\"size\":15.5,\"lh\":1.65,\"ps\":0.6,\"tw\":false,\"tfs\":14,\"tlh\":\"\",\"tpad\":\"\"} | -zfold=0 | -zoomstart=1.5",
+  "zoomRestored": "-eqpins=[] | -eqsaved=[{\"n\":\"Renamed two\",\"t\":\"b_1\"}] | -latex=1 | -write={\"theme\":\"graphite\",\"font\":\"serif\",\"size\":15.5,\"lh\":1.65,\"ps\":0.6,\"tw\":false,\"tfs\":14,\"tlh\":\"\",\"tpad\":\"\"}",
+  "closed": true
+ },
+ "block equation": {
+  "cats": [
+   "Fraction",
+   "Script",
+   "Radical",
+   "Integral",
+   "Large Operator",
+   "Bracket",
+   "Function",
+   "Accent",
+   "Limit and Log",
+   "Operator",
+   "Matrix"
+  ],
+  "strip": 38,
+  "fractionTiles": 10,
+  "gallery": [
+   "Renamed two",
+   "Area of a circle",
+   "Binomial theorem",
+   "Expansion of a sum",
+   "Fourier series",
+   "Pythagorean theorem"
+  ],
+  "saved": "\\frac{a}{b}+\\phi_{10}",
+  "rendered": "𝑎 𝑏 + 𝜙 10 b a ​ +ϕ 10 ​"
+ },
+ "equation editor details": {
+  "markupLength": 43195,
+  "markupHash": 922705325,
+  "latexMode": true,
+  "afterTile": "\\frac{a}{b}+\\phi_{10}{}^{{}}",
+  "error": "Expected '}', got 'EOF' at end of input: a^{",
+  "visualMode": true,
+  "afterSymbol": "x+y\\pm",
+  "symbolCells": 214,
+  "stripFirstAfterPin": "\\pm",
+  "stripFirstAfterUnpin": "\\pm",
+  "galleryAfterSave": [
+   "Smoke saved",
+   "Renamed two"
+  ],
+  "galleryAfterDelete": [
+   "Renamed two",
+   "Area of a circle"
+  ],
+  "linesAfterReturn": 2,
+  "linesAfterBackspace": 1,
+  "explainNothing": "Select part of the equation first, or click a symbol in it",
+  "saved": "x+y\\pm"
+ },
+ "delete an equation": {
+  "before": 2,
+  "after": 1,
+  "editorOpen": false
+ },
+ "annotate": "[{\"t\":\"x\",\"c\":0,\"n\":\"\"}]",
+ "inline equation": "x_i^2",
+ "essay writing": {
+  "words": "Word count«Word count mode8wordsWhole essay8Use Word count mode to box paragraphs as Introduction, Body paragraphs, Conc"
+ },
+ "word count": {
+  "start": "Word count mode34wordsWhole essay34Use Word count mode to box paragraphs as Introduction, Body paragraphs, Conclusion…ContentsTag every chapter (3)1 Introduction7+Chapter 2: Methods13+2.1 Sampling7+References6+Figures, captions & tablesFootnotesIn-text citationsUntagged textWord limit",
+  "everyChapter": "Word count mode28wordsIntroduction7Methods13References6Untagged8ContentsTag every chapter (3)1 Introduction7×Chapter 2: Methods13×2.1 Sampling7+References6×Figures, captions & tablesFootnotesIn-text citationsUntagged textWord limit",
+  "untagged": "Word count mode28wordsMethods13References6Untagged15ContentsTag every chapter (3)1 Introduction7+Chapter 2: Methods13×2.1 Sampling7+References6×Figures, captions & tablesFootnotesIn-text citationsUntagged textWord limit",
+  "tagOne": "Word count mode28wordsMethods13References6Introduction7Untagged8ContentsTag every chapter (3)1 Introduction7×Chapter 2: Methods13×2.1 Sampling7+References6×Figures, captions & tablesFootnotesIn-text citationsUntagged textWord limit",
+  "settings": "Word count mode15wordsOpening13 / 3Name Limit Count in totalRemove this tagReferences6Introduction7Untagged8ContentsTag every chapter (3)1 Introduction7×Chapter 2: Methods13+2.1 Sampling7+References6×Figures, captions & tablesFootnotesIn-text citationsUntagged textWord limit",
+  "options": "Word count mode15of 40 · 25 leftOpening13 / 3Name Limit Count in totalRemove this tagReferences6Introduction7Untagged8ContentsTag every chapter (3)1 Introduction7×Chapter 2: Methods13+2.1 Sampling7+References6×Figures, captions & tablesFootnotesIn-text citationsUntagged textWord limit",
+  "boxes": [
+   "Introduction · 7",
+   "Opening · 13 / 3 · not counted",
+   "References · 6 · not counted"
+  ],
+  "locked": "false",
+  "pop": "TAG 2 PARAGRAPHS AS Opening References Introduction Abstract Body paragraph 1 Conclusion Cancel",
+  "afterPreset": [
+   "Abstract · 8 · not counted",
+   "Introduction · 7",
+   "Opening · 13 / 3 · not counted",
+   "References · 6 · not counted"
+  ],
+  "afterTyped": [
+   "Abstract · 8 · not counted",
+   "Introduction · 2",
+   "Typed tag · 5",
+   "Opening · 13 / 3 · not counted",
+   "References · 6 · not counted"
+  ],
+  "cancelled": true,
+  "afterClear": [
+   "Abstract · 8 · not counted",
+   "Introduction · 2",
+   "Typed tag · 5",
+   "Opening · 13 / 3 · not counted",
+   "References · 6 · not counted"
+  ],
+  "afterResize": [
+   "Abstract · 21 · not counted",
+   "Opening · 7 / 3 · not counted",
+   "References · 6 · not counted"
+  ],
+  "labelOpens": false,
+  "afterDelete": "Done taggingDrag down the left margin beside your paragraphs to box them as a section. Click a box’s label to change it.7of 40 · 33 leftReferences6Introduction0Abstract21Name Limit Count in totalRemove this tagTyped tag0Untagged7ContentsTag every chapter (3)1 Introduction7+Chapter 2: Methods13+2.1 Sampling7+References6×Figures, captions & tablesFootnotesIn-text citationsUntagged textWord limit",
+  "unlocked": "true true",
+  "essayList": "<missing>"
+ },
+ "spec points": {
+  "panel": "Biology topic 2«Tag notes with spec points2.1 Molecules to metabolism0/92.1.U1Molecular biology explains living processes in terms of the chemical substances involved.2.1.U2Carbon atoms can form four covalent bonds allowing a diversity of stable compounds to exist.2.1.U3Life is based on carbon compounds including carbohydrates, lipids, proteins and nucleic acids.2.1.U4Metabolism is the web of all ",
+  "rated": "1",
+  "ratedBack": "",
+  "addedPlace": [
+   "H2:2.1.U1",
+   "P:"
+  ],
+  "caretIn": "(empty)",
+  "wentTo": true,
+  "mode": "Biology topic 2«Done taggingDrag down the left margin of your notes to tag them; drag a bracket’s ends to resize it. Esc when you’re done.2.1 Molecules to metab",
+  "gutter": true,
+  "pick": "TAG 2 BLOCKS WITH 2.1 MOLECULES TO METABOLISM 2.1.U1 Molecular biology explains living processes in terms of the chemical substances involved. 2.1.U2 Carbon atoms can form four covalent bonds allowing",
+  "pickNone": "No matching points",
+  "afterEnter": [
+   "2.1.U2",
+   "2.1.U1"
+  ],
+  "afterClick": [
+   "2.1.U2",
+   "2.1.U1",
+   "2.1.U1"
+  ],
+  "cancelled": true,
+  "clearOffered": true,
+  "afterClear": [
+   "2.1.U2",
+   "2.1.U1"
+  ],
+  "afterResize": 10,
+  "labelGoes": "2.1.U2Carbon atoms can form four covalent bonds allowing a d",
+  "hovered": 8,
+  "modeOff": true,
+  "menuPick": "TAG 1 BLOCK WITH",
+  "finalTags": [
+   "P:Smoke line one with ",
+   "P:Highlight me please",
+   "H2:A smoke heading",
+   "P:",
+   "UL:First bullet",
+   "P:",
+   "P:Comment on this text",
+   "P:Link this text",
+   "P:Colour this text",
+   "H2:2.1.U1",
+   "P:"
+  ],
+  "finalPanel": "Biology topic 2«Done taggingDrag down the left margin of your notes to tag them; drag a bracket’s ends to resize it. Esc when you’re done.2.1 Molecules to metabolism2/92.1.U1Molecular biology explains living processes in terms of the chemical substances involved.✓2.1.U2Carbon atoms can form four covalent bonds allowing a diversity of stable compounds to exist.✓2.1.U3Life is based on carbon compoun"
+ },
+ "typed shortcuts": {
+  "bold": "<p>a <strong>bold</strong>&nbsp;b</p>",
+  "underscoreBold": "<p>a <strong>bold</strong>&nbsp;b</p>",
+  "italic": "<p>an <em>italic</em>&nbsp;b</p>",
+  "underscoreItalic": "<p>an <em>italic</em>&nbsp;b</p>",
+  "strike": "<p>a <s>gone</s>&nbsp;b</p>",
+  "code": "<p>a <code>code</code>&nbsp;b</p>",
+  "mark": "<p>a <mark data-h=\"5\" title=\"Key ideas\">marked</mark>&nbsp;b</p>",
+  "markColour": "<p>a <mark data-h=\"5\" title=\"Key ideas\">blue</mark>&nbsp;b</p>",
+  "heading": "<h2>Typed heading</h2>",
+  "bullet": "<ul><li>typed bullet</li></ul>",
+  "numbered": "<ol><li>typed number</li></ol>",
+  "todo": "<ul data-todo=\"\"><li>typed todo</li></ul>",
+  "done": "<ul data-todo=\"\"><li data-done=\"1\">typed done</li></ul>",
+  "quote": "<blockquote>typed quote</blockquote>",
+  "fullWidth": "<h1>wide heading</h1>",
+  "dash": "<p>one – two</p>",
+  "arrows": "<p>a → b ← c ↔ d ⇒ e ⇐ f ⇔ g</p>",
+  "inlineMath": "<p>area <span data-imath=\"x^2\" contenteditable=\"false\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow><annotation encoding=\"application/x-tex\">x^2</annotation></semantics></math></span><span cla",
+  "quotes": "<p>she said “hi” and it’s “done” (fine) [ok] {x}</p>",
+  "dollarsStay": "<p>costs $5 and $10</p>",
+  "undoInline": "<p>undo **this**</p>",
+  "undoBlock": "<p>#&nbsp;<br></p>",
+  "undoDash": "<p>x --&nbsp;</p>",
+  "callout": "<div data-callout=\"tip\"><p data-cot=\"\">Tip</p><p><br></p></div>",
+  "divider": "<hr><p><br></p>",
+  "quoteExit": "<blockquote>quoted line</blockquote><p><br></p>",
+  "pairBackspace": "<p>pair&nbsp;</p>",
+  "closeOver": "<p>(x)</p>",
+  "cmdL": "<p>(x)</p><p><ul><li>shortcut cmdL</li></ul></p>",
+  "cmdShiftL": "<p><ul><li>shortcut cmdL</li></ul></p><p><ol><li>shortcut cmdShiftL</li></ol></p>",
+  "cmdShiftT": "<p><ol><li>shortcut cmdShiftL</li></ol></p><blockquote>shortcut cmdShiftT</blockquote>",
+  "cmdAltS": "<p><br></p><p>shortcut cmdAltS</p>",
+  "typewriter": "Typewriter scrolling on"
+ },
+ "equation drawing": {
+  "lines": 4,
+  "drawnAs": [
+   "x_i",
+   "y = \\htmlClass{mann0}{\\textcolor{#2f9e5b}{\\sigma}}(\\htmlClass{mann1}{\\textcolor{#3e8ef7}{x}}) + \\mathop{\\htmlClass{mann2}{\\textcolor{#e5484d}{\\sum}}}\\limits_{i=1}^{n} \\htmlClass{mann1}{\\textcolor{#3e8ef7}{x}}_i + 3.14",
+   "\\mathop{\\htmlClass{mann3}{\\textcolor{#f07a1a}{\\int}}}\\nolimits_0^1 \\htmlClass{mann1}{\\textcolor{#3e8ef7}{x}} \\, d\\htmlClass{mann1}{\\textcolor{#3e8ef7}{x}}",
+   "\\begin{pmatrix} a & b \\\\\n c & d \\end{pmatrix}",
+   "\\operatorname*{argmin}_w \\textcolor{#9aa6b2}{\\square} \\hat{y}"
+  ],
+  "coloured": [
+   "mann0 #2f9e5b",
+   "mann1 #3e8ef7",
+   "mann2 #e5484d",
+   "mann1 #3e8ef7",
+   "mann3 #f07a1a",
+   "mann1 #3e8ef7",
+   "mann1 #3e8ef7"
+  ],
+  "cards": [
+   "mrow mtop||||squashes 𝑥 𝑖 x i ​ to between 0 and 1",
+   "mrow mtop||||the input over two lines",
+   "mrow mtop||||adds up",
+   "mrow mtop||||Click to explain",
+   "mrow mtop||||not in the equation"
+  ],
+  "paths": [],
+  "rows": [
+   "  ",
+   "  "
+  ],
+  "lit": 5,
+  "unlit": 0,
+  "editing": true,
+  "savedNote": "[{\"t\":\"\\\\sigma\",\"c\":2,\"n\":\"squashes $x_i$ to between 0 and 1\"},{\"t\":\"x\",\"c\":1,\"n\":\"the input\\nover two lines\"},{\"t\":\"\\\\sum\",\"c\":0,\"n\":\"adds up\"},{\"t\":\"\\\\int\",\"c\":3,\"n\":\"the area, $\\\\int f$\"},{\"t\":\"nothing\",\"c\":4,\"n\":\"not in the equation\"}]",
+  "afterEdit": [
+   "mrow mtop||139.362px|17px|squashes 𝑥 𝑖 x i ​ to between 0 and 1",
+   "mrow mtop||361.362px|0px|",
+   "mrow mtop|none|||not in the equation",
+   "mrow mbot||356.977px|0px|the input over two lines",
+   "mrow mbot||271.977px|0px|adds up"
+  ],
+  "pathsAfterEdit": [
+   "M244.4 55.7 C244.4 76.1 244.4 76.1 244.4 96.4",
+   "M372.9 293.9 C372.9 235.1 324.7 235.1 324.7 176.4",
+   "M377.2 56.0 C377.2 102.7 278.1 102.7 278.1 149.4",
+   "M308.5 293.9 C308.5 208.7 308.5 208.7 308.5 123.4"
+  ],
+  "rowsAfterEdit": [
+   "52px 0px 30px",
+   "52px 30px 0px"
+  ]
+ },
+ "images": {
+  "toolbar": [
+   "move",
+   "wrap:*",
+   "wrap:left",
+   "wrap:right",
+   "w:25",
+   "w:50",
+   "w:75",
+   "w:100*",
+   "crop",
+   "cap",
+   "del"
+  ],
+  "frame": "13%",
+  "wrapLeft": "50 left P",
+  "wrapRight": "50 right P",
+  "inLine": "50  P",
+  "small": "25  P",
+  "full": "  P",
+  "toolbarAfter": [
+   "move",
+   "wrap:*",
+   "wrap:left",
+   "wrap:right",
+   "w:25",
+   "w:50",
+   "w:75",
+   "w:100*",
+   "crop",
+   "cap",
+   "del"
+  ],
+  "caption": "  FIGURE",
+  "captionHTML": "<figure><img src data-nb=\"1\" alt=\"\"><figcaption><br></figcaption></figure>",
+  "noCaption": "  DIV",
+  "resized": "50  DIV",
+  "dropLine": true,
+  "moved": "50  LI First bullet",
+  "cropper": true,
+  "cancelled": true,
+  "cropBox": "0px 0px 130.574px 97.9297px",
+  "cropped": true,
+  "resetOffered": true,
+  "reset": true,
+  "dragBlocked": true,
+  "closed": true,
+  "deleted": "gone",
+  "toast": "Image deleted"
+ },
+ "comments": {
+  "afterQuestion": "COMMENTS × All 2 💬 1 ? 1 💬 Comment “Comment” Click to write ? Question Comment Question Explanation Needs research To fix “question” Resolve Done",
+  "noteSaved": "<span data-cmt=\"<id>\" data-ct=\"q\" data-note=\"Why is this so?\" class=\"cmt on\" title=\"Question: Why is this so?\" style=\"--cc: #8a5cf6;\">question</span>",
+  "twoKinds": "COMMENTS × All 3 💬 1 ? 1 ✎ 1 💬 Comment “Comment” Click to write ? Question “question” Why is this so? ✎ To fix Comment Question Explanation Needs research To fix “Something” Resolve Done",
+  "twice": "That text already has a comment",
+  "filter q": 1,
+  "filter fix": 1,
+  "filter all": 4,
+  "opened": "💬 Comment Comment Question Explanation Needs research To fix “Comment” Resolve Done",
+  "restyled": "COMMENTS × All 4 💬 1 ? 1 ! 1 ✎ 1 ! Needs research Comment Question Explanation Needs research To fix “Comment” Resolve Done ? Question “question” Why is this so? ✎ To fix “Something” Click to write 💬 Comment “Already” Click to write",
+  "done": 0,
+  "fromText": "“Comment”",
+  "positions": [
+   "",
+   "",
+   "",
+   ""
+  ],
+  "resolved": [
+   "Comment resolved",
+   3
+  ],
+  "hidden": false,
+  "fab": "💬3 comments",
+  "reopened": true
+ },
+ "callouts and blocks": {
+  "headings": "<h2 data-sp=\"x1\">Line one</h2><h2>Line two <span data-cite=\"\" contenteditable=\"false\" class=\"cite ph\" title=\"Choose the source for this citation\">(x, x)</span> on</h2><h2 data-wct=\"t1\">Line three</h2>",
+  "body": "<p data-sp=\"x1\">Line one</p><p>Line two <span data-cite=\"\" contenteditable=\"false\" class=\"cite ph\" title=\"Choose the source for this citation\">(x, x)</span> on</p><p data-wct=\"t1\">Line three</p>",
+  "quoted": "<blockquote data-sp=\"x1\">Line one</blockquote><blockquote>Line two <span data-cite=\"\" contenteditable=\"false\" class=\"cite ph\" title=\"Choose the source for this citation\">(x, x)</span> on</blockquote><blockquote data-wct=\"t1\">Line three</blockquote>",
+  "unquoted": "<p data-sp=\"x2\">quoted one</p><p data-sp=\"x2\">loose words</p><p data-sp=\"x2\">quoted two</p>",
+  "submenu note": 7,
+  "callout note": "<div data-callout=\"note\"><p data-cot=\"\">Note</p><p><br></p></div><p><br></p>",
+  "submenu warning": 7,
+  "callout warning": "<div data-callout=\"warning\"><p data-cot=\"\">Warning</p><p><br></p></div><p><br></p>",
+  "submenu def": 7,
+  "callout def": "<div data-callout=\"def\"><p data-cot=\"\">Definition</p><p>Text to put inside</p></div><p><br></p>",
+  "submenu pc": 7,
+  "callout pc": "<div data-callout=\"pc\"><div data-side=\"pro\"><ul><li><br></li></ul></div><div data-side=\"con\"><ul><li><br></li></ul></div></div><p><br></p>",
+  "prosEnter": "con",
+  "consEnter": "<p><br></p><p><br></p>",
+  "titleEnter": "P",
+  "leaveCallout": "<p><br></p><p><br></p>",
+  "backIntoTitle": "Warning",
+  "backToLine": "replaced",
+  "upgraded": "<div data-callout=\"warning\"><p data-cot=\"\">Warning</p><p>old style</p></div>"
+ },
+ "line edges": {
+  "bulletToLine": "<ul data-sp=\"x3\"><li>first</li></ul><p data-sp=\"x3\">middle</p><ul data-sp=\"x3\"><li>sub one</li><li>last</li></ul>",
+  "outdent": "<ul><li>outer<li><span>inner</span></li></li></ul>",
+  "joinBack": "<ul><li>outer<li><span>inner</span></li></li></ul><p>Line above <span data-cite=\"\" contenteditable=\"false\" class=\"cite ph\" title=\"Choose the source for this citation\">(x, x)</span> continues here</p>",
+  "joinForward": "<p>Line above <span data-cite=\"\" contenteditable=\"false\" class=\"cite ph\" title=\"Choose the source for this citation\">(x, x)</span> continues here</p><p>End here <span data-fn=\"a note\"></span> next line</p>",
+  "joinIntoQuote": "<p>End here <span data-fn=\"a note\" class=\"fn\" contenteditable=\"false\" title=\"a note\"></span> next line</p><blockquote><p>quoted line <span data-cite=\"\" contenteditable=\"false\" class=\"cite ph\" title=\"Choose the source for this citation\">(x, x)</span> after the quote</p></blockquote>",
+  "afterCallout": "<div data-callout=\"note\"><p data-cot=\"\">Note</p><p>inside</p></div><p>after the callout</p> | inside",
+  "afterTable": "<p>after the callout</p><table><tbody><tr><td>a</td><td>b</td></tr></tbody></table><p>more</p> | b",
+  "caretPlaces": [
+   "\"​\"",
+   "SPAN",
+   "\"​\""
+  ]
+ },
+ "footnotes and contents": {
+  "popup": "FOOTNOTE 2",
+  "closed": true,
+  "list": "a note The note itself",
+  "fromList": "FOOTNOTE 2",
+  "deleted": [
+   "Footnote deleted",
+   1
+  ],
+  "contents": "none",
+  "secondContents": [
+   "Footnote deleted",
+   1
+  ],
+  "flashed": "none"
+ },
+ "folding": {
+  "buttons": [
+   "foldbtn|Fold this section|true",
+   "foldbtn|Fold this section|true",
+   "foldbtn|Fold this section|true",
+   "foldbtn|Fold this section|true"
+  ],
+  "room": "P H2 HR P TABLE P",
+  "hidden": [
+   "under it",
+   "Sub part",
+   "deeper"
+  ],
+  "afterFold": [
+   "foldbtn|Fold this section|true",
+   "foldbtn|Fold this section|true",
+   "foldbtn on|Show this section|false",
+   "foldbtn|Fold this section|true"
+  ],
+  "revealed": 0,
+  "gapClick": "P"
+ },
+ "app calls and export": {
+  "addRef": [
+   1,
+   "[[\"Prince\",\"2023\"]]"
+  ],
+  "quote": true,
+  "afterQuote": "<p>Quote goes here“a quoted line” <span data-cite data-pg=\"12\" data-anchor=\"A|B\" contenteditable=\"false\" class=\"cite pdf haspg flash\" title=\"Option-click to change the source\">(Whatmore, 2009, <span class=\"cpg\" title=\"Open this quote in the PDF\">p. 12</span>)</span>&nbsp;</p>",
+  "note": true,
+  "afterNote": "<p><br></p>",
+  "state": [
+   "meta,pts,doc,essays,refs,refSort,activeRefs,view,essayId,savedAt",
+   80,
+   1,
+   2,
+   "string"
+  ],
+  "imported": [
+   "essay",
+   "Imported 2 essays",
+   ""
+  ],
+  "shown": "notes",
+  "exportName": "none",
+  "exportTail": "none",
+  "exportHead": "none",
+  "exportToast": "Imported 2 essays"
+ },
+ "notes after round trip": {
+  "length": 1748,
+  "tail": " for contents Its subheading Fold section Sub part Empty section Next section Fold section under it Sub part deeper Empty section Next section cell end Quote goes here“a quoted line” (Whatmore, 2009, p. 12) “some words” (Whatmore, 2009, p. 3) — my comment just a comment a number 𝑥 2 x 2 An 𝑦 y and"
+ },
+ "editor commands": {
+  "ol": "<ol><li>Numbered item</li></ol>",
+  "quote": "A quoted line",
+  "underline": "<u>Under</u>line me",
+  "strike": "<strike>Strik</strike>e me",
+  "code": "<code>Code </code>me",
+  "hr": "u>Under</u>line me</p><p><strike>Strik</strike>e me</p><p><code>Code </code>me</p><p>Before a divider</p><hr><p><br></p>",
+  "footnote": "i>Numbered item</li></ol></p><blockquote>A quoted line</blockquote><p><u>Under</u>line me</p><p><strike>Strik</strike>e me</p><p><code>Code </code>me</p><p>Before a divider</p><hr><p><br></p><p>A footnote here<span data-fn=\"\" class=\"fn sel\" contenteditable=\"false\" title=\"Empty footnote\"></span>​</p>",
+  "toc": "CONTENTS A smoke heading 2.1.U1 Typed heading wide heading A heading for contents Its subheading Fold section Sub part Empty section Next section",
+  "callout": "Inside a callout",
+  "tableGrown": "4 rows, 4 columns",
+  "tableDeleted": "gone",
+  "folded": 8,
+  "unfolded": 0,
+  "sourcesOpen": true,
+  "cite": "A claim needing a citation <span data-cite=\"\" contenteditable=\"false\" class=\"cite ph sel\" title=\"Choose the source for this citation\">(x, x)</span>​",
+  "sourcesAfterCite": true,
+  "tidied": "Note tidied: one font, no stray styles"
+ },
+ "paste": {
+  "rich": "i><li class=\"toc-h2\" data-toci=\"2\">Typed heading</li><li class=\"toc-h1\" data-toci=\"3\">wide heading</li><li class=\"toc-h2\" data-toci=\"4\">A heading for contents</li><li class=\"toc-h3\" data-toci=\"5\">Its subheading</li><li class=\"toc-h2\" data-toci=\"6\">Fold section</li><li class=\"toc-h3\" data-toci=\"7\">Sub part</li><li class=\"toc-h2\" data-toci=\"8\">Empty section</li><li class=\"toc-h2\" data-toci=\"9\">Next section</li><li class=\"toc-h2\" data-toci=\"10\">A heading to fold</li><li class=\"toc-h2\" data-toci=\"11\">Folded heading</li></ol></nav><p><br></p><figure data-wct=\"body\"><img src=\"data:image/png;base64,iVBORw0KGgo=\" data-nb=\"1\" alt=\"\" draggable=\"false\"><figcaption>A caption</figcaption></figure><p>No picture here</p><p data-sp=\"pt1\" data-cot=\"\">Comment <span data-cmt=\"<id>\" data-ct=\"question\" data-note=\"why?\" class=\"cmt\" title=\"Comment: why?\" style=\"--cc: #6f7d8c;\">on this</span> and <span data-imath=\"x_i\" contenteditable=\"false\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding=\"application/x-tex\">x_i</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height: 0.5806em; vertical-align: -0.15em;\"></span><span class=\"mord\"><span class=\"mord mathnormal\">x</span><span class=\"msupsub\"><span class=\"vlist-t vlist-t2\"><span class=\"vlist-r\"><span class=\"vlist\" style=\"height: 0.3117em;\"><span class=\"\" style=\"top: -2.55em; margin-left: 0em; margin-right: 0.05em;\"><span class=\"pstrut\" style=\"height: 2.7em;\"></span><span class=\"sizing reset-size6 size3 mtight\"><span class=\"mord mathnormal mtight\">i</span></span></span></span><span class=\"vlist-s\">​</span></span><span class=\"vlist-r\"><span class=\"vlist\" style=\"height: 0.15em;\"><span class=\"\"></span></span></span></span></span></span></span></span></span></span> and <span data-fn=\"A note\" class=\"fn\" contenteditable=\"false\" title=\"A note\"></span> and <span data-cite=\"r1\" data-pg=\"4\" data-anchor=\"a\" data-form=\"n\" contenteditable=\"false\" class=\"cite missing\" title=\"This source was removed from your Works Cited\">(missing source)</span>​</p><h2 data-fold=\"\">Folded heading</h2><ul data-todo=\"\" class=\"fh\"><li data-done=\"1\">done item</li><li>only child</li></ul><ol class=\"fh\"><li>numbered</li></ol><blockquote class=\"fh\">quoted</blockquote><p class=\"fh\"><br></p><hr class=\"fh\"><p class=\"fh\"><br></p><table class=\"fh\"><tbody><tr><td colspan=\"2\">wide cell</td></tr><tr><th>h</th><td rowspan=\"3\">tall</td></tr></tbody></table><p class=\"fh\"><br></p>",
+  "plainLines": "p><table class=\"fh\"><tbody><tr><td colspan=\"2\">wide cell</td></tr><tr><th>h</th><td rowspan=\"3\">tall</td></tr></tbody></table><p class=\"fh\"><br></p><p>First line</p><p>Second line</p><p>Third line</p>",
+  "shiftPaste": "Bold and italic",
+  "inCell": "One Two"
+ },
+ "citations": {
+  "worksCited": "Sources for Notebook — Molecular Biology notebook Essay — Untitled essay Essay — Imported one Essay — Untitled essay Each notebook and essay keeps its own list. Add references Copy your citations from MyBib (or anywhere) and paste them here, one reference per line. Italics are kept. Add to Works Cited Clear Harvard style 5 references Auto sort A–Z Manual order Jones, A. and Brown, B. (2019) ‘An ar",
+  "opened": "Citation check All 11 Unlinked 4 Missing 1 Incomplete 6 ‹ 1 of 11 › × INCOMPLETE Citation with no source Choose which source this citation is for. Choose source Remove Skip",
+  "filter unlinked": "Citation check All 11 Unlinked 4 Missing 1 Incomplete 6 ‹ 1 of 4 › × UNLINKED Typed citation, not linked Link it to Smith, 2020 so it follows your Works Cited. Link Link all 3 Skip",
+  "filter missing": "Citation check All 11 Unlinked 4 Missing 1 Incomplete 6 ‹ 1 of 1 › × MISSING Quotation without a citation Quotes need a citation with a page number in the same sentence. Add citation Skip",
+  "filter incomplete": "Citation check All 11 Unlinked 4 Missing 1 Incomplete 6 ‹ 1 of 6 › × INCOMPLETE Citation with no source Choose which source this citation is for. Choose source Remove Skip",
+  "filter all": "Citation check All 11 Unlinked 4 Missing 1 Incomplete 6 ‹ 1 of 11 › × INCOMPLETE Citation with no source Choose which source this citation is for. Choose source Remove Skip",
+  "next": "Citation check All 11 Unlinked 4 Missing 1 Incomplete 6 ‹ 2 of 11 › × INCOMPLETE Citation with no source Choose which source this citation is for. Choose source Remove Skip",
+  "reached": "link skip addcite remove addsrc ",
+  "afterLink": "Citation check All 10 Unlinked 3 Missing 1 Incomplete 6 ‹ 1 of 3 › × UNLINKED Typed citation, not linked Link it to Jones & Brown, 2019 so it follows your Works Cited. Link Link all 2 Skip",
+  "afterSkip": "Citation check All 9 Unlinked 2 Missing 1 Incomplete 6 ‹ 1 of 2 › × UNLINKED No source for this citation There is no Nobody (1999) in this project’s Works Cited. Add source Skip",
+  "notes": "𝑥 𝑖 x i ​ and and (missing source)​ Folded heading done item only child numbered quoted wide cell h tall First line Second line Third line Bold and italic One Two A typed citation (Smith, 2020, p. 4) here. Jones and Brown (2019) argue things. An unknown claim (Nobody, 1999) appears. He said “this is a fairly long quotation indeed” today. She wrote “words that are quoted here now” (Taylor, 2018).",
+  "afterPage": "Citation check All 9 Unlinked 2 Missing 1 Incomplete 6 ‹ 1 of 6 › × INCOMPLETE Citation with no source Choose which source this citation is for. Choose source Remove Skip",
+  "afterAddCite": "Citation check All 9 Unlinked 2 Missing 0 Incomplete 7 × Nothing left in this filter.",
+  "afterRemove": "Citation check All 8 Unlinked 2 Missing 0 Incomplete 6 ‹ 1 of 6 › × INCOMPLETE Citation with no source Choose which source this citation is for. Choose source Remove Skip",
+  "afterAddSource": {
+   "view": "wc",
+   "toast": "Add Nobody (1999) here, then run Check citations again"
+  }
+ },
+ "works cited": {
+  "start": [
+   "Jones, A. and Brown, B. (2019)",
+   "Prince, S. J. D. (2023) Unders",
+   "Smith, J. (2020) A Book on Thi",
+   "Taylor, C. (2018) Another Book",
+   "Whatmore, S. (2009) Hybrid Geo"
+  ],
+  "manual": "true",
+  "afterDrag": [
+   "Whatmore, S. (2009) Hybrid Geo",
+   "Jones, A. and Brown, B. (2019)",
+   "Prince, S. J. D. (2023) Unders",
+   "Smith, J. (2020) A Book on Thi",
+   "Taylor, C. (2018) Another Book"
+  ],
+  "afterEdit": "Jones, A. and Brown, B. (2019) ‘An article’, Journal, 3(2), pp. 1–20. (Edited & Person, 2001) not cited yet Edit Delete Prince, S. J. D. (2023) Understanding Deep Learning. MIT Press. (Prince, 2023) not cited yet Edit Delete Smith, J. (2020) A Book on Things. London: Press. (Smith, 2020) cited 1× Ed",
+  "cancelled": true,
+  "selectedOne": "1 selected Delete Clear selection Auto sort A–Z Manual order",
+  "selectedAll": "5 selected Delete Clear selection Auto sort A–Z Manual order",
+  "cleared": "Harvard style 5 references Auto sort A–Z Manual order",
+  "deleteAsks": "Delete? Cited 1×",
+  "deleteAsksWhileEditing": "Delete reference",
+  "deleteAllAsks": "5 selected Delete 5? Some are cited in your notes Clear selection Auto sort A–Z ",
+  "clearedInput": "",
+  "owners": [
+   "Notebook — Molecular Biology notebook",
+   "Essay — Untitled essay",
+   "Essay — Imported one",
+   "Essay — Untitled essay"
+  ],
+  "essayList": "Harvard style 0 references Auto sort A–Z Manual order",
+  "search": 1,
+  "citedFromPane": "<span data-cite contenteditable=\"false\" class=\"cite\" title=\"Change source\">(Edited &amp; Person, 2001)</span>",
+  "caretAfter": true,
+  "choosing": "Click the source for this citation. Shift-click to cite several sources together. Done Delete citation",
+  "twoSources": 2,
+  "oneSource": 1,
+  "narrative": "<span data-cite contenteditable=\"false\" class=\"cite nar sel\" title=\"Change source\" data-form=\"n\">Prince (2023)</span>",
+  "removed": true,
+  "paneClosed": true
+ },
+ "syllabus edit in place": {
+  "edited": "2.1.U1x Edited statement Edited guidance ×",
+  "side": "Contents«2.1 Renamed section0/92.2 Water0/62.3 Carbohydrates and lipids0/102.4 Proteins0/112.5 Enzymes0/82.6 Structure o",
+  "afterReturn": [
+   "2.1.U1x",
+   "·",
+   "2.1.U2",
+   "2.1.U3"
+  ],
+  "afterIndent": "pr sub",
+  "afterOutdent": "pr",
+  "renumbered": [
+   "2.1.1",
+   "2.1.2",
+   "2.1.3",
+   "2.1.4"
+  ],
+  "deleteAsks": "It has notes or a rating — delete anyway?",
+  "afterDelete": [
+   "2.1.1",
+   "2.1.2",
+   "2.1.3"
+  ],
+  "sections": [
+   "2.9 Photosynthesis",
+   "New section"
+  ],
+  "deleteSectionAsks": "Delete section and its 1 point?",
+  "sectionsAfter": 9,
+  "plusShown": true,
+  "afterPlus": [
+   "2.1.1",
+   "2.1.2",
+   "2.1.3",
+   "2.1.4",
+   "2.1.5"
+  ],
+  "afterDrag": "3 / 2.1.1 2.1.2 2.1.3 2.1.4 2.1.5"
+ },
+ "detect formats": {
+  "specPoints": [
+   "Topic 1: 1.1 Describe cells. | 1.2 Explain osmosis"
+  ],
+  "headingsAndCodes": [
+   "Cell Biology: 1.1 Cell theory | 1.2 Cell structure (organelles) continued description",
+   "Topic 2: Molecules: 2.1 Water | 2.2 Carbon"
+  ],
+  "codesOnly": [
+   "Topic 3.1: 3.1.1 First | 3.1.2 Second",
+   "Topic 3.2: 3.2.1 Third",
+   "Topic 4: 4.1 Fourth"
+  ],
+  "plainParagraphs": [
+   "Section 1: First idea | Second idea",
+   "Section 2: Third idea | Fourth idea",
+   "Section 3: Fifth idea"
+  ],
+  "plainList": [
+   "Syllabus: Alpha | Beta | Gamma"
+  ],
+  "bullets": [
+   "Section A: item one | item two | item three"
+  ]
+ },
+ "page actions": {
+  "reached": [
+   "rate",
+   "section",
+   "open",
+   "#newessay (missing)",
+   "delete",
+   "delete again",
+   "side",
+   "side back",
+   "#editbtn",
+   "#detect",
+   "[data-dx=\"0.1\"]",
+   "[data-dadd=\"0\"]",
+   "#confirmdraft",
+   "#editbtn",
+   "#detect",
+   "#confirmdraft",
+   "#confirmdraft (missing)",
+   "#editbtn",
+   "ex",
+   "ex again (missing)",
+   "#editbtn",
+   "blank",
+   "blank again (missing)"
+  ],
+  "ratedOnce": "1",
+  "ratedBack": "0",
+  "afterOpen": "notes",
+  "title": "Smoke notebook",
+  "essays": "Word count«Word count mode0wordsWhole essay0Use Word count mode to box paragraphs as Introduction, Body paragraphs, Conc",
+  "deleteAsks": "Click again to delete this essay",
+  "essaysAfterDelete": 0,
+  "sideFolded": false,
+  "editing": "Done editing",
+  "review": "Review: 3 points in 1 section Edit titles and numbers, and remove any line you do not want. Empty numbers are filled in for you. × × × + Point Add to current syllabus Replace current syllabus (keeps n",
+  "afterAdd": {
+   "rows": 95,
+   "tail": "omplementary base pairs. 2.6.A1 Crick and Watson's elucidation of the structure of DNA using model making. 2.6.S1 Drawing simple diagrams of the structure of single nucleotides of DNA and RNA, using c"
+  },
+  "replaceWarning": "<missing>",
+  "afterReplace": {
+   "rows": 3,
+   "start": "CONF. CODE STATEMENT GUIDANCE TOPIC 8 8.1 Only point Click a statement to open its notes. If it is not in your notes yet, it is added in the right section. Click a circle to step its confidence up, sh"
+  },
+  "exAsks": "",
+  "exRows": 90,
+  "exStart": "This is an example syllabus (topic 2 of your Biology file). Ratings and notes you add are ",
+  "blankAsks": "",
+  "blankRows": 0,
+  "blankStart": "No syllabus yet. Press Edit syllabus to add one."
+ },
+ "errors": [
+  "equation editor details: Uncaught TypeError: Cannot read properties of undefined (reading 'options')",
+  "equation editor details: Uncaught TypeError: Cannot read properties of undefined (reading 'options')",
+  "annotate: Uncaught TypeError: Cannot read properties of undefined (reading 'options')"
+ ]
+}

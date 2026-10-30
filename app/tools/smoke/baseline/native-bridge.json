@@ -1,0 +1,22 @@
+{
+ "messages": {
+  "theme": 11,
+  "focus": 3,
+  "save": 38,
+  "setKey": 4,
+  "export": 1
+ },
+ "lastSaveKeys": [
+  "activeRefs",
+  "doc",
+  "essayId",
+  "essays",
+  "meta",
+  "pts",
+  "refSort",
+  "refs",
+  "savedAt",
+  "view"
+ ],
+ "lastSaveTitle": "Smoke notebook"
+}

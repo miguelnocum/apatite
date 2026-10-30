@@ -246,10 +246,11 @@ final class SessionModel: ObservableObject {
     /// Writes what the page saved into the open project's files.
     private func persist(_ json: String) {
         let started = Date(); defer { perfPersist(started, kb: json.utf8.count / 1024) }
-        if !app.workspace.saveSession(json, project, notebook: currentNotebook) {
+        let o = json.data(using: .utf8).flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }   // parsed once, for the files and for the lines below
+        if !(o.map { app.workspace.saveSession($0, project, notebook: currentNotebook) } ?? false) {
             app.alert = AlertItem(title: "Could not save your notebook", message: "Check that \(project.url.path) is writable.")
         }
-        if let d = json.data(using: .utf8), let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any] {
+        if let o {
             app.citations.refs = (o["activeRefs"] ?? o["refs"]).map(CitationModel.decodeRefs) ?? []  // the open document's list
             if let v = o["view"] as? String { pageView = v }
             pageEssay = o["essayId"] as? String

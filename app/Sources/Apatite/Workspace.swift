@@ -301,6 +301,12 @@ final class Workspace {
     @discardableResult
     func saveSession(_ json: String, _ p: ProjectInfo, notebook: DocItem?) -> Bool {
         guard let d = json.data(using: .utf8), let obj = (try? JSONSerialization.jsonObject(with: d)) as? JSON else { return false }
+        return saveSession(obj, p, notebook: notebook)
+    }
+
+    /// the same, for a page state that is already parsed
+    @discardableResult
+    func saveSession(_ obj: JSON, _ p: ProjectInfo, notebook: DocItem?) -> Bool {
         var ok = true
         if let nbItem = notebook, let cur = item(.notebooks, nbItem.id, in: p) { ok = saveNotebook(obj, to: cur, in: p) && ok }
         if let essays = obj["essays"] as? [JSON] { ok = saveEssays(essays, in: p) && ok }

@@ -39,7 +39,7 @@ import { initEquationEditor } from '../equations/equation-editor.js';
 import { initSelectionBand } from '../editor/selection-band.js';
 import { initFolding } from '../editor/folding.js';
 import { initTypewriterWriting } from '../writing/typewriter-writing.js';
-import { initSettings } from './settings.js';
+import { initSettings } from '../settings/settings.js';
 import { initSpecPointDragging } from '../spec-points/spec-point-dragging.js';
 import { initSpecPointPicker } from '../spec-points/spec-point-picker.js';
 import { initSpecPointPanel } from '../spec-points/spec-point-panel.js';

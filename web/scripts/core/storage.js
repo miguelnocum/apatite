@@ -208,3 +208,19 @@ export function initStorage() {
   Store.saveDoc = storeSaveDoc;
   Store.loadDoc = storeLoadDoc;
 }
+
+/* ---- settings kept in this browser ---- */
+export function setPref(name, value) {
+  try {
+    if (value == null) localStorage.removeItem(KEY + '-' + name);
+    else localStorage.setItem(KEY + '-' + name, value);
+  } catch (x) {}
+}
+
+export function getPref(name) {
+  try {
+    return localStorage.getItem(KEY + '-' + name);
+  } catch (x) {
+    return null;
+  }
+}

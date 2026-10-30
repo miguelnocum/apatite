@@ -121,3 +121,14 @@ export function addBanner() {
       `<button class="btn sm" data-edit="1"${ui.edit ? ' style="visibility:hidden"' : ''}>Edit syllabus</button></div>`
   );
 }
+
+export function switchView(view) {
+  if (isDocView()) ui.lastDoc = ui.view;
+  ui.scroll[ui.view] = window.scrollY;
+  if (view === 'syl') ui.back = null;
+  ui.view = view;
+  ui.confirm = null;
+  ui.confirmApply = null;
+  render();
+  window.scrollTo(0, ui.scroll[view] || 0);
+}

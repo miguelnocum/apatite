@@ -9,7 +9,7 @@ import { docHTML, saveDocNow, setDocHTML } from '../editor/notes-document.js';
 import { ccScan, openCiteCheck } from '../citations/citation-check.js';
 import { blankEssay, buildDocFromPoints, newEssay, openEssay } from '../essays/essays.js';
 import { refSort, refs, setNbRefSort, setNbRefs, setRefOwner, setRefSort2, setRefs } from '../citations/references.js';
-import { openSettings } from './settings.js';
+import { openSettings } from '../settings/settings.js';
 
 /* ===== boot: the notebook loaded (or the example made, the first time), then drawn ===== */
 const IMPORT_CHECK_DELAY = 200; // ms after importing essays before their citations are checked

@@ -2,7 +2,7 @@ import { HLKEY, keyOf } from '../editor/highlight-colours.js';
 import { closeTbMenu } from '../core/toolbar-menu.js';
 import { KEY } from '../core/example-data.js';
 import { ed, esc, essays, isDocView, NATIVE, post, toast, ui } from '../core/helpers-and-state.js';
-import { Store } from '../core/storage.js';
+import { getPref, setPref, Store } from '../core/storage.js';
 import { mk } from '../core/paste-cleaning.js';
 import { ZOOMS, applyZoom } from '../view/zoom.js';
 import { saveDocNow } from '../editor/notes-document.js';
@@ -38,22 +38,6 @@ const DARK_THEMES = ['night', 'ink', 'macchiato', 'jazz', 'lofi', 'evdark'];
 
 let settingsSheet = null;
 let keySaveTimer = null;
-
-/* ---- settings kept in this browser ---- */
-function setPref(name, value) {
-  try {
-    if (value == null) localStorage.removeItem(KEY + '-' + name);
-    else localStorage.setItem(KEY + '-' + name, value);
-  } catch (x) {}
-}
-
-export function getPref(name) {
-  try {
-    return localStorage.getItem(KEY + '-' + name);
-  } catch (x) {
-    return null;
-  }
-}
 
 /* ---- the sheet ---- */
 export function openSettings(section) {

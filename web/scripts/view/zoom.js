@@ -1,10 +1,10 @@
+import { getPref } from '../core/storage.js';
 import { KEY } from '../core/example-data.js';
 import { $, ed, isDocView, ui } from '../core/helpers-and-state.js';
 import { renderSide } from '../syllabus/syllabus-view.js';
 import { markCur } from './page-render.js';
 import { applyFocusZoom, focusWheel, inFocus, setFocusZoom, stepFocusZoom } from './focus-mode.js';
 import { isNarrow, renderComments } from '../editor/comments.js';
-import { getPref } from '../app/settings.js';
 
 /* ===== page zoom: the page is scaled, the wrapper takes the scaled size so scrolling stays right ===== */
 export const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2];

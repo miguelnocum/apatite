@@ -16,7 +16,7 @@ import {
   unfoldForComments
 } from './comments.js';
 import { wireCalloutSub } from './callouts.js';
-import { openSettings } from '../app/settings.js';
+import { openSettings } from '../settings/settings.js';
 
 /* ===== the toolbar's menus: headings, lists, insert, highlight colour, zoom, comments, and the link box ===== */
 const MENU_GAP = 6; // px between a toolbar button and its menu

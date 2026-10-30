@@ -18,7 +18,7 @@ import { commit, planApply } from '../syllabus/model.js';
 import { cfHTML, measure, renderSide, toggleSide } from '../syllabus/syllabus-view.js';
 import { detect, renderSetup, secPrefix, sectionNames, suggestGrouping } from '../syllabus/syllabus-import.js';
 import { showStyleMatches } from '../syllabus/numbering-style.js';
-import { backToSyl, markCur, render } from '../view/page-render.js';
+import { backToSyl, markCur, render, switchView } from '../view/page-render.js';
 import { cmd, tableState } from '../editor/editor-commands.js';
 import { stepZoom } from '../view/zoom.js';
 import { openTbMenu } from '../editor/toolbar-menus.js';
@@ -28,7 +28,7 @@ import { deleteEssay, newEssay, openEssay, openPoint, renderEssaySide } from '..
 import { exportHTML } from '../editor/export.js';
 import { useRefs } from '../citations/references.js';
 import { renderWC } from '../citations/works-cited-tab.js';
-import { openSettings } from './settings.js';
+import { openSettings } from '../settings/settings.js';
 
 /* ===== events: the page's own fields and buttons ===== */
 const TITLE_SAVE_DELAY = 500; // ms after the last keystroke in an essay's title before it's saved
@@ -201,17 +201,6 @@ function chooseView(tab) {
   const view = tab.dataset.view;
   if (NATIVE && view === ui.view && !isDocView()) switchView(ui.lastDoc || 'notes');
   else switchView(view);
-}
-
-export function switchView(view) {
-  if (isDocView()) ui.lastDoc = ui.view;
-  ui.scroll[ui.view] = window.scrollY;
-  if (view === 'syl') ui.back = null;
-  ui.view = view;
-  ui.confirm = null;
-  ui.confirmApply = null;
-  render();
-  window.scrollTo(0, ui.scroll[view] || 0);
 }
 
 /* a confidence circle: one step up (⇧ one down), round from 4 to not rated */

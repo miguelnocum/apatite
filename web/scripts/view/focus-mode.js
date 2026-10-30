@@ -1,8 +1,8 @@
+import { switchView } from './page-render.js';
 import { KEY } from '../core/example-data.js';
 import { $, curEssay, isDocView, meta, NATIVE, post, toast, ui } from '../core/helpers-and-state.js';
 import { measure } from '../syllabus/syllabus-view.js';
 import { alignToolbar, applyZoom, keepAnchor, zoomAnchor, zoomPoint } from './zoom.js';
-import { switchView } from '../app/events.js';
 import { renderComments } from '../editor/comments.js';
 import { queueBand } from '../editor/selection-band.js';
 

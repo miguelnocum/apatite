@@ -1,0 +1,530 @@
+/* ===== tables in the notes, Word-style: styles, shading, sizes, the selection, the handles and the table tab ===== */
+.notes table[data-fixed] {
+  table-layout: fixed;
+}
+.notes table tr {
+  height: var(--row-h, auto);
+}
+.notes table[data-tpad='compact'] {
+  --tpad: 2px 5px;
+}
+.notes table[data-tpad='roomy'] {
+  --tpad: 9px 12px;
+}
+
+/* styles (no data-ts: Grid, lines round every cell and a shaded header) */
+.notes table[data-ts='lines'] {
+  border-top: 2px solid var(--fg);
+  border-bottom: 2px solid var(--fg);
+}
+.notes table[data-ts='lines'] :is(td, th) {
+  border-left: 0;
+  border-right: 0;
+}
+.notes table[data-ts='lines'] th {
+  background: none;
+  border-bottom: 1.5px solid var(--fg);
+}
+.notes table[data-ts='accent'] :is(td, th) {
+  border-color: color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.notes table[data-ts='accent'] th {
+  background: var(--ink);
+  color: var(--ink-fg) !important;
+}
+.notes table[data-ts='soft'] :is(td, th) {
+  border-color: color-mix(in srgb, var(--line) 60%, transparent);
+}
+.notes table[data-ts='soft'] th {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.notes table[data-ts='minimal'] :is(td, th) {
+  border: 0;
+}
+.notes table[data-ts='minimal'] th {
+  background: none;
+  border-bottom: 1.5px solid var(--line);
+}
+.notes table[data-ts='plain'] :is(td, th) {
+  border: 0;
+}
+.notes table[data-ts='plain'] th {
+  background: none;
+}
+.notes table[data-band] tr:nth-child(even) > td {
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+}
+.notes table[data-fcol] tr > :first-child {
+  font-weight: 600;
+}
+
+/* shading, over any style */
+.notes :is(td, th)[data-shade='1'] {
+  background: color-mix(in srgb, #e5484d 20%, transparent) !important;
+}
+.notes :is(td, th)[data-shade='2'] {
+  background: color-mix(in srgb, #f76b15 20%, transparent) !important;
+}
+.notes :is(td, th)[data-shade='3'] {
+  background: color-mix(in srgb, #ffc53d 26%, transparent) !important;
+}
+.notes :is(td, th)[data-shade='4'] {
+  background: color-mix(in srgb, #30a46c 20%, transparent) !important;
+}
+.notes :is(td, th)[data-shade='5'] {
+  background: color-mix(in srgb, #0090ff 18%, transparent) !important;
+}
+.notes :is(td, th)[data-shade='6'] {
+  background: color-mix(in srgb, #8e4ec6 20%, transparent) !important;
+}
+.notes :is(td, th)[data-shade='7'] {
+  background: color-mix(in srgb, var(--fg) 12%, transparent) !important;
+}
+
+/* selected cells: tinted over their own shading; the text selection itself isn't shown */
+.notes :is(td, th).tsel {
+  box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--ink) 24%, transparent);
+}
+.notes table.tselecting ::selection {
+  background: transparent;
+}
+
+/* the handles: grips above columns and beside rows, borders that drag */
+.tbllayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.tgrip {
+  position: absolute;
+  pointer-events: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--fg) 14%, transparent);
+  cursor: pointer;
+  opacity: 0.75;
+  transition: background 0.1s;
+}
+.tgrip.tgc,
+.tgrip.tgr {
+  cursor: grab;
+}
+.tgrip:hover {
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
+  opacity: 1;
+}
+.tgrip.on {
+  background: var(--ink);
+  opacity: 1;
+}
+.tgc {
+  margin-inline: 1px;
+}
+.tgr {
+  margin-block: 1px;
+}
+.trz {
+  position: absolute;
+  pointer-events: auto;
+}
+.trzc {
+  cursor: col-resize;
+}
+.trzr {
+  cursor: row-resize;
+}
+.trz:hover {
+  background: color-mix(in srgb, var(--ink) 45%, transparent);
+  background-clip: content-box;
+}
+.trzc:hover {
+  padding-inline: 2px;
+}
+.trzr:hover {
+  padding-block: 2px;
+}
+.tdrop {
+  position: absolute;
+  background: var(--ink);
+  border-radius: 2px;
+}
+.tdropr {
+  height: 3px;
+}
+.tdropc {
+  width: 3px;
+}
+
+/* the table tab: under the toolbar while in a table, over the page (so the page doesn't jump). Panes switched on the
+   left, as in an inspector; segmented buttons, steppers and swatches */
+.tbltab {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  padding: 7px 14px 8px 7px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 10px 28px rgba(0, 0, 0, 0.12);
+  color: var(--fg);
+  font: 12px var(--ui);
+  white-space: nowrap;
+}
+.tbltab[hidden] {
+  display: none;
+}
+/* the panes share one place, so the tab is as wide as the widest and doesn't move when switching */
+.tpanes {
+  display: grid;
+}
+.tpane {
+  grid-area: 1 / 1;
+}
+.tpane[hidden] {
+  display: flex;
+  visibility: hidden;
+}
+.tbltab button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* the pane switcher: a column of tabs, the open one filled */
+.tswitch {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-right: 12px;
+  border-right: 1px solid var(--line);
+  align-self: stretch;
+  justify-content: center;
+}
+.tswitch button {
+  border: 0;
+  background: none;
+  border-radius: 5px;
+  padding: 1px 10px;
+  line-height: 16px;
+  font-size: 11.5px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted);
+}
+.tswitch button:hover {
+  color: var(--fg);
+  background: var(--field);
+}
+.tswitch button[aria-selected='true'] {
+  background: var(--ink);
+  color: var(--ink-fg);
+}
+
+.tpane {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
+.tfield {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.tfield > :not(.tlabel) + :not(.tlabel) {
+  margin-top: 0;
+}
+.tfield:has(> .tseg + .tseg) {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 8px;
+}
+.tfield:has(> .tseg + .tseg) .tlabel {
+  grid-column: 1 / -1;
+}
+.tlabel {
+  font: 600 11px var(--ui);
+  color: var(--muted);
+}
+
+/* segmented buttons: one rounded control, divided, the chosen one filled */
+.tseg {
+  display: inline-flex;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--field);
+  overflow: hidden;
+}
+.tseg button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 34px;
+  padding: 0 8px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: none;
+}
+.tseg button:first-child {
+  border-left: 0;
+}
+.tseg button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.tseg button[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--ink-fg);
+  border-color: var(--ink);
+}
+.tseg button[aria-pressed='true'] + button {
+  border-left-color: var(--ink);
+}
+.tseg button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.tseg button.twide {
+  padding: 0 11px;
+  font-weight: 600;
+}
+.tbltab svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+/* steppers: − value unit + */
+.tstep {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--field);
+  overflow: hidden;
+}
+.tstep button {
+  width: 26px;
+  height: 100%;
+  border: 0;
+  background: none;
+  font-size: 15px;
+  line-height: 1;
+}
+.tstep button:hover {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.tstep input {
+  width: 42px;
+  height: 100%;
+  border: 0;
+  border-inline: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--fg);
+  font: 600 12px var(--ui);
+  text-align: right;
+  padding: 0 2px 0 4px;
+  outline: none;
+}
+.tstep input::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+}
+.tstep .tunit {
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px 0 2px;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* table options as tick boxes */
+.tchks {
+  display: flex;
+  gap: 12px;
+  height: 28px;
+  align-items: center;
+}
+.tchk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+.tbox {
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--muted);
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+}
+.tchk[aria-pressed='true'] .tbox {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.tchk[aria-pressed='true'] .tbox::after {
+  content: '';
+  width: 7px;
+  height: 4px;
+  border-left: 2px solid var(--ink-fg);
+  border-bottom: 2px solid var(--ink-fg);
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+/* style swatches: little tables, the chosen one ringed */
+.tswatches,
+.tshades {
+  display: flex;
+  gap: 6px;
+  height: 28px;
+  align-items: center;
+}
+.tswatch {
+  width: 40px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  display: grid;
+  place-items: center;
+}
+.tswatch svg {
+  width: 36px;
+  height: 25px;
+  stroke-width: 1;
+  stroke-linecap: butt;
+}
+.tswatch:hover {
+  border-color: var(--ink);
+}
+.tswatch[aria-pressed='true'] {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink) 45%, transparent);
+}
+.sw-grey {
+  fill: color-mix(in srgb, var(--fg) 22%, transparent);
+  stroke: none;
+}
+.sw-soft {
+  fill: color-mix(in srgb, var(--ink) 22%, transparent);
+  stroke: none;
+}
+.sw-ink {
+  fill: var(--ink);
+  stroke: none;
+}
+.sw-line,
+.sw-frame {
+  stroke: color-mix(in srgb, var(--fg) 45%, transparent);
+}
+.sw-rule {
+  stroke: var(--fg);
+  stroke-width: 1.6;
+}
+.sw-text {
+  stroke: color-mix(in srgb, var(--fg) 35%, transparent);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+/* fill swatches: colour dots, "none" struck through */
+.tshade {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.tshade:hover {
+  transform: scale(1.12);
+}
+.tshade[aria-pressed='true'] {
+  box-shadow:
+    0 0 0 2px var(--panel),
+    0 0 0 3.5px var(--ink);
+}
+.tshade[data-shade-swatch=''] {
+  background: linear-gradient(135deg, transparent 45%, #e5484d 45%, #e5484d 55%, transparent 55%), var(--panel);
+}
+.tshade[data-shade-swatch='1'] {
+  background: #e5484d;
+}
+.tshade[data-shade-swatch='2'] {
+  background: #f76b15;
+}
+.tshade[data-shade-swatch='3'] {
+  background: #ffc53d;
+}
+.tshade[data-shade-swatch='4'] {
+  background: #30a46c;
+}
+.tshade[data-shade-swatch='5'] {
+  background: #0090ff;
+}
+.tshade[data-shade-swatch='6'] {
+  background: #8e4ec6;
+}
+.tshade[data-shade-swatch='7'] {
+  background: color-mix(in srgb, var(--fg) 40%, transparent);
+}
+
+/* the right-click menu on a cell */
+.tctx {
+  min-width: 210px;
+}
+.tctx .tmi {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--muted);
+  flex: none;
+}
+
+/* in a narrow window the tab would cover the page: it takes its own room under the toolbar instead */
+@media (max-width: 900px) {
+  .tbltab {
+    position: static;
+    transform: none;
+    width: auto;
+    max-width: none;
+    margin-inline: 12px;
+    flex-wrap: wrap;
+  }
+  .tswitch {
+    flex-direction: row;
+    border-right: 0;
+    padding-right: 0;
+  }
+  .tpane[hidden] {
+    display: none;
+  }
+}

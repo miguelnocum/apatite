@@ -1,0 +1,359 @@
+/* ===== Bear-style writing ===== */
+:root[data-skin='paper'] {
+  --bg: #ece5d8;
+  --panel: #fbf7ef;
+  --fg: #3b3026;
+  --muted: #85766a;
+  --line: #ddd2c0;
+  --ink: #7a5534;
+  --ink-fg: #fff;
+  --field: #f3ede1;
+  color-scheme: light;
+}
+:root[data-skin='night'] {
+  --bg: #161a21;
+  --panel: #1f242d;
+  --fg: #d6dbe4;
+  --muted: #8b95a5;
+  --line: #303846;
+  --ink: #9fb6d8;
+  --ink-fg: #12161c;
+  --field: #1a1e25;
+}
+:root[data-skin='ink'] {
+  --bg: #000;
+  --panel: #0b0b0b;
+  --fg: #e6e6e6;
+  --muted: #8a8a8a;
+  --line: #262626;
+  --ink: #cfcfcf;
+  --ink-fg: #000;
+  --field: #121212;
+}
+:root[data-skin='ink'] .body.notesview .doc {
+  box-shadow: 0 0 0 1px #1c1c1c;
+}
+#ed {
+  font-family: var(--edf, var(--serif));
+  font-size: var(--eds, 15.5px);
+  line-height: var(--edl, 1.65);
+}
+#ed p {
+  margin: 0 0 var(--edp, 0.6em);
+}
+#ed hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 1.4em 0;
+  clear: both;
+}
+/* callouts */
+#ed [data-callout] {
+  margin: 0.9em 0;
+  padding: 0.7em 1em 0.55em;
+  border-radius: 8px;
+  border-left: 4px solid var(--co);
+  background: color-mix(in srgb, var(--co) 9%, var(--panel));
+  clear: both;
+}
+#ed [data-callout]::before {
+  display: block;
+  font: 700 11px/1.3 var(--ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--co);
+  margin-bottom: 0.4em;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#ed [data-callout] > :last-child,
+#ed [data-side] > :last-child {
+  margin-bottom: 0;
+}
+#ed [data-callout='note'] {
+  --co: #2f7fd6;
+}
+#ed [data-callout='note']::before {
+  content: '\24D8\2002 Note';
+}
+#ed [data-callout='def'] {
+  --co: #8a5cf6;
+}
+#ed [data-callout='def']::before {
+  content: '\25C6\2002 Definition';
+}
+#ed [data-callout='warn'] {
+  --co: #e0782a;
+}
+#ed [data-callout='warn']::before {
+  content: '\26A0\FE0E\2002 Warning';
+}
+#ed [data-callout='pc'] {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  overflow: hidden;
+}
+#ed [data-callout='pc']::before {
+  display: none;
+}
+#ed [data-side] {
+  min-width: 0;
+  padding: 0.7em 1em 0.55em;
+}
+#ed [data-side='pro'] {
+  --co: #2f9e5b;
+  background: color-mix(in srgb, #2f9e5b 10%, var(--panel));
+  border-top: 3px solid #2f9e5b;
+}
+#ed [data-side='con'] {
+  --co: #d6453d;
+  background: color-mix(in srgb, #d6453d 9%, var(--panel));
+  border-top: 3px solid #d6453d;
+  border-left: 1px solid var(--line);
+}
+#ed [data-side]::before {
+  display: block;
+  font: 700 11px/1.3 var(--ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--co);
+  margin-bottom: 0.4em;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#ed [data-side='pro']::before {
+  content: '+\2002 Advantages';
+}
+#ed [data-side='con']::before {
+  content: '\2212\2002 Disadvantages';
+}
+#ed [data-side] ul,
+#ed [data-side] ol {
+  margin: 0;
+  padding-left: 1.2em;
+}
+#ed [data-side] li::marker {
+  color: var(--co);
+}
+@media (max-width: 640px) {
+  #ed [data-callout='pc'] {
+    grid-template-columns: 1fr;
+  }
+  #ed [data-side='con'] {
+    border-left: 0;
+  }
+}
+/* folding */
+#ed:not(.wcmode) > .fh {
+  display: none !important;
+}
+#ed > [data-fold]::after {
+  content: '\2026';
+  display: inline-block;
+  margin-left: 0.45em;
+  padding: 0 0.45em;
+  border-radius: 5px;
+  background: var(--field);
+  color: var(--muted);
+  font: 600 0.8em/1.35 var(--ui);
+  vertical-align: 0.1em;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.foldlayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.foldbtn {
+  position: absolute;
+  pointer-events: auto;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--muted);
+  opacity: 0;
+  transition:
+    opacity 0.12s,
+    transform 0.12s;
+  padding: 0;
+}
+.foldbtn svg {
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.doc:hover .foldbtn {
+  opacity: 0.45;
+}
+.foldbtn:hover {
+  opacity: 1 !important;
+  background: var(--field);
+}
+.foldbtn.on {
+  opacity: 0.85;
+  transform: rotate(-90deg);
+}
+/* typewriter: room to bring the last line up to the middle */
+body.twmode #main {
+  padding-bottom: 55vh;
+}
+/* writing settings menu */
+.tbmenu .wsm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px 6px;
+  width: 350px;
+}
+.tbmenu .wsl {
+  font: 700 10.5px var(--ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.tbmenu .wsth {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+.tbmenu .wsth button {
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 2px;
+  font-size: 10.5px;
+  line-height: 1.15;
+  justify-content: flex-start;
+  text-align: center;
+  white-space: normal;
+}
+.tbmenu .wsth .sw {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 30px;
+  border-radius: 7px;
+  font: 600 14px var(--serif);
+  box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.35);
+}
+.tbmenu .wsth button.on .sw {
+  box-shadow: 0 0 0 2px var(--ink);
+}
+.tbmenu select {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--fg);
+  padding: 5px 8px;
+  font: 13px var(--ui);
+}
+.tbmenu .wsr {
+  display: grid;
+  grid-template-columns: 118px 1fr 46px;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+}
+.tbmenu .wsr input {
+  width: 100%;
+  accent-color: var(--ink);
+}
+.tbmenu .wsr output {
+  font: 12px var(--mono);
+  color: var(--muted);
+  text-align: right;
+}
+.tbmenu .wstw {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+.tbmenu .wsreset {
+  justify-content: center;
+  color: var(--muted) !important;
+  font-size: 12.5px !important;
+  margin-top: 2px;
+}
+.tbmenu .mlab {
+  font: 700 10.5px var(--ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px 10px 2px;
+}
+.tbmenu .coi {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--co);
+}
+
+/* three syllabus levels */
+.syl tr.par td {
+  font-weight: 600;
+}
+.syl tr.sub td.c {
+  font-size: 11pt;
+  color: var(--muted);
+  padding-left: 26px;
+}
+.syl tr.sub td:nth-child(3) {
+  padding-left: 30px;
+  position: relative;
+}
+.syl tr.sub td:nth-child(3)::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 7px;
+  bottom: 7px;
+  border-left: 2px solid var(--line);
+}
+.syl tr.sub td {
+  font-size: 11.5pt;
+}
+
+/* toolbar: panels and view set apart at the end */
+#tb .rgt {
+  margin-left: 6px;
+  padding-left: 14px;
+  border-left: 1px solid var(--line);
+}
+
+/* the selection, drawn as one even band (see 23a-selection-band); the browser's own hidden while it shows */
+.sellayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  /* blended rather than laid over (the layer as a whole: its z-index keeps the band from blending on its own): the page
+     under it takes the selection colour, the text keeps its own */
+  mix-blend-mode: multiply;
+}
+.sellayer.ondark {
+  mix-blend-mode: screen;
+}
+.selband {
+  position: absolute;
+  background: Highlight;
+  border-radius: 2px;
+}
+#ed.banding ::selection,
+#ed.banding::selection {
+  background: transparent;
+}

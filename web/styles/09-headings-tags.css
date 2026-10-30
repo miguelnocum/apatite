@@ -1,0 +1,154 @@
+/* six heading levels (Bear's scale) */
+#ed.docbody h1:not(.ref),
+#ed.docbody h2:not(.ref),
+#ed.docbody h3:not(.ref),
+#ed.docbody h4,
+#ed.docbody h5,
+#ed.docbody h6 {
+  font-family: var(--ui) !important;
+  color: var(--fg) !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  letter-spacing: -0.005em;
+  text-align: left;
+}
+#ed.docbody h1:not(.ref) {
+  font-weight: 800 !important;
+  font-size: calc(var(--eds, 15.5px) * 1.85) !important;
+  line-height: 1.2 !important;
+  margin: 0.3em 0 0.55em;
+}
+#ed.docbody h2:not(.ref) {
+  font-weight: 750 !important;
+  font-size: calc(var(--eds, 15.5px) * 1.45) !important;
+  line-height: 1.25 !important;
+  margin: 1.35em 0 0.45em;
+}
+#ed.docbody h3:not(.ref) {
+  font-weight: 700 !important;
+  font-size: calc(var(--eds, 15.5px) * 1.2) !important;
+  line-height: 1.3 !important;
+  margin: 1.2em 0 0.4em;
+}
+#ed.docbody h4 {
+  font-weight: 700 !important;
+  font-size: calc(var(--eds, 15.5px) * 1.05) !important;
+  line-height: 1.35 !important;
+  margin: 1.1em 0 0.35em;
+}
+#ed.docbody h5 {
+  font-weight: 700 !important;
+  font-size: calc(var(--eds, 15.5px) * 0.95) !important;
+  line-height: 1.4 !important;
+  margin: 1em 0 0.3em;
+}
+#ed.docbody h6 {
+  font-weight: 650 !important;
+  font-size: calc(var(--eds, 15.5px) * 0.9) !important;
+  line-height: 1.4 !important;
+  margin: 1em 0 0.3em;
+  color: var(--muted) !important;
+}
+#ed .toc-l li.toc-h1 {
+  font-weight: 750 !important;
+}
+#ed .toc-l li.toc-h2 {
+  font-weight: 650 !important;
+  margin-top: 4px;
+}
+#ed .toc-l li.toc-h3 {
+  padding-left: 22px !important;
+  font-weight: 400 !important;
+}
+#ed .toc-l li.toc-h4 {
+  padding-left: 40px !important;
+  font-weight: 400 !important;
+  margin-top: 0;
+}
+#ed .toc-l li.toc-h5 {
+  padding-left: 56px !important;
+}
+#ed .toc-l li.toc-h6 {
+  padding-left: 70px !important;
+  font-style: italic !important;
+  color: var(--muted) !important;
+}
+
+/* tagged blocks: a light tint and outline behind the text; full-width handles on the top and bottom edges */
+.body.notesview .doc {
+  isolation: isolate;
+}
+#spbg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.spbox {
+  position: absolute;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--c) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c) 28%, transparent);
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.spbox.cur {
+  background: color-mix(in srgb, var(--c) 9%, transparent);
+  border-color: color-mix(in srgb, var(--c) 50%, transparent);
+}
+.spbox.temp {
+  --c: var(--ink);
+  border-style: dashed;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.sph {
+  position: absolute;
+  height: 12px;
+  pointer-events: auto;
+  cursor: ns-resize;
+}
+.sph::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 34px;
+  height: 4px;
+  margin-left: -17px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--c) 55%, var(--line));
+  opacity: 0.45;
+  transition:
+    opacity 0.12s,
+    width 0.12s,
+    margin 0.12s;
+}
+.sph:hover::after,
+.sph.cur::after {
+  opacity: 1;
+}
+.sph:hover::after {
+  width: 48px;
+  margin-left: -24px;
+}
+
+.tbmenu .lico {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  font: 600 13px var(--ui);
+  font-style: normal;
+  color: var(--muted);
+}
+.tbmenu button.hov {
+  background: var(--field);
+}
+.tbsub {
+  z-index: 71;
+}
+#tb .citg {
+  margin-left: 6px;
+  padding-left: 14px;
+  border-left: 1px solid var(--line);
+}

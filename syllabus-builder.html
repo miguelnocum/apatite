@@ -1,0 +1,289 @@
+<title>Syllabus Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+/* Layout: sticky toolbar, form column on the left, a sheet of "paper" on the right that updates live. Stacks on phones. */
+:root{
+  --bg:#eef1f3; --panel:#ffffff; --fg:#17212b; --muted:#5b6875; --line:#d5dbe0;
+  --accent:#1f6f5c; --accent-fg:#ffffff; --accent-soft:#dcefe9; --warn:#b4531a; --warn-soft:#fbe9dc;
+  --paper:#ffffff; --paper-fg:#1a1f24; --paper-muted:#566069; --paper-line:#c9cfd4; --paper-tint:#f1f4f5;
+  --ui:'IBM Plex Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace; --serif:'Source Serif 4',Georgia,serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171b; --panel:#1b2228; --fg:#e6ebef; --muted:#9aa7b2; --line:#2e3841;
+  --accent:#5cc2a6; --accent-fg:#0c1a16; --accent-soft:#1c3a32; --warn:#f0a070; --warn-soft:#3a2417;
+  --paper:#f7f8f8; --paper-fg:#1a1f24; --paper-muted:#566069; --paper-line:#c9cfd4; --paper-tint:#e9edee; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171b; --panel:#1b2228; --fg:#e6ebef; --muted:#9aa7b2; --line:#2e3841;
+  --accent:#5cc2a6; --accent-fg:#0c1a16; --accent-soft:#1c3a32; --warn:#f0a070; --warn-soft:#3a2417;
+  --paper:#f7f8f8; --paper-fg:#1a1f24; --paper-muted:#566069; --paper-line:#c9cfd4; --paper-tint:#e9edee; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--ui);padding-inline:16px;padding-block:0 40px}
+button,input,textarea,select{font:inherit;color:inherit}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding-block:12px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.bar h1{margin:0;font-size:17px;font-weight:600;letter-spacing:.01em}
+.bar h1 small{font-weight:400;color:var(--muted);margin-left:8px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--line);background:var(--panel);padding:7px 12px;border-radius:6px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:500}
+.btn.sm{padding:3px 9px;font-size:12px}
+.btn:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:20px;align-items:start;max-width:1400px;margin-inline:auto}
+@media(max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}}
+.form{display:flex;flex-direction:column;gap:10px}
+details.sec{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+details.sec>summary{cursor:pointer;padding:11px 14px;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:10px}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"+";color:var(--muted);font-family:var(--mono)}
+details.sec[open]>summary::after{content:"–"}
+details.sec>summary .hint{font-weight:400;color:var(--muted);font-size:12px;margin-left:auto}
+.body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);min-width:0}
+input[type=text],input[type=number],textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:6px 8px;color:var(--fg);min-width:0}
+textarea{resize:vertical;min-height:60px}
+.row{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.row .top{display:flex;gap:6px;align-items:end}
+.row .top>label{flex:1}
+.x{border:0;background:none;color:var(--muted);cursor:pointer;padding:4px 8px;font-size:16px;line-height:1}
+.x:hover{color:var(--warn)}
+.check{flex-direction:row;align-items:center;gap:8px;color:var(--fg);font-size:13px}
+.check input{accent-color:var(--accent)}
+.note{font-size:12px;color:var(--muted)}
+.total{font:500 12px var(--mono);padding:4px 8px;border-radius:4px;align-self:flex-start;background:var(--accent-soft);color:var(--accent)}
+.total.bad{background:var(--warn-soft);color:var(--warn)}
+.pol{border-top:1px solid var(--line);padding-top:8px}
+/* paper */
+.sheetwrap{min-width:0}
+.sheet{background:var(--paper);color:var(--paper-fg);font:13.5px/1.55 var(--serif);padding:clamp(20px,4vw,48px);border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.12),0 8px 24px rgba(0,0,0,.08);min-height:600px}
+.sheet h1{font:700 26px/1.2 var(--serif);margin:0 0 4px;text-wrap:balance}
+.sheet .sub{color:var(--paper-muted);margin:0 0 14px;font-size:14px}
+.sheet h2{font:600 11px/1 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--paper-muted);margin:26px 0 8px;padding-bottom:6px;border-bottom:1.5px solid var(--paper-fg)}
+.sheet p{margin:0 0 8px;white-space:pre-wrap}
+.sheet ul{margin:0 0 8px;padding-left:20px}
+.sheet li{margin-bottom:3px}
+.sheet dl{display:grid;grid-template-columns:max-content 1fr;gap:3px 16px;margin:0 0 8px}
+.sheet dt{font:500 11px/1.9 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--paper-muted)}
+.sheet dd{margin:0;overflow-wrap:anywhere}
+.tw{overflow-x:auto;margin-bottom:8px}
+.sheet table{border-collapse:collapse;width:100%;font-size:12.5px}
+.sheet th{font:500 10.5px var(--ui);letter-spacing:.08em;text-transform:uppercase;text-align:left;color:var(--paper-muted);border-bottom:1.5px solid var(--paper-fg);padding:5px 8px 5px 0;white-space:nowrap}
+.sheet td{vertical-align:top;border-bottom:1px solid var(--paper-line);padding:5px 8px 5px 0}
+.sheet td.code,.sheet td.num{font-family:var(--mono);font-size:12px;white-space:nowrap}
+.sheet td.guid{color:var(--paper-muted);font-size:12px}
+.sheet .rate{white-space:nowrap;font-family:var(--mono);color:var(--paper-muted)}
+.sheet .empty{color:var(--paper-muted);font-style:italic}
+.tip{font-size:12px;color:var(--muted);margin:8px 2px 0}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:13px;z-index:9}
+</style>
+
+<div class="bar">
+  <h1>Syllabus Builder<small id="status"></small></h1>
+  <div class="btns">
+    <button class="btn" id="ex">Load example</button>
+    <button class="btn" id="blank">Start blank</button>
+    <button class="btn" id="copy">Copy Markdown</button>
+    <button class="btn" id="dlmd">Save .md</button>
+    <button class="btn primary" id="dlhtml">Save for Word (.html)</button>
+  </div>
+</div>
+<div class="wrap">
+  <div class="form" id="form"></div>
+  <div class="sheetwrap">
+    <article class="sheet" id="sheet" aria-live="polite"></article>
+    <p class="tip">The example is a topic checklist adapted from your Biology file. Replace it with your own course.</p>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+var KEY='syllabus-builder-v1';
+var POLICY_DEFAULTS=[
+ {title:'Attendance and participation',on:true,text:'Regular attendance is expected. If you must miss a session, tell the instructor beforehand where possible and catch up using the posted materials.'},
+ {title:'Late work',on:true,text:'Work submitted after the deadline loses 5% of its marks per day, up to seven days. Extensions are granted when requested before the deadline with a good reason.'},
+ {title:'Academic integrity',on:true,text:'All submitted work must be your own. Cite every source you use. Suspected breaches are referred under the institution’s academic misconduct procedure.'},
+ {title:'Use of AI tools',on:false,text:'AI tools may be used for brainstorming and checking grammar only. Any use must be declared in a short note at the end of the submission.'},
+ {title:'Accessibility and accommodations',on:true,text:'Students who need adjustments should contact the disability services office and the instructor in the first two weeks so arrangements can be in place.'},
+ {title:'Communication',on:false,text:'Email is answered within two working days. Questions about course content are best asked in class or in office hours.'}
+];
+var GRADES=[['A',90],['B',80],['C',70],['D',60],['F',0]];
+function blank(){return{
+ code:'',title:'',term:'',credits:'',institution:'',dept:'',meets:'',room:'',
+ instr:'',email:'',office:'',hours:'',
+ desc:'',prereq:'',
+ outcomes:[{t:''}],
+ texts:[{t:''}],
+ checklist:[],rating:true,
+ weeks:[{w:'1',topic:'',read:'',due:''}],
+ assess:[{n:'',wt:'',d:''}],
+ grades:GRADES.map(function(g){return{l:g[0],min:String(g[1])}}),
+ policies:JSON.parse(JSON.stringify(POLICY_DEFAULTS))
+}}
+function example(){var s=blank();
+ Object.assign(s,{code:'BIO-2',title:'Molecular Biology',term:'Autumn Term',credits:'Core topic, 8 teaching weeks',institution:'Example Sixth Form College',dept:'Department of Science',meets:'Mon, Wed, Fri 09:00–10:00',room:'Lab 3',
+ instr:'Dr A. Instructor',email:'instructor@example.edu',office:'Science Block 2.14',hours:'Thu 13:00–15:00',
+ desc:'This topic explains living processes in terms of the chemical substances involved. We move from the chemistry of carbon compounds and water, through proteins, enzymes and nucleic acids, to the flow of genetic information and the energy transformations of respiration and photosynthesis. Practical work and data analysis run through every unit.',
+ prereq:'Introductory chemistry and basic cell biology.'});
+ s.outcomes=['Explain living processes in terms of the chemical substances involved.','Draw and identify the main biological molecules from molecular diagrams.','Relate the structure of proteins and nucleic acids to their functions.','Design and evaluate experiments on enzyme activity and photosynthesis.','Describe how DNA is replicated, transcribed and translated.','Compare aerobic and anaerobic cell respiration.'].map(function(t){return{t:t}});
+ s.texts=[{t:'Course textbook, chapters on molecular biology (edition to be confirmed in week 1)'},{t:'Practical handbook, Practicals 3 and 4'}];
+ var cl=[
+ ['2.1.U1','Molecular biology explains living processes in terms of the chemical substances involved.',''],
+ ['2.1.U2','Carbon atoms can form four covalent bonds allowing a diversity of stable compounds to exist.',''],
+ ['2.1.U3','Life is based on carbon compounds including carbohydrates, lipids, proteins and nucleic acids.','Sugars include monosaccharides and disaccharides. Only one saturated fat is expected. The variable radical of amino acids can be shown as R.'],
+ ['2.2.U2','Hydrogen bonding and dipolarity explain the cohesive, adhesive, thermal and solvent properties of water.','Know at least one benefit to living organisms of each property of water.'],
+ ['2.3.U4','Triglycerides are formed by condensation from three fatty acids and one glycerol.',''],
+ ['2.4.U6','The amino acid sequence determines the three-dimensional conformation of a protein.',''],
+ ['2.5.U3','Temperature, pH and substrate concentration affect the rate of activity of enzymes.','Sketch graphs of the expected effects and explain the trends.'],
+ ['2.5.S2','Experimental investigation of a factor affecting enzyme activity. (Practical 3)',''],
+ ['2.6.U3','DNA is a double helix made of two antiparallel strands of nucleotides linked by hydrogen bonding between complementary base pairs.',''],
+ ['2.7.U1','The replication of DNA is semi-conservative and depends on complementary base pairing.',''],
+ ['2.7.S3','Use a table of mRNA codons and their corresponding amino acids to deduce the sequence of amino acids coded by a short mRNA strand.',''],
+ ['2.8.U4','Aerobic cell respiration requires oxygen and gives a large yield of ATP from glucose.','Substrates and final waste products should be known; metabolic pathway detail is not needed.'],
+ ['2.9.S3','Separation of photosynthetic pigments by chromatography. (Practical 4)','Thin layer chromatography gives better results than paper.']];
+ s.checklist=cl.map(function(r){return{c:r[0],s:r[1],g:r[2]}});
+ s.weeks=[
+  ['1','Carbon compounds and water (2.1, 2.2)','Textbook ch. 1–2',''],
+  ['2','Carbohydrates and lipids (2.3)','Textbook ch. 3','Molecule diagrams'],
+  ['3','Proteins (2.4)','Textbook ch. 4',''],
+  ['4','Enzymes (2.5), Practical 3','Handbook, Practical 3','Practical report'],
+  ['5','DNA and RNA structure (2.6)','Textbook ch. 5',''],
+  ['6','Replication, transcription, translation (2.7)','Textbook ch. 6','Genetic code worksheet'],
+  ['7','Cell respiration (2.8)','Textbook ch. 7',''],
+  ['8','Photosynthesis (2.9), Practical 4','Handbook, Practical 4','Unit test']].map(function(r){return{w:r[0],topic:r[1],read:r[2],due:r[3]}});
+ s.assess=[{n:'Practical reports',wt:'25',d:'Practicals 3 and 4, written up to the lab report format'},{n:'Molecule diagrams and worksheets',wt:'15',d:'Short tasks set weekly'},{n:'Unit test',wt:'40',d:'Week 8, data analysis and extended response'},{n:'Confidence checklist review',wt:'20',d:'Self-rating updated at weeks 4 and 8 and discussed in a tutorial'}];
+ return s}
+var S; try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){S=null}
+if(!S||!S.weeks)S=example();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function $(id){return document.getElementById(id)}
+
+/* ---------- form ---------- */
+var SECTIONS=[
+ {id:'course',t:'Course details',open:true,render:function(){return grid([['code','Course code'],['title','Course title'],['term','Term or semester'],['credits','Credits or load'],['institution','Institution'],['dept','Department'],['meets','Meeting times'],['room','Location']])}},
+ {id:'instr',t:'Instructor',render:function(){return grid([['instr','Name'],['email','Email'],['office','Office'],['hours','Office hours']])}},
+ {id:'desc',t:'Description',render:function(){return area('desc','Course description',5)+field('prereq','Prerequisites')}},
+ {id:'outcomes',t:'Learning outcomes',hint:function(){return S.outcomes.length},render:function(){return list('outcomes',[['t','Students will be able to…','area']],'Add outcome')}},
+ {id:'check',t:'Topic checklist',hint:function(){return S.checklist.length+' items'},render:function(){return '<div class="note">Syllabus statements with a code, like a subject guide. Optional guidance appears beside each one.</div><label class="check"><input type="checkbox" data-top="rating"'+(S.rating?' checked':'')+'> Add a confidence column (1 never seen, 2 about 30%, 3 forgot some, 4 confident)</label>'+list('checklist',[['c','Code'],['s','Statement','area'],['g','Guidance (optional)','area']],'Add statement')}},
+ {id:'weeks',t:'Weekly schedule',hint:function(){return S.weeks.length+' rows'},render:function(){return list('weeks',[['w','Week'],['topic','Topic'],['read','Readings'],['due','Due']],'Add week')}},
+ {id:'assess',t:'Assessment',hint:function(){return total()+'%'},render:function(){return list('assess',[['n','Component'],['wt','Weight %','num'],['d','Description']],'Add component')+'<div id="total"></div>'}},
+ {id:'grades',t:'Grading scale',render:function(){return list('grades',[['l','Grade'],['min','Minimum %','num']],'Add grade')}},
+ {id:'texts',t:'Required texts and materials',render:function(){return list('texts',[['t','Item']],'Add item')}},
+ {id:'pol',t:'Policies',hint:function(){return S.policies.filter(function(p){return p.on}).length+' included'},render:function(){
+   return S.policies.map(function(p,i){return '<div class="pol"><label class="check"><input type="checkbox" data-k="policies" data-i="'+i+'" data-f="on"'+(p.on?' checked':'')+'><b>'+esc(p.title)+'</b></label><textarea data-k="policies" data-i="'+i+'" data-f="text" aria-label="'+esc(p.title)+'" rows="3">'+esc(p.text)+'</textarea></div>'}).join('')}}
+];
+var openState={course:true};
+function field(k,l){return '<label>'+l+'<input type="text" id="f_'+k+'" data-top="'+k+'" value="'+esc(S[k])+'"></label>'}
+function area(k,l,r){return '<label>'+l+'<textarea id="f_'+k+'" rows="'+r+'" data-top="'+k+'">'+esc(S[k])+'</textarea></label>'}
+function grid(a){return '<div class="grid2">'+a.map(function(x){return field(x[0],x[1])}).join('')+'</div>'}
+function list(k,cols,addLabel){
+  var rows=S[k].map(function(r,i){
+    var inner=cols.map(function(c){
+      var f=c[0],type=c[2];
+      var inp=type==='area'?'<textarea rows="2" data-k="'+k+'" data-i="'+i+'" data-f="'+f+'">'+esc(r[f])+'</textarea>':'<input type="text" '+(type==='num'?'inputmode="decimal" ':'')+'data-k="'+k+'" data-i="'+i+'" data-f="'+f+'" value="'+esc(r[f])+'">';
+      return '<label>'+c[1]+inp+'</label>'});
+    return '<div class="row"><div class="top">'+inner[0]+'<button class="x" data-del="'+k+'" data-i="'+i+'" aria-label="Remove">×</button></div>'+inner.slice(1).join('')+'</div>'});
+  return rows.join('')+'<div><button class="btn sm" data-add="'+k+'">+ '+addLabel+'</button></div>'}
+function renderForm(){
+  $('form').innerHTML=SECTIONS.map(function(s){
+    return '<details class="sec" data-sec="'+s.id+'"'+(openState[s.id]?' open':'')+'><summary>'+s.t+'<span class="hint" data-hint="'+s.id+'">'+(s.hint?s.hint():'')+'</span></summary><div class="body">'+s.render()+'</div></details>'}).join('');
+  updateTotal()}
+function total(){return S.assess.reduce(function(a,r){return a+(parseFloat(r.wt)||0)},0)}
+function updateTotal(){
+  var t=total(),el=$('total');
+  if(el){el.className='total'+(Math.abs(t-100)>.001?' bad':'');el.textContent='Total '+t+'%'+(Math.abs(t-100)>.001?' (should be 100%)':'')}
+  var h=document.querySelector('[data-hint="assess"]');if(h)h.textContent=t+'%'}
+
+/* ---------- document model ---------- */
+function blocks(){
+  var B=[],s=S;
+  var sub=[s.term,s.institution,s.dept].filter(Boolean).join(' · ');
+  B.push({t:'title',text:[s.code,s.title].filter(Boolean).join(' – ')||'Untitled course',sub:sub});
+  var meta=[['Credits',s.credits],['Meets',s.meets],['Location',s.room],['Instructor',s.instr],['Email',s.email],['Office',s.office],['Office hours',s.hours],['Prerequisites',s.prereq]].filter(function(r){return r[1]});
+  if(meta.length)B.push({t:'meta',rows:meta});
+  if(s.desc)B.push({t:'h',text:'Course description'},{t:'p',text:s.desc});
+  var oc=s.outcomes.filter(function(o){return o.t.trim()}).map(function(o){return o.t});
+  if(oc.length)B.push({t:'h',text:'Learning outcomes'},{t:'p',text:'By the end of the course, students will be able to:'},{t:'ul',items:oc});
+  var cl=s.checklist.filter(function(r){return r.c||r.s});
+  if(cl.length){
+    var head=['Code','Statement','Guidance'];if(s.rating)head.push('Confidence');
+    B.push({t:'h',text:'Topic checklist'});
+    if(s.rating)B.push({t:'p',text:'Rate yourself on each statement: 1 = I’ve never seen this, 2 = I know about 30%, 3 = I forgot some bits, 4 = I’m confident.'});
+    B.push({t:'table',head:head,cls:['code','','guid','rate'],rows:cl.map(function(r){var x=[r.c,r.s,r.g];if(s.rating)x.push('1  2  3  4');return x})})}
+  var wk=s.weeks.filter(function(r){return r.topic||r.read||r.due});
+  if(wk.length)B.push({t:'h',text:'Weekly schedule'},{t:'table',head:['Week','Topic','Readings','Due'],cls:['num','','',''],rows:wk.map(function(r){return[r.w,r.topic,r.read,r.due]})});
+  var as=s.assess.filter(function(r){return r.n});
+  if(as.length)B.push({t:'h',text:'Assessment'},{t:'table',head:['Component','Weight','Description'],cls:['','num',''],rows:as.map(function(r){return[r.n,r.wt?r.wt+'%':'',r.d]}).concat([['Total',total()+'%','']])});
+  var gr=s.grades.filter(function(g){return g.l});
+  if(gr.length){
+    var sorted=gr.slice().sort(function(a,b){return (parseFloat(b.min)||0)-(parseFloat(a.min)||0)});
+    B.push({t:'h',text:'Grading scale'},{t:'table',head:['Grade','Minimum'],cls:['num','num'],rows:sorted.map(function(g){return[g.l,(g.min||0)+'%']})})}
+  var tx=s.texts.filter(function(o){return o.t.trim()}).map(function(o){return o.t});
+  if(tx.length)B.push({t:'h',text:'Required texts and materials'},{t:'ul',items:tx});
+  var po=s.policies.filter(function(p){return p.on&&p.text.trim()});
+  if(po.length){B.push({t:'h',text:'Policies'});po.forEach(function(p){B.push({t:'dl1',term:p.title,text:p.text})})}
+  return B}
+function toHTML(B){
+  return B.map(function(b){switch(b.t){
+   case'title':return '<h1>'+esc(b.text)+'</h1>'+(b.sub?'<p class="sub">'+esc(b.sub)+'</p>':'');
+   case'meta':return '<dl>'+b.rows.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>'}).join('')+'</dl>';
+   case'h':return '<h2>'+esc(b.text)+'</h2>';
+   case'p':return '<p>'+esc(b.text)+'</p>';
+   case'ul':return '<ul>'+b.items.map(function(i){return '<li>'+esc(i)+'</li>'}).join('')+'</ul>';
+   case'dl1':return '<p><b>'+esc(b.term)+'.</b> '+esc(b.text)+'</p>';
+   case'table':return '<div class="tw"><table><thead><tr>'+b.head.map(function(h){return '<th>'+esc(h)+'</th>'}).join('')+'</tr></thead><tbody>'+b.rows.map(function(r){return '<tr>'+r.map(function(c,i){return '<td class="'+(b.cls[i]||'')+'">'+esc(c)+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div>'}}).join('')}
+function toMD(B){
+  var cell=function(c){return String(c==null?'':c).replace(/\|/g,'\\|').replace(/\n/g,' ')};
+  return B.map(function(b){switch(b.t){
+   case'title':return '# '+b.text+(b.sub?'\n\n*'+b.sub+'*':'');
+   case'meta':return b.rows.map(function(r){return '**'+r[0]+':** '+r[1]}).join('  \n');
+   case'h':return '## '+b.text;
+   case'p':return b.text;
+   case'ul':return b.items.map(function(i){return '- '+i}).join('\n');
+   case'dl1':return '**'+b.term+'.** '+b.text;
+   case'table':return '| '+b.head.join(' | ')+' |\n|'+b.head.map(function(){return '---'}).join('|')+'|\n'+b.rows.map(function(r){return '| '+r.map(cell).join(' | ')+' |'}).join('\n')}}).join('\n\n')+'\n'}
+function renderSheet(){$('sheet').innerHTML=toHTML(blocks())}
+var CSS='body{font:11pt/1.5 Georgia,serif;max-width:7.5in;margin:.6in auto;color:#1a1f24}h1{font-size:22pt;margin:0 0 4pt}.sub{color:#566069}h2{font:600 9pt Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#566069;border-bottom:1.5pt solid #1a1f24;padding-bottom:4pt;margin:20pt 0 6pt}table{border-collapse:collapse;width:100%;font-size:10pt}th{font:600 8pt Arial,sans-serif;text-transform:uppercase;text-align:left;border-bottom:1.5pt solid #1a1f24;padding:3pt 6pt 3pt 0}td{vertical-align:top;border-bottom:.5pt solid #c9cfd4;padding:3pt 6pt 3pt 0}td.code,td.num{white-space:nowrap}dl{display:grid;grid-template-columns:max-content 1fr;gap:2pt 12pt}dt{font:8pt Arial,sans-serif;text-transform:uppercase;color:#566069}dd{margin:0}';
+function fullHTML(){var B=blocks();return '<!doctype html><html><head><meta charset="utf-8"><title>'+esc(B[0].text)+'</title><style>'+CSS+'</style></head><body>'+toHTML(B)+'</body></html>'}
+
+/* ---------- events ---------- */
+var timer;function changed(){save();renderSheet();$('status').textContent='saved in this browser';clearTimeout(timer)}
+$('form').addEventListener('input',function(e){
+  var t=e.target,d=t.dataset;
+  if(d.top!==undefined){S[d.top]=t.type==='checkbox'?t.checked:t.value}
+  else if(d.k){var v=t.type==='checkbox'?t.checked:t.value;S[d.k][+d.i][d.f]=v;if(d.k==='assess')updateTotal();}
+  else return;
+  changed()});
+$('form').addEventListener('click',function(e){
+  var t=e.target.closest('button');if(!t)return;
+  var d=t.dataset;
+  if(d.add){
+    var tpl={outcomes:{t:''},texts:{t:''},checklist:{c:'',s:'',g:''},weeks:{w:String(S.weeks.length+1),topic:'',read:'',due:''},assess:{n:'',wt:'',d:''},grades:{l:'',min:''}}[d.add];
+    S[d.add].push(tpl);keepOpen();renderForm();changed()}
+  else if(d.del){S[d.del].splice(+d.i,1);keepOpen();renderForm();changed()}});
+function keepOpen(){document.querySelectorAll('details.sec').forEach(function(x){openState[x.dataset.sec]=x.open})}
+$('form').addEventListener('toggle',function(e){if(e.target.dataset&&e.target.dataset.sec)openState[e.target.dataset.sec]=e.target.open},true);
+function toast(m){var t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){t.hidden=true},2200)}
+function reset(ns){S=ns;openState={course:true};renderForm();renderSheet();save()}
+$('ex').onclick=function(){reset(example());toast('Example loaded')};
+$('blank').onclick=function(){reset(blank());toast('Blank syllabus')};
+$('copy').onclick=function(){
+  var md=toMD(blocks());
+  var fb=function(){var ta=document.createElement('textarea');ta.value=md;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Markdown copied')}catch(e){toast('Copy not available here')}ta.remove()};
+  try{navigator.clipboard.writeText(md).then(function(){toast('Markdown copied')},fb)}catch(e){fb()}};
+function fname(ext){return ((S.code||'syllabus')+'-'+(S.title||'course')).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.'+ext}
+function dl(ext,data){
+  if(!window.claude||!claude.use){toast('Saving is not available here');return}
+  claude.use('downloads').then(function(d){
+    if(!d){toast('Saving is not available here');return}
+    return d.save({filename:fname(ext),data:data}).then(function(){toast('Saved')},function(err){if(!err||err.code!=='declined')toast('Could not save')})
+  }).catch(function(){toast('Could not save')})}
+$('dlmd').onclick=function(){dl('md',toMD(blocks()))};
+$('dlhtml').onclick=function(){dl('html',fullHTML())};
+renderForm();renderSheet();
+})();
+</script>

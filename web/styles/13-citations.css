@@ -1,0 +1,28 @@
+/* citations: plain text, with the page number as a small box */
+.docbody .cite.haspg {
+  border-bottom: 0 !important;
+  background: none !important;
+  color: inherit !important;
+  font-weight: inherit;
+  cursor: text;
+  padding: 0;
+}
+.docbody .cite.haspg .cpg {
+  display: inline-block;
+  line-height: 1.25;
+  padding: 0 5px;
+  margin: 0 1px;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--cite) 45%, transparent);
+  background: color-mix(in srgb, var(--cite) 10%, transparent);
+  color: var(--cite) !important;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.docbody .cite.haspg .cpg:hover {
+  background: color-mix(in srgb, var(--cite) 22%, transparent);
+}
+.docbody .cite.haspg.sel .cpg {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink) 40%, transparent);
+}

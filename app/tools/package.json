@@ -1,0 +1,12 @@
+{
+  "name": "apatite-tools",
+  "private": true,
+  "description": "Checks for the notebook page in ../../web (run ./check.sh)",
+  "devDependencies": {
+    "acorn": "8.12.1",
+    "acorn-walk": "8.3.3",
+    "esbuild": "0.23.1",
+    "eslint": "8.57.0",
+    "prettier": "3.3.3"
+  }
+}

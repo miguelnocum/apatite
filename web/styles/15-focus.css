@@ -1,0 +1,195 @@
+/* ===== focus mode (html.focus, in the notes and essays): the notes fill the window, the bar floats at the bottom ===== */
+html.focus body {
+  margin: 0;
+  padding: 0;
+}
+html.focus .shell {
+  max-width: none;
+}
+html.focus .r1,
+html.focus #side,
+html.focus #back,
+html.focus #main > .banner {
+  display: none !important;
+}
+html.focus .body {
+  display: block;
+  margin-top: 0;
+}
+html.focus .body.notesview main {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* the page: no sheet of paper, just the window's own colour, small margins, room under the last line for the bar */
+html.focus .body.notesview .doc {
+  width: auto;
+  min-height: 100vh;
+  padding: clamp(18px, 4vw, 44px) clamp(18px, 5vw, 64px) 120px;
+  background: var(--bg);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+html.focus .body.notesview .docbody {
+  min-height: 0;
+}
+
+/* the bar, floating at the bottom (the table tab just above it) */
+html.focus .head {
+  position: fixed;
+  inset: auto 0 14px;
+  z-index: 30;
+  padding: 0;
+  background: none;
+  border: 0;
+  pointer-events: none;
+}
+html.focus .head > * {
+  pointer-events: auto;
+}
+html.focus #tb {
+  max-width: calc(100vw - 20px);
+  gap: clamp(2px, 1.4vw, 14px);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 10px 30px rgba(0, 0, 0, 0.18);
+}
+html.focus .tbltab {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+/* a narrow window: the bar keeps to what's needed for writing (⌘+ and ⌘− still zoom) */
+@media (max-width: 560px) {
+  html.focus #tb .zoomg {
+    display: none;
+  }
+  html.focus #tb .tbtn {
+    min-width: 26px;
+    padding: 0 3px;
+  }
+}
+
+/* Works Cited, opened to cite: over the page at the right, rather than beside it */
+html.focus #refs:not([hidden]) {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  bottom: 74px;
+  width: min(340px, calc(100vw - 20px));
+  z-index: 25;
+  overflow: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+}
+
+/* comments: a drawer that slides over the page from the right (opened from commented text, the bar's comment menu, or
+   the count at the top right), clear of the traffic lights and the bar */
+html.focus .cmts {
+  display: block;
+  position: fixed;
+  top: 44px;
+  right: 10px;
+  bottom: auto;
+  max-height: calc(100vh - 118px); /* as tall as its cards, down to the bar */
+  width: min(300px, calc(100vw - 40px));
+  overflow: auto;
+  z-index: 35;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+  padding: 10px 10px 14px;
+  transform: translateX(calc(100% + 30px));
+  transition: transform 0.2s ease;
+}
+html.focus .cmts[hidden] {
+  display: none;
+}
+html.focus .cmts.drawer-open {
+  transform: none;
+}
+html.focus .cmts .cmtlayer {
+  height: auto !important;
+}
+html.focus .cmts .cmtcard {
+  position: relative !important;
+  top: auto !important;
+  margin-bottom: 8px;
+}
+html.focus .cmtfab:not([hidden]) {
+  display: flex;
+  top: 8px;
+  bottom: auto;
+  right: 12px;
+  z-index: 31;
+  padding: 3px 10px 3px 6px;
+  font-size: 12px;
+  box-shadow: none;
+  opacity: 0.75;
+}
+html.focus .cmtfab:hover {
+  opacity: 1;
+}
+
+/* the bar's focus button: corners out to go in, corners in to come out */
+#tb-focus .fon,
+html.focus #tb-focus .foff {
+  display: none;
+}
+html.focus #tb-focus .fon {
+  display: block;
+}
+
+/* zoom is the text's own size (--fz), rewrapping with the window */
+html.focus #zwrap {
+  --eds: calc(var(--edsb, 15.5px) * var(--fz, 1));
+}
+html.focus .etitle {
+  font-size: calc(28px * var(--fz, 1));
+}
+
+/* the top: nothing until the page is scrolled, then the text fades out under a strip with the note's title */
+.focustop {
+  display: none;
+}
+html.focus .focustop {
+  display: flex;
+  align-items: center;
+  position: fixed;
+  inset: 0 0 auto;
+  height: 38px;
+  padding: 0 20px 6px;
+  z-index: 29;
+  pointer-events: none;
+  font: 600 12.5px var(--ui);
+  color: var(--fg);
+}
+html.focus.native .focustop {
+  padding-left: 84px; /* after the traffic lights */
+}
+html.focus .focustop::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(var(--bg) 62%, color-mix(in srgb, var(--bg) 0%, transparent));
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+html.focus .focustop span {
+  opacity: 0;
+  transition: opacity 0.18s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html.focus.scrolled .focustop::before,
+html.focus.scrolled .focustop span {
+  opacity: 1;
+}
+/* in the Mac app the page runs up under the traffic lights: its first line starts below them */
+html.focus.native .body.notesview .doc {
+  padding-top: 48px;
+}

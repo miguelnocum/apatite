@@ -1,0 +1,15 @@
+# build output
+app/.build/
+app/build/
+app/tools/_regress/
+app/tools/_shots/
+app/tools/_focus/
+# generated from apatite.html (or src/) by app/tools/make_notebook.py
+app/Resources/notebook.html
+.DS_Store
+# built from web/ by app/tools/make_notebook.py (the web version of the page)
+apatite.html
+app/tools/smoke/reports/
+app/tools/node_modules/
+app/tools/package-lock.json
+app/Resources/notebook-old.html

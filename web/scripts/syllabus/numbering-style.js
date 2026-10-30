@@ -1,5 +1,5 @@
 import { $, esc, ui } from '../core/helpers-and-state.js';
-import { SyllabusDetector } from './syllabus-import.js';
+import { SyllabusDetector } from './syllabus-detector.js';
 
 /* ===== a pasted syllabus read by the numbering the user describes: "1" for section titles, "1a" for points, and so on.
    Each example becomes a pattern: a number matches any number, a single letter any letter of its case, a Roman numeral any

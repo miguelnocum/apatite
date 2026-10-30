@@ -1,4 +1,3 @@
-import '../syllabus/numbering-style.js';
 import { $ } from '../core/helpers-and-state.js';
 import { initWiring } from './wiring.js';
 import { initStorage } from '../core/storage.js';

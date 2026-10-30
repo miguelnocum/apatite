@@ -7,11 +7,13 @@ cd "$(dirname "$0")"
 python3 tools/make_notebook.py ../web Resources/notebook.html ../apatite.html >/dev/null
 
 swift build -c release --arch arm64
+# where the binary lands depends on the toolchain (command line tools: .build/arm64-apple-macosx/release; Xcode: .build/out/Products/Release)
+BIN="$(swift build -c release --arch arm64 --show-bin-path)/Apatite"
 
 APP="build/Apatite.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp .build/arm64-apple-macosx/release/Apatite "$APP/Contents/MacOS/Apatite"
+cp "$BIN" "$APP/Contents/MacOS/Apatite"
 cp Info.plist "$APP/Contents/Info.plist"
 cp Resources/notebook.html "$APP/Contents/Resources/"
 cp Resources/seed-notebook.json "$APP/Contents/Resources/"

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Checks the notebook page's scripts and styles (in ../../web). First time: npm ci (here, in app/tools).
-#   ./check.sh            lint, formatting, and functions over 20 lines
+#   ./check.sh            lint, formatting, functions over 20 lines, and the import rules (areas.txt) and cycles (cycles.txt)
 #   ./check.sh --print    also writes the minified bundle to /tmp/apatite-page.min.js, to compare two versions
 set -uo pipefail
 cd "$(dirname "$0")"
@@ -27,5 +27,9 @@ print('none' if not found else '%d line(s)' % found)
 PY
 echo "== long functions"
 node fnlen.js "$WEB/scripts" 20 15
+echo "== imports: which folder may import which (areas.txt), and the import cycles (not more than cycles.txt)"
+node imports.js "$WEB/scripts"
+IMPORTS=$?
 if [ "${1:-}" = "--print" ]; then node bundle.js "$WEB/scripts" --minify > /tmp/apatite-page.min.js && echo "minified script: /tmp/apatite-page.min.js"; fi
 rm -rf "$TMP"
+exit $IMPORTS

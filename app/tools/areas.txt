@@ -1,0 +1,22 @@
+# Which folder of web/scripts may import which: "area: what it may import" (itself is always allowed).
+# app/tools/check.sh fails on any other import. Three layers, bottom to top:
+#   core      the page's state, storage and small helpers: imports only core. What it needs from a feature, the feature
+#             tells it (core/channel.js) or it is moved down into core.
+#   features  may import core and each other (not app). They still import one another in loops: the import-cycle count
+#             that check.sh prints and holds at cycles.txt is the size of that.
+#   app       wires it all together (start.js, the Mac bridge, boot): may import anything. Nothing imports app.
+@features = citations editor equations essays images settings spec-points syllabus tables view writing
+
+core:
+app: core @features
+citations: core @features
+editor: core @features
+equations: core @features
+essays: core @features
+images: core @features
+settings: core @features
+spec-points: core @features
+syllabus: core @features
+tables: core @features
+view: core @features
+writing: core @features

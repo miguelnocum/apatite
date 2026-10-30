@@ -29,3 +29,7 @@ Steps that behave differently in native mode (native.json against web.json), all
 Two steps are adjusted for native in page-smoke.js, not skipped: the Syllabus and Works Cited tabs go back to the notes when
 clicked while showing (as in the app), so view() leaves them be when they are already showing.
 Nothing in the test is skipped on the native page; every step ran and none threw (a "THREW:" in a step would show in the report).
+
+With no visible window (a locked or sleeping Mac), use headless.js and run the pages ONE AT A TIME: old against new, in the same way. Run several at
+once and the equation and comment layout steps differ by a few pixels from load alone. Headless runs do not raise the three TypeErrors above, so compare
+them with each other, not with this baseline. To clear storage by hand, first go to a neutral page: the page's pagehide handler rewrites what you clear.

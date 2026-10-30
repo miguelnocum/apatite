@@ -6,7 +6,6 @@ import {
   edEssayId,
   escapeHtml,
   essays,
-  NATIVE,
   pointById,
   syllabusPoints,
   setActiveEditor,
@@ -15,6 +14,7 @@ import {
   uiState,
   newId
 } from '../core/helpers-and-state.js';
+import { NATIVE } from '../core/bridge.js';
 import { Store } from '../core/storage.js';
 import { renderSide, sideHd } from '../syllabus/syllabus-view.js';
 import { render } from '../view/page-render.js';

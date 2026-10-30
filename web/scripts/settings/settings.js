@@ -3,7 +3,8 @@ import { saveDocNow } from '../core/save-doc.js';
 import { HIGHLIGHT_KEY, keyOf } from '../editor/highlight-colours.js';
 import { closeToolbarMenu } from '../core/toolbar-menu.js';
 import { KEY } from '../core/example-data.js';
-import { openEditor, escapeHtml, essays, isDocView, NATIVE, post, toast, uiState } from '../core/helpers-and-state.js';
+import { openEditor, escapeHtml, essays, isDocView, toast, uiState } from '../core/helpers-and-state.js';
+import { NATIVE, callEntry, fromApp, toApp } from '../core/bridge.js';
 import { getPref, setPref, Store } from '../core/storage.js';
 import { makeElement } from '../core/paste-cleaning.js';
 import { ZOOMS, applyZoom } from '../view/zoom.js';
@@ -374,7 +375,7 @@ const SETTINGS_CLICKS = [
   [b => b.dataset.eqdel2 != null, b => changeStoredList('saved', list => list.splice(+b.dataset.eqdel2, 1))],
   [b => b.dataset.unpin != null, b => changeStoredList('pins', list => list.splice(+b.dataset.unpin, 1))],
   [b => b.hasAttribute('data-unpinall'), () => changeStoredList('pins', list => list.splice(0))],
-  [b => b.hasAttribute('data-revlib'), () => post({ type: 'revealLibrary' })]
+  [b => b.hasAttribute('data-revlib'), () => toApp.revealLibrary()]
 ];
 
 const SETTINGS_INPUTS = [
@@ -438,8 +439,8 @@ function resetWriting() {
 
 /* ---- the highlight key ---- */
 function saveKey() {
-  if (NATIVE) post({ type: 'setKey', key: HIGHLIGHT_KEY });
-  else window.nbSetKey(HIGHLIGHT_KEY);
+  if (NATIVE) toApp.setKey(HIGHLIGHT_KEY);
+  else callEntry('nbSetKey', HIGHLIGHT_KEY);
 }
 
 /* typing and colour picking save a moment after the last change */
@@ -503,7 +504,7 @@ function linkSyllabus(kind, id, syllabusId) {
     return;
   }
   if (doc) doc.syllabus = syllabusId || null;
-  post({ type: 'linkDocSyllabus', kind: kind, id: id, sid: syllabusId });
+  toApp.linkDocSyllabus(kind, id, syllabusId);
   toast(syllabusId ? 'Linked to the syllabus' : 'No longer linked to a syllabus');
 }
 
@@ -522,7 +523,7 @@ function linkOpenNotebookSyllabus(syllabusId) {
   try {
     sessionStorage.setItem(KEY + '-reopenset', 'syl');
   } catch (x) {}
-  post({ type: 'linkSyllabus', id: syllabusId, view: uiState.view });
+  toApp.linkSyllabus(syllabusId, uiState.view);
 }
 
 /* ⌘, in the web version (the Mac app's own Settings… menu item does it there) */
@@ -536,6 +537,6 @@ const onSettingsKeydown = function (e) {
 };
 
 export function initSettings() {
-  window.nbOpenSettings = nbOpenSettings;
+  fromApp('nbOpenSettings', nbOpenSettings);
   document.addEventListener('keydown', onSettingsKeydown);
 }

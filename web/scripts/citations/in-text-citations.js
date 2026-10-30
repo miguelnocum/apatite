@@ -1,5 +1,6 @@
 import { saveDocSoon } from '../core/save-doc.js';
-import { openEditor, escapeHtml, NATIVE, post, toast, uiState } from '../core/helpers-and-state.js';
+import { openEditor, escapeHtml, toast, uiState } from '../core/helpers-and-state.js';
+import { NATIVE, toApp } from '../core/bridge.js';
 import { makeElement } from '../core/paste-cleaning.js';
 import { citationIds } from './citation-check.js';
 import { namePart, refById, yearLabels } from './references.js';
@@ -192,7 +193,7 @@ const onInTextCitationsMousedown2 = e => {
   if (!citation) return;
   e.preventDefault();
   if (NATIVE && citation.getAttribute('data-anchor') && !e.altKey) {
-    post({ type: 'openAnchor', anchor: citation.getAttribute('data-anchor') });
+    toApp.openAnchor(citation.getAttribute('data-anchor'));
     return;
   }
   openSources(citation);

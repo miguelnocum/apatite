@@ -1,5 +1,6 @@
 import { caretInto, closestTag } from '../core/caret.js';
-import { NATIVE, activeEditor, setActiveEditor, toast } from '../core/helpers-and-state.js';
+import { activeEditor, setActiveEditor, toast } from '../core/helpers-and-state.js';
+import { NATIVE } from '../core/bridge.js';
 import { makeElement, plainToHTML, sanitize } from '../core/paste-cleaning.js';
 import { emptyLine } from './callouts.js';
 

@@ -1,3 +1,4 @@
+import { fromApp } from '../core/bridge.js';
 import { HIGHLIGHT_KEY, keyOf, keyShown, setHighlightKey } from './highlight-colours.js';
 import { updateToolbarState } from './toolbar-state.js';
 import { closeToolbarMenu, toolbarMenu } from '../core/toolbar-menu.js';
@@ -57,7 +58,7 @@ const nbSetKey = function (list) {
 };
 
 export function initHighlightKey() {
-  window.nbSetKey = nbSetKey;
+  fromApp('nbSetKey', nbSetKey);
   applyKeyStyle();
   uiState.hlColor = firstKeyColourId();
 }

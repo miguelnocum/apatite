@@ -1,5 +1,6 @@
 import { docHTML, saveDocNow } from '../core/save-doc.js';
-import { $, openEditor, essays, meta, NATIVE, post, syllabusPoints, uiState } from '../core/helpers-and-state.js';
+import { $, openEditor, essays, meta, syllabusPoints, uiState } from '../core/helpers-and-state.js';
+import { NATIVE, fromApp, pageGeneration, toApp } from '../core/bridge.js';
 import { Store, setSave, strip } from '../core/storage.js';
 import { nbRefSort, nbRefs, parseOne, refs, stashRefs } from '../citations/references.js';
 import { hydrateCites } from '../citations/in-text-citations.js';
@@ -37,7 +38,7 @@ function nativeSave() {
   if (indicator) indicator.textContent = 'saving…';
   nativeTimer = setTimeout(() => {
     nativeTimer = null;
-    post({ type: 'save', json: nbState(), gen: window.__NBGEN__ || 0 });
+    toApp.save(nbState(), pageGeneration());
     setSave();
   }, NATIVE_SAVE_DELAY);
 }
@@ -79,6 +80,6 @@ const nbAddRef = raw => {
 export function initMacBridge() {
   /* in the app, the notebook comes with the page (window.__NB__) and every save sends the whole of it back */
   if (NATIVE) useNativeStore(window.__NB__ || {});
-  window.nbFlush = nbFlush;
-  window.nbAddRef = nbAddRef;
+  fromApp('nbFlush', nbFlush);
+  fromApp('nbAddRef', nbAddRef);
 }

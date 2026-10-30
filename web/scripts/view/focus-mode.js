@@ -1,6 +1,7 @@
 import { switchView } from './page-render.js';
 import { KEY } from '../core/example-data.js';
-import { $, curEssay, isDocView, meta, NATIVE, post, toast, uiState } from '../core/helpers-and-state.js';
+import { $, curEssay, isDocView, meta, toast, uiState } from '../core/helpers-and-state.js';
+import { NATIVE, fromApp, toApp } from '../core/bridge.js';
 import { measure } from '../syllabus/syllabus-view.js';
 import { alignToolbar, applyZoom, keepAnchor, zoomAnchor, zoomPoint } from './zoom.js';
 import { renderComments } from '../editor/comments.js';
@@ -63,7 +64,7 @@ export function postFocus() {
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
   if (focusPosted === on + bg) return;
   focusPosted = on + bg;
-  post({ type: 'focus', on: on, bg: bg });
+  toApp.focus(on, bg);
 }
 
 /* ---- zoom in focus mode is the text's own size, as in Bear (not a scaled picture of the page): the page is laid out
@@ -158,5 +159,5 @@ export function initFocusMode() {
   window.addEventListener('scroll', onFocusModeWindowScroll, { passive: true });
   document.addEventListener('keydown', onFocusModeKeydown);
   /* the Mac app's View menu */
-  window.nbToggleFocus = toggleFocus;
+  fromApp('nbToggleFocus', toggleFocus);
 }

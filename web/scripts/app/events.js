@@ -7,14 +7,13 @@ import {
   curEssay,
   isDocView,
   meta,
-  NATIVE,
-  post,
   syllabusPoints,
   setActiveEditor,
   setSyllabusPoints,
   toast,
   uiState
 } from '../core/helpers-and-state.js';
+import { NATIVE, toApp } from '../core/bridge.js';
 import { Store } from '../core/storage.js';
 import { commit, planApply } from '../syllabus/model.js';
 import { cfHTML, measure, renderSide, toggleSide } from '../syllabus/syllabus-view.js';
@@ -152,7 +151,7 @@ const PAGE_CLICKS = [
   [t => !!t.dataset.sidetog, () => toggleSide()],
   [t => !!t.dataset.essay, chooseEssay],
   [t => t.id === 'newessay', () => afterSaving(newEssay)],
-  [t => t.id === 'importessay', () => afterSaving(() => post({ type: 'importEssay' }))],
+  [t => t.id === 'importessay', () => afterSaving(() => toApp.importEssay())],
   [t => t.id === 'delessay', askThenDeleteEssay],
   [t => !!t.dataset.view, chooseView],
   [t => !!t.dataset.cyc, rateConfidence],

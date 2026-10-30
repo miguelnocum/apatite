@@ -1,7 +1,8 @@
 import { writingSettings, DEFAULT_WRITING_SETTINGS, setWritingSettings } from '../core/writing-settings.js';
 import { inEd } from '../core/caret.js';
 import { KEY } from '../core/example-data.js';
-import { $, openEditor, isDocView, NATIVE, post } from '../core/helpers-and-state.js';
+import { $, openEditor, isDocView } from '../core/helpers-and-state.js';
+import { NATIVE, toApp } from '../core/bridge.js';
 import { applyTableDefaults } from '../tables/table-look.js';
 import { headerHeight } from '../view/zoom.js';
 import { postFocus } from '../view/focus-mode.js';
@@ -151,8 +152,7 @@ export function applyWritingSettings() {
 function postTheme(root) {
   const styles = getComputedStyle(root);
   const colour = name => styles.getPropertyValue(name).trim();
-  post({
-    type: 'theme',
+  toApp.theme({
     id: writingSettings.theme,
     dark: root.getAttribute('data-theme') === 'dark',
     bg: colour('--bg'),

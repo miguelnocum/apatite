@@ -1,6 +1,7 @@
 import { saveDocNow } from '../core/save-doc.js';
 import { closeToolbarMenu } from '../core/toolbar-menu.js';
-import { $, openEditor, isDocView, NATIVE, syllabusPoints, uiState } from '../core/helpers-and-state.js';
+import { $, openEditor, isDocView, syllabusPoints, uiState } from '../core/helpers-and-state.js';
+import { NATIVE } from '../core/bridge.js';
 import { Store } from '../core/storage.js';
 import { measure, renderSide, renderSyl } from '../syllabus/syllabus-view.js';
 import { alignToolbar, headerHeight } from './zoom.js';

@@ -1,16 +1,7 @@
 /* ===== helpers ===== */
-/* inside the Mac app (WKWebView with the "nb" handler) rather than as a web artifact */
-export const NATIVE = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.nb);
 const TOAST_FOR = 2400; // ms a message stays up
 const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 let toastTimer = null;
-
-/* a message to the Mac app */
-export function post(message) {
-  try {
-    window.webkit.messageHandlers.nb.postMessage(message);
-  } catch (e) {}
-}
 
 export function $(id) {
   return document.getElementById(id);

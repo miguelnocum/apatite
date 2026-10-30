@@ -1,3 +1,4 @@
+import { callEntry, fromApp, pending } from '../core/bridge.js';
 import { docHTML, saveDocNow, setDocHTML } from '../core/save-doc.js';
 import { EXAMPLE, KEY } from '../core/example-data.js';
 import {
@@ -117,39 +118,39 @@ function startView() {
   try {
     uiState.essayId = localStorage.getItem(KEY + '-essay') || null;
   } catch (e) {}
-  if (window.__nbStartEssay) {
-    uiState.essayId = window.__nbStartEssay;
-    window.__nbStartEssay = null;
+  if (pending.essay) {
+    uiState.essayId = pending.essay;
+    pending.essay = null;
   }
-  if (window.__nbStartView) {
-    uiState.view = window.__nbStartView;
-    window.__nbStartView = null;
+  if (pending.view) {
+    uiState.view = pending.view;
+    pending.view = null;
   }
 }
 
 /* Settings asked for before the page was ready (⌘, from Home), or open across a reload (a notebook re-linked to a
    syllabus); essays imported before it was ready */
 function afterBoot() {
-  let settings = window.__nbOpenSettings;
+  let settings = pending.settings;
   try {
     settings = settings != null ? settings : sessionStorage.getItem(KEY + '-reopenset');
     sessionStorage.removeItem(KEY + '-reopenset');
   } catch (x) {}
   if (settings != null) {
-    window.__nbOpenSettings = null;
+    pending.settings = null;
     openSettings(settings || null);
   }
-  const pending = window.__nbPendingImports;
-  if (!(pending && pending.length)) return;
-  window.__nbPendingImports = null;
-  window.nbImportEssays(pending);
+  const imports = pending.imports;
+  if (!(imports && imports.length)) return;
+  pending.imports = null;
+  callEntry('nbImportEssays', imports);
 }
 
 /* ===== the Mac app's calls ===== */
 /* essays converted from Word or PDF by the Mac app */
 const nbImportEssays = list => {
   if (!booted) {
-    window.__nbPendingImports = (window.__nbPendingImports || []).concat(list || []);
+    pending.imports = (pending.imports || []).concat(list || []);
     return;
   }
   const made = (list || []).map(importedEssay);
@@ -205,7 +206,7 @@ const nbNewEssay = () => {
 /* the Mac app's Notes / Essay buttons */
 const nbShow = view => {
   if (!booted) {
-    window.__nbStartView = view;
+    pending.view = view;
     return;
   }
   if (uiState.view === view) return;
@@ -216,8 +217,8 @@ const nbShow = view => {
 };
 
 export function initBoot() {
-  window.nbImportEssays = nbImportEssays;
-  window.nbOpenEssay = nbOpenEssay;
-  window.nbNewEssay = nbNewEssay;
-  window.nbShow = nbShow;
+  fromApp('nbImportEssays', nbImportEssays);
+  fromApp('nbOpenEssay', nbOpenEssay);
+  fromApp('nbNewEssay', nbNewEssay);
+  fromApp('nbShow', nbShow);
 }

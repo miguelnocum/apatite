@@ -1,3 +1,4 @@
+import { fromApp } from '../core/bridge.js';
 import { saveDocSoon } from '../core/save-doc.js';
 import { selectRange } from '../core/caret.js';
 import { openEditor, isDocView, uiState } from '../core/helpers-and-state.js';
@@ -126,6 +127,6 @@ function pdfNotePieces(quote, note, citation) {
 }
 
 export function initPdfQuotes() {
-  window.nbInsertQuote = nbInsertQuote;
-  window.nbInsertNote = nbInsertNote;
+  fromApp('nbInsertQuote', nbInsertQuote);
+  fromApp('nbInsertNote', nbInsertNote);
 }

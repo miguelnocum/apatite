@@ -1,6 +1,7 @@
 import { docHTML, saveDocNow } from '../core/save-doc.js';
 import { HIGHLIGHT_KEY } from './highlight-colours.js';
-import { NATIVE, escapeHtml, meta, post, toast, uiState } from '../core/helpers-and-state.js';
+import { escapeHtml, meta, toast, uiState } from '../core/helpers-and-state.js';
+import { NATIVE, toApp } from '../core/bridge.js';
 import { makeElement } from '../core/paste-cleaning.js';
 import { tableVar } from '../tables/table-sizing.js';
 import { TABLE_PADDINGS, tableTextLook } from '../tables/table-look.js';
@@ -122,7 +123,7 @@ function exportFilename() {
 /* the Mac app saves it; on the web, it's offered as a download where the page can do that */
 function saveExport(html) {
   if (NATIVE) {
-    post({ type: 'export', html, filename: exportFilename() });
+    toApp.exportHtml(html, exportFilename());
     return;
   }
   if (!(window.claude && claude.use)) {

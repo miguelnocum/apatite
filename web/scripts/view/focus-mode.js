@@ -2,7 +2,7 @@ import { KEY } from '../core/example-data.js';
 import { $, NATIVE, meta, post, toast, ui } from '../core/helpers-and-state.js';
 import { measure } from '../syllabus/syllabus-view.js';
 import { alignToolbar, applyZoom, keepAnchor, zoomAnchor, zoomPoint } from './zoom.js';
-import { switchView } from '../core/events.js';
+import { switchView } from '../app/events.js';
 import { renderComments } from '../editor/comments.js';
 import { curEssay, isDocView } from '../essays/essays.js';
 import { queueBand } from '../editor/selection-band.js';

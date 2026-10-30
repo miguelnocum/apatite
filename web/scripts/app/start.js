@@ -13,7 +13,7 @@ import { initFocusMode } from '../view/focus-mode.js';
 import { initHighlightKey } from '../editor/highlight-key.js';
 import { initToolbarMenus } from '../editor/toolbar-menus.js';
 import { initShortcuts } from '../editor/shortcuts.js';
-import { initEvents } from '../core/events.js';
+import { initEvents } from './events.js';
 import { initCitationCheck } from '../citations/citation-check.js';
 import { initContents } from '../editor/contents.js';
 import { initComments } from '../editor/comments.js';

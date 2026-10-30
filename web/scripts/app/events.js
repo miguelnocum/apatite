@@ -1,6 +1,6 @@
-import { EXAMPLE } from './example-data.js';
-import { $, NATIVE, meta, post, pts, setCurEd, setPts, toast, ui } from './helpers-and-state.js';
-import { Store } from './storage.js';
+import { EXAMPLE } from '../core/example-data.js';
+import { $, NATIVE, meta, post, pts, setCurEd, setPts, toast, ui } from '../core/helpers-and-state.js';
+import { Store } from '../core/storage.js';
 import { commit, planApply } from '../syllabus/model.js';
 import { cfHTML, measure, renderSide, toggleSide } from '../syllabus/syllabus-view.js';
 import { detect, renderSetup, secPrefix, sectionNames, suggestGrouping } from '../syllabus/syllabus-import.js';
@@ -15,7 +15,7 @@ import { curEssay, deleteEssay, isDocView, newEssay, openEssay, openPoint, rende
 import { exportHTML } from '../editor/export.js';
 import { useRefs } from '../citations/references.js';
 import { renderWC } from '../citations/works-cited-tab.js';
-import { openSettings } from '../app/settings.js';
+import { openSettings } from './settings.js';
 
 /* ===== events: the page's own fields and buttons ===== */
 const TITLE_SAVE_DELAY = 500; // ms after the last keystroke in an essay's title before it's saved

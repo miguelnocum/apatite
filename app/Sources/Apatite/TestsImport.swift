@@ -1,3 +1,4 @@
+#if APATITE_TESTS
 import AppKit
 import WebKit
 
@@ -148,3 +149,4 @@ enum TestInput {
         }
     }
 }
+#endif

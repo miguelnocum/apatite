@@ -10,8 +10,10 @@ out="$app/tools/_shots"
 tree="$(mktemp -d)/head"
 rm -rf "$out"; mkdir -p "$out"
 git -C "$root" worktree add --detach "$tree" HEAD >/dev/null 2>&1 || { echo "could not make a worktree"; exit 1; }
-(cd "$tree/app" && NO_INSTALL=1 ./build.sh 2>&1 | grep -E "error|Built")
-(cd "$app" && NO_INSTALL=1 ./build.sh 2>&1 | grep -E "error|Built")
+# both with the test suites in; a HEAD from before APATITE_TESTS ignores the variable and has them in its normal build
+(cd "$tree/app" && NO_INSTALL=1 APATITE_TESTS=1 ./build.sh 2>&1 | grep -E "error|Built")
+(cd "$app" && APATITE_TESTS=1 ./build.sh 2>&1 | grep -E "error|Built")
+bundle() { if [ -d "$1/build-tests/Apatite.app" ]; then echo "$1/build-tests/Apatite.app"; else echo "$1/build/Apatite.app"; fi; }
 shoot() { # shoot <app bundle> <name>
   local lib="$out/lib-$2"; mkdir -p "$lib"
   env APATITE_LIBRARY="$lib" APATITE_VIEWSHOTS=1 APATITE_SHOTPDF="$PDF" "$1/Contents/MacOS/Apatite" >/dev/null 2>&1 &
@@ -20,8 +22,8 @@ shoot() { # shoot <app bundle> <name>
   /bin/sleep 1; kill $pid 2>/dev/null; wait $pid 2>/dev/null
   mv "$lib/shots" "$out/$2"
 }
-shoot "$tree/app/build/Apatite.app" old
-shoot "$app/build/Apatite.app" new
+shoot "$(bundle "$tree/app")" old
+shoot "$(bundle "$app")" new
 git -C "$root" worktree remove --force "$tree" >/dev/null 2>&1
 differ=0
 for f in "$out"/old/*.png "$out"/new/*.png; do

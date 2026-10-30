@@ -1,6 +1,8 @@
 # build output
 app/.build/
 app/build/
+app/.build-tests/
+app/build-tests/
 app/tools/_regress/
 app/tools/_perf/
 app/tools/_shots/

@@ -1,3 +1,4 @@
+#if APATITE_TESTS
 import AppKit
 
 /// Runs only when APATITE_VIEWSHOTS is set (with APATITE_LIBRARY at a throwaway folder and APATITE_SHOTPDF at a PDF):
@@ -83,3 +84,4 @@ enum ViewShots {
         }
     }
 }
+#endif

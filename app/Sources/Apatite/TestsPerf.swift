@@ -1,3 +1,4 @@
+#if APATITE_TESTS
 import AppKit
 
 /// Runs only when APATITE_PERFTEST is set (with APATITE_LIBRARY, a copy of a real library).
@@ -82,3 +83,4 @@ enum PerfTest {
         t.finish()
     }
 }
+#endif

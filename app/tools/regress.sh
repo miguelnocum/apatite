@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds the app (without installing) and runs its built-in test suites, each in a throwaway library.
+# Builds the app with its tests compiled in (APATITE_TESTS=1, into build-tests/, never installed) and runs its built-in test suites, each in a throwaway library.
 # Usage: tools/regress.sh [suite …]   (default: self project reader org deck folder window import; also: link)
 # Reports are kept in tools/_regress/<suite>/. Each is normalised (ids, uuids and times blanked) and compared with the
 # report saved in tools/regress-baseline/; a suite PASSes when they match and FAILs on any difference (shown as a diff),
@@ -12,13 +12,15 @@ cd "$(dirname "$0")/.."
 ROOT="$(cd .. && pwd)"
 PDF="$ROOT/testdata/Arguelles and March 2022 - Weeds (sample).pdf"
 OUT="$PWD/tools/_regress"
-BIN="$PWD/build/Apatite.app/Contents/MacOS/Apatite"
+BIN="$PWD/build-tests/Apatite.app/Contents/MacOS/Apatite"
 BASE="$PWD/tools/regress-baseline"
 UPDATE=0
 if [ "${1:-}" = "--update" ]; then UPDATE=1; shift; fi
 RESULTS=()
 
-NO_INSTALL=1 ./build.sh 2>&1 | grep -E "error|warning: unre|Built" || exit 1
+# the build with the test suites in (APATITE_TESTS): a normal build has none
+APATITE_TESTS=1 ./build.sh 2>&1 | grep -E "error|warning: unre|Built" || exit 1
+[ -x "$BIN" ] || { echo "no binary at $BIN" >&2; exit 1; }
 rm -rf "$OUT"; mkdir -p "$OUT"
 
 run() {  # run <suite> <report file> <env…>

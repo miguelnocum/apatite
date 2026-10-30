@@ -6,9 +6,9 @@
 set -uo pipefail
 app="$(cd "$(dirname "$0")/.." && pwd)"
 out="$app/tools/_focus"
-(cd "$app" && NO_INSTALL=1 ./build.sh 2>&1 | grep -E "error|Built") || exit 1
+(cd "$app" && APATITE_TESTS=1 ./build.sh 2>&1 | grep -E "error|Built") || exit 1
 rm -rf "$out"; mkdir -p "$out/lib"
-env APATITE_LIBRARY="$out/lib" APATITE_FOCUSTEST=1 "$app/build/Apatite.app/Contents/MacOS/Apatite" >/dev/null 2>&1 &
+env APATITE_LIBRARY="$out/lib" APATITE_FOCUSTEST=1 "$app/build-tests/Apatite.app/Contents/MacOS/Apatite" >/dev/null 2>&1 &
 pid=$!
 for _ in $(seq 1 60); do [ -f "$out/lib/focus/report.txt" ] && break; /bin/sleep 1; done
 /bin/sleep 1; kill $pid 2>/dev/null; wait $pid 2>/dev/null

@@ -115,8 +115,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Load the notes editor straight away, even while the welcome page is showing.
         MainActor.assumeIsolated { _ = AppState.shared.session.webView }
         MainActor.assumeIsolated {
-            SelfTest.runIfRequested(); ProjectTest.runIfRequested(); ImportTest.runIfRequested(); ReaderTest.runIfRequested(); FolderTest.runIfRequested(); WindowTest.runIfRequested(); LinkTest.runIfRequested(); PerfTest.runIfRequested(); OrgTest.runIfRequested(); DeckTest.runIfRequested(); ViewShots.runIfRequested(); FocusTest.runIfRequested()
-            if testing { openTestScreen() }
+            runRequestedTests(testing: testing)
         }
     }
 
@@ -126,21 +125,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
             MainActor.assumeIsolated { for w in NSApp.windows where w.alphaValue != 0 { w.alphaValue = 0; w.ignoresMouseEvents = true; w.orderBack(nil) } }
-        }
-    }
-
-    /// for screenshots in tests: open straight onto a screen (APATITE_SCREEN), and picture the window (APATITE_SNAPSHOT)
-    @MainActor private func openTestScreen() {
-        let env = ProcessInfo.processInfo.environment
-        if let sc = env["APATITE_SCREEN"].flatMap(Screen.init(rawValue:)) { AppState.shared.navigation.screen = sc }
-        guard let out = env["APATITE_SNAPSHOT"] else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            // the window draws itself into a PNG (no screen-recording permission needed)
-            guard let v = NSApp.windows.first(where: { $0.isVisible })?.contentView?.superview,
-                  let rep = v.bitmapImageRepForCachingDisplay(in: v.bounds) else { return }
-            v.cacheDisplay(in: v.bounds, to: rep)
-            try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: out))
-            quitAfterTest()
         }
     }
 

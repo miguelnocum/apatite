@@ -1,3 +1,4 @@
+#if APATITE_TESTS
 import AppKit
 
 /// Runs only when APATITE_FOLDERTEST names a folder (and APATITE_LIBRARY a throwaway library).
@@ -187,3 +188,4 @@ enum DeckTest {
         }
     }
 }
+#endif

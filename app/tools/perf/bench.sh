@@ -11,9 +11,9 @@ cd "$(dirname "$0")/../.."
 ROOT="$(cd .. && pwd)"
 PDF="$ROOT/testdata/Arguelles and March 2022 - Weeds (sample).pdf"
 OUT="$PWD/tools/_perf"
-BIN="$PWD/build/Apatite.app/Contents/MacOS/Apatite"
+BIN="$PWD/build-tests/Apatite.app/Contents/MacOS/Apatite"
 
-NO_INSTALL=1 ./build.sh 2>&1 | grep -E "error|warning: unre|Built" || exit 1
+APATITE_TESTS=1 ./build.sh 2>&1 | grep -E "error|warning: unre|Built" || exit 1
 [ -x "$BIN" ] || { echo "no binary at $BIN" >&2; exit 1; }
 
 bench() {  # bench <name> <mklib.py arguments…>

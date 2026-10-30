@@ -1,3 +1,4 @@
+#if APATITE_TESTS
 import AppKit
 import PDFKit
 
@@ -176,3 +177,4 @@ enum ProjectTest {
         t.s.session.change([state.b]) { state.b = t.ws.renameProject(state.b, to: "Renamed project") }
     }
 }
+#endif

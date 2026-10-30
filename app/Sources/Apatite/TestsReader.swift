@@ -1,3 +1,4 @@
+#if APATITE_TESTS
 import AppKit
 import PDFKit
 
@@ -218,3 +219,4 @@ enum LinkTest {
         } else { t.log.append("phrase not found") }
     }
 }
+#endif

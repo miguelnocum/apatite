@@ -105,15 +105,3 @@ final class AppState: ObservableObject {
         page.showOrQueue(view)
     }
 }
-
-/// Timing marks for the performance test (no-ops otherwise).
-@MainActor var perfMarks: [String] = []
-@MainActor private var perfLast = Date()
-@MainActor func perfPersist(_ started: Date, kb: Int) {
-    guard ProcessInfo.processInfo.environment["APATITE_PERFTEST"] != nil else { return }
-    perfMarks.append(String(format: "   persist %.1f ms for %d KB", Date().timeIntervalSince(started) * 1000, kb))
-}
-@MainActor func perfMark(_ label: String) {
-    guard ProcessInfo.processInfo.environment["APATITE_PERFTEST"] != nil else { return }
-    perfMarks.append(String(format: "   %5.0f ms  %@", Date().timeIntervalSince(perfLast) * 1000, label)); perfLast = Date()
-}

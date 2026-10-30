@@ -1,3 +1,4 @@
+#if APATITE_TESTS
 import AppKit
 import PDFKit
 
@@ -67,3 +68,4 @@ final class TestRun {
 @MainActor func quitAfterTest() {
     Timer.scheduledTimer(withTimeInterval: 0, repeats: false) { _ in MainActor.assumeIsolated { NSApp.terminate(nil) } }
 }
+#endif

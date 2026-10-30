@@ -1,3 +1,4 @@
+#if APATITE_TESTS
 import AppKit
 import WebKit
 
@@ -122,3 +123,4 @@ enum FocusTest {
       r.setStart(q, 4); r.setEnd(li, 12); getSelection().removeAllRanges(); getSelection().addRange(r); return 'selected'; })()
     """
 }
+#endif

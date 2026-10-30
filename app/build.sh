@@ -6,11 +6,19 @@ cd "$(dirname "$0")"
 # the notes page is built from its parts in ../web (it also writes ../apatite.html, the page on its own for the web)
 python3 tools/make_notebook.py ../web Resources/notebook.html ../apatite.html >/dev/null
 
-swift build -c release --arch arm64
-# where the binary lands depends on the toolchain (command line tools: .build/arm64-apple-macosx/release; Xcode: .build/out/Products/Release)
-BIN="$(swift build -c release --arch arm64 --show-bin-path)/Apatite"
+# APATITE_TESTS=1 builds the app with its test suites compiled in (the APATITE_TESTS condition), for tools/regress.sh and the
+# other tools that run them. That build has its own folders (.build-tests, build-tests) and is never installed; a normal build
+# has no test code at all.
+FLAGS=(); OUT="build"
+if [ "${APATITE_TESTS:-0}" = "1" ]; then
+  FLAGS=(-Xswiftc -DAPATITE_TESTS --scratch-path .build-tests); OUT="build-tests"; NO_INSTALL=1
+fi
 
-APP="build/Apatite.app"
+swift build -c release --arch arm64 ${FLAGS[@]+"${FLAGS[@]}"}
+# where the binary lands depends on the toolchain (command line tools: .build/arm64-apple-macosx/release; Xcode: .build/out/Products/Release)
+BIN="$(swift build -c release --arch arm64 ${FLAGS[@]+"${FLAGS[@]}"} --show-bin-path)/Apatite"
+
+APP="$OUT/Apatite.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Apatite"

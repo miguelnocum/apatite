@@ -37,7 +37,8 @@ function pictureBlock(block) {
 function endsWithPicture(block) {
   if (!/^(UL|OL)$/.test(block.tagName)) return false;
   let last = block.lastElementChild && block.lastElementChild.lastChild;
-  while (last && (last.nodeName === 'BR' || (last.nodeType === 3 && !last.nodeValue.trim()))) last = last.previousSibling;
+  while (last && (last.nodeName === 'BR' || (last.nodeType === 3 && !last.nodeValue.trim())))
+    last = last.previousSibling;
   return !!last && last.nodeType === 1 && (last.tagName === 'IMG' || pictureBlock(last));
 }
 
@@ -57,7 +58,8 @@ function ensureRoom(root) {
     if (next && next.id === 'fnlist') next = null;
     const picture = pictureBlock(block) || endsWithPicture(block);
     if (next && !solidBlock(next) && !(picture && /^H[1-6]$/.test(next.tagName))) return;
-    if (picture && next && pictureBlock(next)) return; /* pictures can stack, with no line between unless you want one */
+    if (picture && next && pictureBlock(next))
+      return; /* pictures can stack, with no line between unless you want one */
     block.after(emptyLine());
     added = true;
   });

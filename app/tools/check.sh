@@ -1,6 +1,7 @@
 #!/bin/bash
 # Checks the notebook page's scripts and styles (in ../../web). First time: npm ci (here, in app/tools).
-#   ./check.sh            lint, formatting, functions over 20 lines, and the import rules (areas.txt) and cycles (cycles.txt)
+#   ./check.sh            lint, formatting, functions over 20 lines, the import rules (areas.txt) and cycles (cycles.txt), and
+#                         that the bridge to the Mac app is only touched in its two files
 #   ./check.sh --print    also writes the minified bundle to /tmp/apatite-page.min.js, to compare two versions
 set -uo pipefail
 cd "$(dirname "$0")"
@@ -30,6 +31,13 @@ node fnlen.js "$WEB/scripts" 20 15
 echo "== imports: which folder may import which (areas.txt), and the import cycles (not more than cycles.txt)"
 node imports.js "$WEB/scripts"
 IMPORTS=$?
+echo "== bridge: the page and the Mac app talk only through web/scripts/core/bridge.js and app/Sources/Apatite/PageBridge.swift"
+# Exceptions, by name: the tests (Tests*.swift, TestRun.swift) drive the page with scripts of their own; NotebookWebView.swift only
+# registers the "nb" handler and hands each message to PageMessage. Both patterns also catch a violation in a comment, on purpose.
+BRIDGE_JS=$(grep -rnE 'webkit|messageHandlers|window\.(nb[A-Z]|__nb)[A-Za-z]* *=[^=]' "$WEB/scripts" --include='*.js' | grep -v '/core/bridge\.js:')
+BRIDGE_SWIFT=$(grep -rnE 'evaluateJavaScript|callAsyncJavaScript' ../Sources --include='*.swift' | grep -vE '/(PageBridge|TestRun|Tests[A-Za-z]*)\.swift:')
+[ -n "$BRIDGE_JS$BRIDGE_SWIFT" ] && printf '%s\n' "$BRIDGE_JS" "$BRIDGE_SWIFT" | sed '/^$/d'
+if [ -n "$BRIDGE_JS$BRIDGE_SWIFT" ]; then echo "bridge uses outside the bridge files: $(printf '%s\n' "$BRIDGE_JS" "$BRIDGE_SWIFT" | sed '/^$/d' | wc -l | tr -d ' ')"; IMPORTS=1; else echo "none"; fi
 if [ "${1:-}" = "--print" ]; then node bundle.js "$WEB/scripts" --minify > /tmp/apatite-page.min.js && echo "minified script: /tmp/apatite-page.min.js"; fi
 rm -rf "$TMP"
 exit $IMPORTS

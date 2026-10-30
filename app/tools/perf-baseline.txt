@@ -1,0 +1,129 @@
+Performance baseline (phase0-baseline plus the perf instrumentation). Made by app/tools/perf/bench.sh, twice, one after the
+other on the same build; run 1 in full, then the numbers that matter from run 2. Machine: Apple M5, macOS 27.0.1.
+
+How to read it: "freeze" is a gap over 50 ms between 16 ms heartbeats on the app's main thread (a timer) or in the page (a
+setInterval, "page heartbeat", n = how many). "nbFlush" is the page's whole state made for the app (closing, switching);
+"persist" is the app writing it into the library's files. The first "switch: start" line (about 3.5 s) is the time since the
+app started, not a cost. "2 open a paper" is PDFKit loading the paper: its freeze moves between about 60 and 170 ms from run
+to run, so judge a change there by repeats. "0 start in another project" and "start" are the test's own set-up (the app
+settling at launch), not part of the numbers below.
+
+Library arguments (app/tools/perf/mklib.py <dir> <pdf> <note paragraphs> <essays> <essay paragraphs> <points>, then options):
+  small   60 3 30 40                                           notes 48 KB, 125 KB of notebook state
+  big     1500 40 80 400                                       notes 920 KB, 40 essays, 3.0 MB of state
+  images  300 6 40 100 --images 6 --image-px 200 --equations 30   42 PNG pictures (5.0 MB raw, 6.7 MB as base64 inside the
+                                                               documents), 30 block + 30 inline equations per document; 7.0 MB
+
+                          small    big      images      (run 1 / run 2)
+typing in the notes        0 freezes over 50 ms in the app and in the page, in every run, on all three libraries
+                           except the images library's run 1: one freeze of 51 ms in the app (run 2: none)
+nbFlush                    3 / 4 ms   11 / 26 ms   46 / 34 ms
+persist (the big save)     4.2 / 8.3 ms for 125 KB   29.6 / 40.4 ms for 3004 KB   53.3 / 43.1 ms for 6970 KB
+open a paper, worst freeze 76 / 80 ms   79 / 78 ms   63 / 166 ms
+
+Earlier results on a library of the big kind (an older build, another session): 0 freezes over 50 ms typing, persist 46 ms for
+3 MB, nbFlush 25 ms, worst freeze opening a paper 148 ms. These agree with what is above to within the run-to-run spread.
+
+=========================== run 1, in full ===========================
+Apatite perf baseline, 2026-10-30 23:43, a79c18e on Apple M5, macOS 27.0.1
+
+== small: mklib.py 60 3 30 40
+   library on disk: 404 KB; Big/Notebooks/Notes.json 48 KB; Big/Essays 60 KB
+page heartbeat while typing + saving: {"worst":0,"total":0,"n":0,"last":16933}
+flush: nbFlush 3 ms, 125 KB
+library: 2 projects; test project Big with 3 papers; paper Paper 0 (3 pages)
+steps (time since the previous step):
+-- open a paper in another project
+    3469 ms  switch: start
+   persist 2.1 ms for 32 KB
+       9 ms  switch: page saved (flush)
+       0 ms  switch: papers listed + remembered paper loaded
+       1 ms  switch: notebook + refs
+       1 ms  switch: page reload started
+       0 ms  switch: then (open paper / show screen)
+      36 ms  switch: next run loop (SwiftUI redraw done)
+-- open notebook
+   persist 4.2 ms for 125 KB
+2 open a paper from the Database: worst freeze 76 ms, total frozen 76 ms
+1 open Database: no freezes over 50 ms
+3 scroll through the paper: no freezes over 50 ms
+4 open the notebook from the Database: no freezes over 50 ms
+5 type in the notes: no freezes over 50 ms
+
+== big: mklib.py 1500 40 80 400
+   library on disk: 3408 KB; Big/Notebooks/Notes.json 920 KB; Big/Essays 2080 KB
+page heartbeat while typing + saving: {"worst":0,"total":0,"n":0,"last":16878}
+flush: nbFlush 11 ms, 3004 KB
+library: 2 projects; test project Big with 3 papers; paper Paper 0 (3 pages)
+steps (time since the previous step):
+-- open a paper in another project
+    3502 ms  switch: start
+   persist 2.4 ms for 62 KB
+       4 ms  switch: page saved (flush)
+       0 ms  switch: papers listed + remembered paper loaded
+       2 ms  switch: notebook + refs
+      13 ms  switch: page reload started
+       0 ms  switch: then (open paper / show screen)
+      25 ms  switch: next run loop (SwiftUI redraw done)
+-- open notebook
+   persist 29.6 ms for 3004 KB
+2 open a paper from the Database: worst freeze 79 ms, total frozen 79 ms
+1 open Database: no freezes over 50 ms
+3 scroll through the paper: no freezes over 50 ms
+4 open the notebook from the Database: no freezes over 50 ms
+5 type in the notes: no freezes over 50 ms
+
+== images: mklib.py 300 6 40 100 --images 6 --image-px 200 --equations 30
+42 pictures (PNG, 200x200), 5.0 MB (6.7 MB as base64 in the documents); 30 block and 30 inline equations in each document of Big
+   library on disk: 7268 KB; Big/Notebooks/Notes.json 1134 KB; Big/Essays 5820 KB
+page heartbeat while typing + saving: {"worst":0,"total":0,"n":0,"last":16851}
+flush: nbFlush 46 ms, 6970 KB
+library: 2 projects; test project Big with 3 papers; paper Paper 0 (3 pages)
+steps (time since the previous step):
+-- open a paper in another project
+    3489 ms  switch: start
+   persist 2.3 ms for 38 KB
+       4 ms  switch: page saved (flush)
+       1 ms  switch: papers listed + remembered paper loaded
+       3 ms  switch: notebook + refs
+      23 ms  switch: page reload started
+       0 ms  switch: then (open paper / show screen)
+      27 ms  switch: next run loop (SwiftUI redraw done)
+-- open notebook
+   persist 53.3 ms for 6970 KB
+2 open a paper from the Database: worst freeze 63 ms, total frozen 63 ms
+5 type in the notes: worst freeze 51 ms, total frozen 51 ms
+1 open Database: no freezes over 50 ms
+3 scroll through the paper: no freezes over 50 ms
+4 open the notebook from the Database: no freezes over 50 ms
+
+=========================== run 2: the numbers behind the table (the small library's save was 8.3 ms for 125 KB) ===========================
+== small: mklib.py 60 3 30 40
+page heartbeat while typing + saving: {"worst":0,"total":0,"n":0,"last":16817}
+flush: nbFlush 4 ms, 125 KB
+2 open a paper from the Database: worst freeze 80 ms, total frozen 144 ms
+1 open Database: no freezes over 50 ms
+3 scroll through the paper: no freezes over 50 ms
+4 open the notebook from the Database: no freezes over 50 ms
+5 type in the notes: no freezes over 50 ms
+== big: mklib.py 1500 40 80 400
+page heartbeat while typing + saving: {"worst":0,"total":0,"n":0,"last":16832}
+flush: nbFlush 26 ms, 3004 KB
+   persist 40.4 ms for 3004 KB
+0 start in another project: worst freeze 58 ms, total frozen 58 ms
+2 open a paper from the Database: worst freeze 78 ms, total frozen 153 ms
+1 open Database: no freezes over 50 ms
+3 scroll through the paper: no freezes over 50 ms
+4 open the notebook from the Database: no freezes over 50 ms
+5 type in the notes: no freezes over 50 ms
+== images: mklib.py 300 6 40 100 --images 6 --image-px 200 --equations 30
+page heartbeat while typing + saving: {"worst":0,"total":0,"n":0,"last":16749}
+flush: nbFlush 34 ms, 6970 KB
+   persist 43.1 ms for 6970 KB
+0 start in another project: worst freeze 71 ms, total frozen 71 ms
+2 open a paper from the Database: worst freeze 166 ms, total frozen 166 ms
+start: worst freeze 51 ms, total frozen 51 ms
+1 open Database: no freezes over 50 ms
+3 scroll through the paper: no freezes over 50 ms
+4 open the notebook from the Database: no freezes over 50 ms
+5 type in the notes: no freezes over 50 ms

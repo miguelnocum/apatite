@@ -2,6 +2,7 @@
 app/.build/
 app/build/
 app/tools/_regress/
+app/tools/_perf/
 app/tools/_shots/
 app/tools/_focus/
 # generated from apatite.html (or src/) by app/tools/make_notebook.py

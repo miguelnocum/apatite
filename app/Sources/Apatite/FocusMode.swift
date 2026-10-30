@@ -88,7 +88,9 @@ struct FocusWindowChrome: NSViewRepresentable {
             if on, web.responds(to: NSSelectorFromString("_setTopContentInset:")) {
                 web.setValue(0, forKey: "topContentInset")
             }
+            #if compiler(>=6.2)   // macOS 26 SDK; the older command line tools don't have obscuredContentInsets
             if #available(macOS 26.0, *), on { web.obscuredContentInsets = NSEdgeInsetsZero }
+            #endif
         }
     }
 }

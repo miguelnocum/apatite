@@ -1,9 +1,9 @@
+import { docHTML, saveDocNow } from '../core/save-doc.js';
 import { HLKEY } from './highlight-colours.js';
 import { NATIVE, esc, meta, post, toast, ui } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
 import { tableVar } from '../tables/table-sizing.js';
 import { TABLE_PADDINGS, tableTextLook } from '../tables/table-look.js';
-import { docHTML, saveDocNow } from './notes-document.js';
 import { orderedRefs, refHTML, yearLabels } from '../citations/references.js';
 import { citeWithPg } from '../citations/in-text-citations.js';
 import { annColor, annList } from '../equations/equation-drawing.js';

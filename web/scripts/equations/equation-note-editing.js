@@ -1,5 +1,5 @@
+import { saveDocSoon } from '../core/save-doc.js';
 import { mk } from '../core/paste-cleaning.js';
-import { saveDocSoon } from '../editor/notes-document.js';
 import { annList, annNoteHTML, annSave, mathKey } from './equation-drawing.js';
 import { annLayout } from './equation-note-layout.js';
 import { mathEd } from './equation-editor-parts.js';

@@ -1,7 +1,7 @@
+import { saveDocSoon } from '../core/save-doc.js';
 import { caretInto } from '../core/caret.js';
 import { ed, esc } from '../core/helpers-and-state.js';
 import { headerHeight } from '../view/zoom.js';
-import { saveDocSoon } from '../editor/notes-document.js';
 import { edChanged } from '../editor/hydrate-and-changes.js';
 import { texInline } from './equation-tex.js';
 import { renderMath } from './equation-drawing.js';

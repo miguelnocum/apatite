@@ -1,6 +1,6 @@
+import { saveDocNow } from '../core/save-doc.js';
 import { ed, ui, uid } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { saveDocNow } from '../editor/notes-document.js';
 import { renderWordCount, updateEssayListCounts } from './word-count-sidebar.js';
 import { drawBoxes } from './word-count-boxes.js';
 import { hydrateCites } from '../citations/in-text-citations.js';

@@ -1,7 +1,7 @@
+import { saveDocSoon } from '../core/save-doc.js';
 import { restoreSel } from '../core/caret.js';
 import { ed, toast } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { saveDocSoon } from '../editor/notes-document.js';
 import { texShow } from './equation-tex.js';
 import { caretAfterMath, mathEd } from './equation-editor-parts.js';
 import { openMathEditor } from './equation-editor.js';

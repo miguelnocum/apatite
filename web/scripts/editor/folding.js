@@ -1,7 +1,7 @@
+import { saveDocSoon } from '../core/save-doc.js';
 import { selectRange } from '../core/caret.js';
 import { $, ed } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { saveDocSoon } from './notes-document.js';
 import { positionCards } from './comments.js';
 import { edBlocks } from '../essays/word-count.js';
 import { mdTopBlock } from '../writing/writing.js';

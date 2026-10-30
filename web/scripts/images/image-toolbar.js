@@ -1,7 +1,7 @@
+import { saveDocSoon } from '../core/save-doc.js';
 import { caretToStart } from '../core/caret.js';
 import { $, ed, toast } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { saveDocSoon } from '../editor/notes-document.js';
 import { edChanged } from '../editor/hydrate-and-changes.js';
 import { startImgMove, startImgResize } from './image-resize-move.js';
 import { cancelCrop, openCrop } from './image-crop.js';

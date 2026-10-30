@@ -1,3 +1,4 @@
+import { docHTML, saveDocNow, setDocHTML } from '../core/save-doc.js';
 import { EXAMPLE, KEY } from '../core/example-data.js';
 import { $, ed, essays, meta, pts, setEssays, setMeta, setPts, toast, ui } from '../core/helpers-and-state.js';
 import { inferLevels } from '../syllabus/point-levels.js';
@@ -5,7 +6,6 @@ import { Store, setSave } from '../core/storage.js';
 import { sanitize } from '../core/paste-cleaning.js';
 import { planApply } from '../syllabus/model.js';
 import { render } from '../view/page-render.js';
-import { docHTML, saveDocNow, setDocHTML } from '../editor/notes-document.js';
 import { ccScan, openCiteCheck } from '../citations/citation-check.js';
 import { blankEssay, buildDocFromPoints, newEssay, openEssay } from '../essays/essays.js';
 import { refSort, refs, setNbRefSort, setNbRefs, setRefOwner, setRefSort2, setRefs } from '../citations/references.js';

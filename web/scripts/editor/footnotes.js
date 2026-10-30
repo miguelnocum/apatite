@@ -1,7 +1,7 @@
+import { saveDocSoon } from '../core/save-doc.js';
 import { selectRange } from '../core/caret.js';
 import { $, ed, esc, toast } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
-import { saveDocSoon } from './notes-document.js';
 import { edChanged, hydrateExtras } from './hydrate-and-changes.js';
 
 /* ===== footnotes: a marker in the text, the numbered notes under the page; click one to write it ===== */

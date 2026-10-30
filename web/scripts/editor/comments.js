@@ -1,10 +1,10 @@
+import { saveDocSoon } from '../core/save-doc.js';
 import { $, ed, esc, isDocView, toast, ui, uid } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
 import { blockOf } from './pasting-and-images.js';
 import { rangeWithinCell } from '../tables/table-grid.js';
 import { relayout, setPaneFold } from '../view/zoom.js';
 import { inFocus } from '../view/focus-mode.js';
-import { saveDocSoon } from './notes-document.js';
 import { edChanged, hydrateExtras } from './hydrate-and-changes.js';
 
 /* ===== comments on text in notes and essays, in styles ===== */

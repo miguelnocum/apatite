@@ -1,10 +1,10 @@
+import { saveDocSoon } from '../core/save-doc.js';
 import { tbState } from './toolbar-state.js';
 import { closeTbMenu, tbMenu } from '../core/toolbar-menu.js';
 import { closestTag, inEd } from '../core/caret.js';
 import { $ } from '../core/helpers-and-state.js';
 import { insertImages } from './pasting-and-images.js';
 import { cmd } from './editor-commands.js';
-import { saveDocSoon } from './notes-document.js';
 import { addComment } from './comments.js';
 
 /* ===== keyboard shortcuts in the notes, the image picker, and checklists ===== */

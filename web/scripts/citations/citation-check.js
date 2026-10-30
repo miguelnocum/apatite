@@ -1,8 +1,9 @@
+import { CITE_NAR, CITE_PAR, citeCandidates } from './citation-matching.js';
+import { saveDocSoon } from '../core/save-doc.js';
 import { $, ed, esc, isDocView, toast, ui } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
 import { measure } from '../syllabus/syllabus-view.js';
 import { render } from '../view/page-render.js';
-import { CITE_NAR, CITE_PAR, citeCandidates, saveDocSoon } from '../editor/notes-document.js';
 import { edChanged } from '../editor/hydrate-and-changes.js';
 import { words } from '../essays/word-count.js';
 import { namePart, refById, yearLabels } from './references.js';

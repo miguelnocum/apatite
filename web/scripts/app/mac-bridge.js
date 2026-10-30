@@ -1,6 +1,6 @@
+import { docHTML, saveDocNow } from '../core/save-doc.js';
 import { $, ed, essays, meta, NATIVE, post, pts, ui } from '../core/helpers-and-state.js';
 import { Store, setSave, strip } from '../core/storage.js';
-import { docHTML, saveDocNow } from '../editor/notes-document.js';
 import { nbRefSort, nbRefs, parseOne, refs, stashRefs } from '../citations/references.js';
 import { hydrateCites } from '../citations/in-text-citations.js';
 import { renderWC } from '../citations/works-cited-tab.js';

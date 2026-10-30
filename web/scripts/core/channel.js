@@ -6,6 +6,7 @@
      footnotes-redrawn  a moment after an edit, once the footnotes are redrawn
      folds-applied      the folds are in place (after an edit, and when the notes are first laid out)
      contents-redrawn   a moment after an edit, once the contents, folds and caret places are redrawn
+     essay-saved        an essay's text was just saved (saveDocNow)
      callouts-upgraded  the notes (or an essay) being shown have their callouts upgraded; the root is passed */
 const listeners = new Map();
 

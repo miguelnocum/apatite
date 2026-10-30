@@ -1,3 +1,4 @@
+import { saveDocNow, saveDocSoon } from '../core/save-doc.js';
 import { closeTbMenu } from '../core/toolbar-menu.js';
 import { EXAMPLE } from '../core/example-data.js';
 import {
@@ -22,7 +23,7 @@ import { backToSyl, markCur, render, switchView } from '../view/page-render.js';
 import { cmd, tableState } from '../editor/editor-commands.js';
 import { stepZoom } from '../view/zoom.js';
 import { openTbMenu } from '../editor/toolbar-menus.js';
-import { hydrate, saveDocNow, saveDocSoon } from '../editor/notes-document.js';
+import { hydrate } from '../editor/notes-document.js';
 import { edChanged } from '../editor/hydrate-and-changes.js';
 import { deleteEssay, newEssay, openEssay, openPoint, renderEssaySide } from '../essays/essays.js';
 import { exportHTML } from '../editor/export.js';

@@ -139,16 +139,6 @@ final class AppState: ObservableObject {
     /// Essays converted for a project whose page is still loading.
     private var pendingImports: [EssayImport.Result] = []
 
-    private func importsJSON(_ r: [EssayImport.Result]) -> String {
-        Self.json(r.map { ["title": $0.title, "html": $0.html] }) ?? "[]"
-    }
-
-    /// An object as JSON text, to hand to the page.
-    static func json(_ obj: Any) -> String? {
-        guard let d = try? JSONSerialization.data(withJSONObject: obj) else { return nil }
-        return String(data: d, encoding: .utf8)
-    }
-
     /// Word, PDF (and .doc/.rtf/.odt) files into essays: into the open project, or another one from the Database.
     func importEssays(into target: ProjectInfo? = nil) {
         let panel = NSOpenPanel()
@@ -167,9 +157,9 @@ final class AppState: ObservableObject {
 
     func deliverImports(_ r: [EssayImport.Result], into p: ProjectInfo) {
         guard !r.isEmpty else { return }
-        if p.id == project.id, let web = webView {
+        if p.id == project.id, webView != nil {
             showEditor()
-            web.evaluateJavaScript("window.nbImportEssays ? nbImportEssays(\(importsJSON(r))) : (window.__nbPendingImports = (window.__nbPendingImports || []).concat(\(importsJSON(r))))")
+            page.importEssays(r)
         } else {
             pendingImports = r
             switchTo(p, view: "essay") { [self] in showEditor() }
@@ -178,22 +168,18 @@ final class AppState: ObservableObject {
 
     /// The script the notebook page boots with.
     func bootScript(view: String? = nil, essay: String? = nil) -> String {
-        func js(_ s: String?) -> String { s.map(Self.jsString) ?? "null" }
-        return "window.__NB__ = \(workspace.sessionJSON(project, notebook: currentNotebook)); window.__NBGEN__ = \(pageGen);"
-            + " window.__nbStartView = \(js(view)); window.__nbStartEssay = \(js(essay));"
-            + " window.__nbPendingImports = \(takePendingImports()); window.__HLKEY__ = \(keyJSON());"
-            + " window.__NBLIB__ = \(Self.jsString(workspace.root.path)); window.__nbOpenSettings = \(js(pendingSettings));"
+        PageBridge.bootScript(notebook: workspace.sessionJSON(project, notebook: currentNotebook), gen: pageGen, view: view, essay: essay,
+                              imports: takePendingImports(), key: hlKey, library: workspace.root.path, settings: pendingSettings)
     }
 
-    private func keyJSON() -> String {
-        (try? JSONEncoder().encode(hlKey)).flatMap { String(data: $0, encoding: .utf8) } ?? "null"
-    }
+    /// The notes page, to call its entry points.
+    var page: PageBridge { PageBridge(web: webView) }
 
     /// Saves the key, tells the page, and repaints the open PDF's highlights.
     func setHighlightKey(_ key: [KeyColor]) {
         hlKey = key
         HighlightKey.save(key, workspace.root)
-        webView?.evaluateJavaScript("window.nbSetKey && nbSetKey(\(keyJSON()))")
+        page.setKey(hlKey)
         syncHighlightColors()
     }
 
@@ -215,7 +201,7 @@ final class AppState: ObservableObject {
 
     private func takePendingImports() -> String {
         defer { pendingImports = [] }
-        return importsJSON(pendingImports)
+        return PageBridge.importsJSON(pendingImports)
     }
 
     /// Saves the page, then loads it again for the current project and notebook.
@@ -260,7 +246,7 @@ final class AppState: ObservableObject {
         if p.id == project.id && id == notebookId {
             // already loaded in the page: just show it
             showEditor()
-            webView?.evaluateJavaScript("window.nbShow && nbShow('notes')")
+            page.show("notes")
             return
         }
         switchTo(p, notebook: id, view: "notes") { [self] in showEditor() }
@@ -292,17 +278,12 @@ final class AppState: ObservableObject {
     /// Essays in the open project are already in the page, so opening or making one needs no reload.
     func openEssayHere(_ id: String) {
         showEditor()
-        webView?.evaluateJavaScript("window.nbOpenEssay && nbOpenEssay(\(Self.jsString(id)))")
+        page.openEssay(id)
     }
 
     func newEssay() {
         showEditor()
-        webView?.evaluateJavaScript("window.nbNewEssay && nbNewEssay()")
-    }
-
-    /// A string as a JavaScript string literal.
-    static func jsString(_ s: String) -> String {
-        json([s]).map { String($0.dropFirst().dropLast()) } ?? "''"
+        page.newEssay()
     }
 
     /// The notes or essay editor fills the window.
@@ -364,15 +345,14 @@ final class AppState: ObservableObject {
     var pendingSettings: String?
     func openSettings(_ section: String? = nil) {
         showEditor()
-        let s = section.map(Self.jsString) ?? "''"
-        webView?.evaluateJavaScript("window.nbOpenSettings ? nbOpenSettings(\(s)) : (window.__nbOpenSettings = \(s))")
+        page.openSettings(section)
     }
     func openEssay() { openEditor("essay") }
 
     /// Notes and Essay share the one editor page; this picks which document it shows.
     private func openEditor(_ view: String) {
         showEditor()
-        webView?.evaluateJavaScript("window.nbShow ? nbShow('\(view)') : (window.__nbStartView = '\(view)')")
+        page.showOrQueue(view)
     }
     func openReader() {
         if readerDetached { openReaderWindow?(); return }
@@ -702,11 +682,8 @@ final class AppState: ObservableObject {
             return
         }
         let payload: [String: String] = ["text": h.text, "refId": refId, "pg": printedPages(h), "anchor": item.id + "|" + h.id, "refRaw": currentRef?.raw ?? item.refRaw ?? ""]
-        guard let json = Self.json(payload) else { return }
         notesVisible = true // so the new quote is visible
-        webView?.evaluateJavaScript("window.nbInsertQuote && window.nbInsertQuote(\(json))") { _, err in
-            if let err { NSLog("insert quote failed: \(err)") }
-        }
+        page.insertQuote(payload)
     }
 
     /// a PDF needs its source (a PDF linked from another document's list still cites: its reference comes along)
@@ -753,18 +730,16 @@ final class AppState: ObservableObject {
     func addRef(_ raw: String) {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        webView?.evaluateJavaScript("window.nbAddRef(\(Self.jsString(trimmed)))") { [weak self] result, err in
+        page.addRef(trimmed) { [weak self] answer, err in
             guard let self else { return }
-            Task { @MainActor in
-                guard let s = result as? String, let d = s.data(using: .utf8),
-                      let obj = try? JSONSerialization.jsonObject(with: d) as? [String: Any],
-                      let id = obj["id"] as? String else {
-                    self.alert = AlertItem(title: "Could not add the reference", message: err?.localizedDescription ?? "Try again.")
-                    return
-                }
-                if let list = obj["refs"] { self.refs = Self.decodeRefs(list) }
-                self.link(id)
+            guard let s = answer, let d = s.data(using: .utf8),
+                  let obj = try? JSONSerialization.jsonObject(with: d) as? [String: Any],
+                  let id = obj["id"] as? String else {
+                self.alert = AlertItem(title: "Could not add the reference", message: err?.localizedDescription ?? "Try again.")
+                return
             }
+            if let list = obj["refs"] { self.refs = Self.decodeRefs(list) }
+            self.link(id)
         }
     }
 
@@ -812,33 +787,27 @@ final class AppState: ObservableObject {
 
     // MARK: messages from the notebook
 
-    func receive(_ body: [String: Any]) {
-        messageHandlers[body["type"] as? String ?? ""]?(body)
-    }
-
     /// what each kind of message from the page does
-    private var messageHandlers: [String: ([String: Any]) -> Void] {
-        [
-            "save": { [self] in receiveSave($0) },
-            "theme": { [self] in setTheme($0) },
-            "focus": { [self] in setFocusMode($0["on"] as? Bool ?? false, bg: $0["bg"] as? String) },
-            "linkSyllabus": { [self] in linkNotebookSyllabus($0["id"] as? String ?? "", view: $0["view"] as? String) },
-            "editKey": { [self] _ in openSettings("key") },
-            "setKey": { [self] in setHighlightKey(from: $0["key"]) },
-            "linkDocSyllabus": { [self] in linkDocSyllabus($0) },
-            "revealLibrary": { [self] _ in NSWorkspace.shared.activateFileViewerSelecting([workspace.root]) },
-            "importEssay": { [self] _ in importEssays() },
-            "openAnchor": { [self] in if let a = $0["anchor"] as? String { jump(a) } },
-            "export": { [self] in
-                if let html = $0["html"] as? String { export(html: html, name: $0["filename"] as? String ?? "notebook.html") }
-            }
-        ]
+    func receive(_ message: PageMessage) {
+        switch message {
+        case .save(let json, let gen): receiveSave(json, gen: gen)
+        case .theme(let colours): setTheme(colours)
+        case .focus(let on, let bg): setFocusMode(on, bg: bg)
+        case .linkSyllabus(let id, let view): linkNotebookSyllabus(id, view: view)
+        case .editKey: openSettings("key")
+        case .setKey(let key): setHighlightKey(key)
+        case .linkDocSyllabus(let kind, let id, let syllabus): linkDocSyllabus(kind, id, syllabus)
+        case .revealLibrary: NSWorkspace.shared.activateFileViewerSelecting([workspace.root])
+        case .importEssay: importEssays()
+        case .openAnchor(let anchor): jump(anchor)
+        case .export(let html, let filename): export(html: html, name: filename)
+        }
     }
 
     /// a save from a page load that has since been replaced belongs to files that may have moved on
-    private func receiveSave(_ body: [String: Any]) {
-        if let g = body["gen"] as? Int, g != pageGen { return }
-        if let json = body["json"] as? String { persist(json) }
+    private func receiveSave(_ json: String, gen: Int?) {
+        if let g = gen, g != pageGen { return }
+        persist(json)
     }
 
     /// the open notebook follows another syllabus (or none, or a new one); the page reloads on its syllabus
@@ -853,16 +822,8 @@ final class AppState: ObservableObject {
         }
     }
 
-    /// the highlight key, edited in Settings
-    private func setHighlightKey(from raw: Any?) {
-        if let raw, let d = try? JSONSerialization.data(withJSONObject: raw),
-           let k = try? JSONDecoder().decode([KeyColor].self, from: d), !k.isEmpty { setHighlightKey(k) }
-    }
-
     /// another notebook, or a deck, following a different syllabus (Settings ▸ Syllabus)
-    private func linkDocSyllabus(_ body: [String: Any]) {
-        guard let k = ItemKind(rawValue: body["kind"] as? String ?? ""), let id = body["id"] as? String else { return }
-        let v = body["sid"] as? String ?? ""
+    private func linkDocSyllabus(_ k: ItemKind, _ id: String, _ v: String) {
         workspace.linkSyllabus(k, id, to: v.isEmpty ? nil : v, in: project)
         revision += 1
     }
@@ -892,16 +853,14 @@ final class AppState: ObservableObject {
 
     /// Save everything (notes and PDF highlights), then call done.
     func flushAll(_ done: @escaping () -> Void) {
-        guard let web = webView else { done(); return }
+        guard webView != nil else { done(); return }
         let gen = pageGen
         var finished = false
         let finish = { if !finished { finished = true; done() } }
-        web.evaluateJavaScript("window.nbFlush ? window.nbFlush() : null") { [weak self] result, _ in
-            Task { @MainActor in
-                // only if nothing has been reloaded or changed since this flush began
-                if let self, !finished, gen == self.pageGen, let s = result as? String { self.persist(s) }
-                finish()
-            }
+        page.flush { [weak self] notebook in
+            // only if nothing has been reloaded or changed since this flush began
+            if let self, !finished, gen == self.pageGen, let s = notebook { self.persist(s) }
+            finish()
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { finish() }
     }

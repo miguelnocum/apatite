@@ -13,7 +13,7 @@ extension AppState {
     /// View ▸ Focus Mode: the page turns it on or off, and tells the window
     func toggleFocus() {
         if screen != .workspace { openNotes() }
-        webView?.evaluateJavaScript("window.nbToggleFocus && nbToggleFocus()")
+        page.toggleFocus()
     }
 
     /// the page says focus mode is on or off, and what colour it is

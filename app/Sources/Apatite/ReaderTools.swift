@@ -133,9 +133,8 @@ extension AppState {
         var pg = printed(c.page)
         if let last = item.highlights.first(where: { $0.text == c.quote }), last.pageEnd != last.page { pg += "\u{2013}" + printed(last.pageEnd) }
         let payload: [String: String] = ["text": c.text, "quote": c.quote, "refId": item.refId ?? "", "pg": pg, "refRaw": currentRef?.raw ?? item.refRaw ?? ""]
-        guard let json = Self.json(payload) else { return }
         notesVisible = true
-        webView?.evaluateJavaScript("window.nbInsertNote && window.nbInsertNote(\(json))")
+        page.insertNote(payload)
     }
 
     func go(page: Int, rect: CGRect?) {

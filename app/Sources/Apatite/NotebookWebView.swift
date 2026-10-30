@@ -52,8 +52,8 @@ struct NotebookWebView: NSViewRepresentable {
 
     final class Handler: NSObject, WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate {
         func userContentController(_ ucc: WKUserContentController, didReceive message: WKScriptMessage) {
-            guard let body = message.body as? [String: Any] else { return }
-            Task { @MainActor in AppState.shared.receive(body) }
+            guard let body = message.body as? [String: Any], let decoded = PageMessage(body) else { return }
+            Task { @MainActor in AppState.shared.receive(decoded) }
         }
 
         // Links in notes open in the default browser (or mail…), never inside the app: the page itself never navigates away.

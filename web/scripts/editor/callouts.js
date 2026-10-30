@@ -1,9 +1,9 @@
+import { cmd } from '../core/commands.js';
 import { closeTbMenu } from '../core/toolbar-menu.js';
 import { fire, restoreSel, selectRange } from '../core/caret.js';
 import { ed } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
 import { CALLOUTS } from '../core/callout-kinds.js';
-import { cmd } from './editor-commands.js';
 import { mdTopBlock } from '../writing/writing.js';
 
 /* ===== callouts ===== */

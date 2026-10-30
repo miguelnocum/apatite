@@ -92,7 +92,7 @@ function markTexts(box, colour) {
 }
 
 /* ---- commands ---- */
-export function cmd(command) {
+export function runCommand(command) {
   if (!curEd && command !== 'x' && command !== 'focus') {
     toast('Click into a note first');
     return;

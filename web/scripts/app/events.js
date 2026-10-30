@@ -1,3 +1,4 @@
+import { cmd } from '../core/commands.js';
 import { saveDocNow, saveDocSoon } from '../core/save-doc.js';
 import { closeTbMenu } from '../core/toolbar-menu.js';
 import { EXAMPLE } from '../core/example-data.js';
@@ -20,7 +21,7 @@ import { cfHTML, measure, renderSide, toggleSide } from '../syllabus/syllabus-vi
 import { detect, renderSetup, secPrefix, sectionNames, suggestGrouping } from '../syllabus/syllabus-import.js';
 import { showStyleMatches } from '../syllabus/numbering-style.js';
 import { backToSyl, markCur, render, switchView } from '../view/page-render.js';
-import { cmd, tableState } from '../editor/editor-commands.js';
+import { tableState } from '../editor/editor-commands.js';
 import { stepZoom } from '../view/zoom.js';
 import { openTbMenu } from '../editor/toolbar-menus.js';
 import { hydrate } from '../editor/notes-document.js';

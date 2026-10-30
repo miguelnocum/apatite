@@ -2,6 +2,7 @@
 /* emit() calls the listeners of that event right there, one after another, in the order they were added with on();
    nothing is deferred or skipped, so it behaves like the direct calls it replaces. Who listens, and in which order, is
    written in one place: app/wiring.js. The events (what the editor says, when):
+     command            a toolbar command was asked for (core/commands.js); the one listener runs it
      notes-edited       the moment the notes were edited (edChanged)
      footnotes-redrawn  a moment after an edit, once the footnotes are redrawn
      folds-applied      the folds are in place (after an edit, and when the notes are first laid out)

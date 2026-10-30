@@ -1,7 +1,8 @@
 import AppKit
 
 /// Runs only when APATITE_PERFTEST is set (with APATITE_LIBRARY, a copy of a real library).
-/// A heartbeat every 16 ms measures how long the app freezes while doing what a person does.
+/// A heartbeat every 16 ms measures how long the app freezes while doing what a person does, and one in the page
+/// measures the page's own while it is typed in and saved; the notebook's flush and the app's persist are timed too.
 @MainActor
 enum PerfTest {
     static var last = Date(), worst = 0.0, stalled = 0.0, phase = "start"
@@ -23,7 +24,12 @@ enum PerfTest {
         at(8, phases[2]) { repeatEvery(beat, times: 150) { scrollDown(s) } }
         at(12, phases[3]) { s.screen = .database; perfMarks.append("-- open notebook"); if let nb = ws.items(.notebooks, in: big).first { s.openNotebook(big, nb.id) } }
         at(15, phases[4]) { repeatEvery(0.08, times: 40) { s.webView?.evaluateJavaScript(typeAWord) } }
-        at(20, "end") { report(t, big, papers.count, paper) }
+        at(14.9, "4b") { s.webView?.evaluateJavaScript(pageBeat) }
+        at(21, "5b") {
+            t.page("JSON.stringify(window.__hb)", "page heartbeat while typing + saving")
+            t.page(flushTimed, "flush")
+        }
+        at(23, "end") { report(t, big, papers.count, paper) }
     }
 
     private static func heartbeat() {
@@ -60,6 +66,11 @@ enum PerfTest {
         guard let sv = s.pdfView?.documentView?.enclosingScrollView else { return }
         let c = sv.contentView; var o = c.bounds.origin; o.y += 40; c.scroll(to: o); sv.reflectScrolledClipView(c)
     }
+
+    /// the page's own heartbeat: freezes over 50 ms, as the app's one counts them
+    static let pageBeat = "window.__hb={worst:0,total:0,n:0,last:performance.now()};setInterval(function(){var g=performance.now()-__hb.last-16;__hb.last=performance.now();if(g>50){__hb.n++;__hb.total+=Math.round(g);__hb.worst=Math.max(__hb.worst,Math.round(g))}},16)"
+    /// what the notebook's flush (the page's whole state, as the app asks for it when closing or switching) costs
+    static let flushTimed = "(function(){var a=performance.now();var s=nbFlush();return 'nbFlush '+Math.round(performance.now()-a)+' ms, '+(s.length/1024|0)+' KB'})()"
 
     static let typeAWord = "(function(){var e=document.getElementById('ed');if(!e)return;e.focus();var r=document.createRange();r.selectNodeContents(e);r.collapse(false);var s=getSelection();s.removeAllRanges();s.addRange(r);document.execCommand('insertText',false,'word ')})()"
 

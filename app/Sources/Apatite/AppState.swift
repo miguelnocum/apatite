@@ -878,6 +878,7 @@ final class AppState: ObservableObject {
 
     /// Writes what the page saved into the open project's files.
     private func persist(_ json: String) {
+        let started = Date(); defer { perfPersist(started, kb: json.utf8.count / 1024) }
         if !workspace.saveSession(json, project, notebook: currentNotebook) {
             alert = AlertItem(title: "Could not save your notebook", message: "Check that \(project.url.path) is writable.")
         }
@@ -910,6 +911,10 @@ final class AppState: ObservableObject {
 /// Timing marks for the performance test (no-ops otherwise).
 @MainActor var perfMarks: [String] = []
 @MainActor private var perfLast = Date()
+@MainActor func perfPersist(_ started: Date, kb: Int) {
+    guard ProcessInfo.processInfo.environment["APATITE_PERFTEST"] != nil else { return }
+    perfMarks.append(String(format: "   persist %.1f ms for %d KB", Date().timeIntervalSince(started) * 1000, kb))
+}
 @MainActor func perfMark(_ label: String) {
     guard ProcessInfo.processInfo.environment["APATITE_PERFTEST"] != nil else { return }
     perfMarks.append(String(format: "   %5.0f ms  %@", Date().timeIntervalSince(perfLast) * 1000, label)); perfLast = Date()

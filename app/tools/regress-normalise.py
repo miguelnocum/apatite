@@ -6,7 +6,7 @@ import sys
 
 report, library = sys.argv[1], sys.argv[2]
 RULES = [
-    (re.compile(r'\b(?:rm|pm|cm|es|fn|eq|k)[a-z0-9]*[0-9][a-z0-9]{6,}\b'), '<id>'),
+    (re.compile(r'\b(?:rm|pm|cm|es|fn|eq|k)(?=[a-z]*[0-9])[a-z0-9]{7,}\b'), '<id>'),
     (re.compile(r'[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}'), '<uuid>'),
     (re.compile(r'\b1[6-9][0-9]{11}\b'), '<time>'),
 ]

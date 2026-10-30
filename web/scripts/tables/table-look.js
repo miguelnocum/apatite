@@ -1,9 +1,9 @@
+import { saveWS, WS } from '../core/writing-settings.js';
 import { toast, ui } from '../core/helpers-and-state.js';
 import { mk } from '../core/paste-cleaning.js';
 import { cellsIn, rowTag } from './table-grid.js';
 import { changeTable } from './table-edits.js';
 import { setTableVar, tableVar } from './table-sizing.js';
-import { WS, saveWS } from '../writing/typewriter-writing.js';
 
 /* ===== tables: how they look. A style for the whole table (data-ts), a header row, banded rows and a bold first column,
    shaded and aligned cells, and the table's own text size, line spacing and cell padding (its defaults set for all

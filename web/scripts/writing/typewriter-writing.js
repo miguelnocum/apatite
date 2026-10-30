@@ -1,3 +1,4 @@
+import { WS, WS_DEF, setWS } from '../core/writing-settings.js';
 import { inEd } from '../core/caret.js';
 import { KEY } from '../core/example-data.js';
 import { $, ed, isDocView, NATIVE, post } from '../core/helpers-and-state.js';
@@ -111,20 +112,6 @@ const ALWAYS_DARK_THEMES = new Set(['night', 'ink', 'macchiato', 'jazz', 'lofi',
 // prettier-ignore
 const ALWAYS_LIGHT_THEMES = new Set(['paper', 'latte', 'evlight', 'rosedawn', 'tokyolight', 'gruvbox', 'nordlight', 'notes', 'ayu',
   'gandalf', 'olivedunk', 'dboring', 'duolight', 'duosnow', 'duoheat']);
-/* tfs, tlh, tpad: every table's text size (px), line spacing and cell room, unless a table has its own */
-export const WS_DEF = {
-  theme: 'graphite',
-  font: 'serif',
-  size: 15.5,
-  lh: 1.65,
-  ps: 0.6,
-  tw: false,
-  tfs: 14,
-  tlh: '',
-  tpad: ''
-};
-export let WS;
-
 /* the saved settings, each one missing (or a theme or font no longer offered) at its default */
 function loadWritingSettings() {
   let saved = {};
@@ -136,12 +123,6 @@ function loadWritingSettings() {
   if (!THEMES[settings.theme]) settings.theme = 'graphite';
   if (!FONTS[settings.font]) settings.font = 'serif';
   return settings;
-}
-
-export function saveWS() {
-  try {
-    localStorage.setItem(KEY + '-write', JSON.stringify(WS));
-  } catch (x) {}
 }
 
 export function applyWS() {
@@ -184,6 +165,6 @@ function postTheme(root) {
 
 export function initTypewriterWriting() {
   document.addEventListener('selectionchange', onTypewriterWritingSelectionchange);
-  WS = loadWritingSettings();
+  setWS(loadWritingSettings());
   applyWS();
 }

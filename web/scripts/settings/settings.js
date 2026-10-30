@@ -1,3 +1,4 @@
+import { saveWS, WS, WS_DEF } from '../core/writing-settings.js';
 import { saveDocNow } from '../core/save-doc.js';
 import { HLKEY, keyOf } from '../editor/highlight-colours.js';
 import { closeTbMenu } from '../core/toolbar-menu.js';
@@ -9,7 +10,7 @@ import { ZOOMS, applyZoom } from '../view/zoom.js';
 import { texShowHTML } from '../equations/equation-tex.js';
 import { eqPreview, eqStore } from '../equations/equation-menus.js';
 import { sylInfo } from '../editor/caret-and-keys.js';
-import { FONTS, THEMES, WS, WS_DEF, applyWS, saveWS, twScroll } from '../writing/typewriter-writing.js';
+import { FONTS, THEMES, applyWS, twScroll } from '../writing/typewriter-writing.js';
 
 /* ===== Settings (⌘,): which syllabus each document follows, writing, themes, the highlight key, equations, zoom, the library ===== */
 const SETTINGS_SECTIONS = [

@@ -1,3 +1,4 @@
+import { saveWS, WS } from '../core/writing-settings.js';
 import { cmd } from '../core/commands.js';
 import { tbState } from '../editor/toolbar-state.js';
 import { closestTag, fire, inEd } from '../core/caret.js';
@@ -9,7 +10,7 @@ import { codeExit } from './inline-code.js';
 import { insertMath } from '../equations/equation-drawing.js';
 import { ZW, blockBackspace, joinLocked, listBackspace } from '../editor/caret-and-keys.js';
 import { calloutBackspace, calloutEnter } from '../editor/callout-keys.js';
-import { WS, applyWS, saveWS, twScroll } from './typewriter-writing.js';
+import { applyWS, twScroll } from './typewriter-writing.js';
 
 /* ===== typing in the notes: smart quotes and pairs, stepping out of formatting, the shortcuts, and their ⌘Z ===== */
 const PAIRS = { '(': ')', '[': ']', '{': '}', '“': '”' };

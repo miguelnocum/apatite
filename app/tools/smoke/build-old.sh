@@ -11,7 +11,9 @@ git rev-parse --verify --quiet "$REV^{commit}" >/dev/null || { echo "no such com
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 # the old page is built with the old build script: the layout of web/ (flat files, or folders and order.txt) changed over time
-git archive "$REV" web app/tools/make_notebook.py | tar -x -C "$TMP"
+# (a revision from Phase 2 on bundles with app/tools/bundle.js, which finds esbuild in the node_modules of this checkout)
+git archive "$REV" web app/tools/make_notebook.py $(git ls-tree --name-only "$REV" app/tools/bundle.js) | tar -x -C "$TMP"
+ln -s "$PWD/app/tools/node_modules" "$TMP/app/tools/node_modules"
 python3 "$TMP/app/tools/make_notebook.py" "$TMP/web" app/Resources/notebook-old.html >/dev/null
 python3 app/tools/make_notebook.py web app/Resources/notebook.html >/dev/null
 echo "built notebook-old.html ($REV) and notebook.html (working copy)"

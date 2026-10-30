@@ -21,7 +21,7 @@ function nameOf(fn, ancestors) {
 
 function longFunctions(file) {
   const source = fs.readFileSync(path.join(dir, file), 'utf8');
-  const ast = acorn.parse(source, { ecmaVersion: 2022, locations: true, allowReturnOutsideFunction: true });
+  const ast = acorn.parse(source, { ecmaVersion: 2022, sourceType: 'module', locations: true });
   const found = { total: 0, over: [] };
   walk.fullAncestor(ast, (node, state, ancestors) => {
     if (!/Function/.test(node.type)) return;

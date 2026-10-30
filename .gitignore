@@ -12,5 +12,4 @@ app/Resources/notebook.html
 apatite.html
 app/tools/smoke/reports/
 app/tools/node_modules/
-app/tools/package-lock.json
 app/Resources/notebook-old.html

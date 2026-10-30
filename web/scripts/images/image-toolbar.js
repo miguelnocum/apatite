@@ -99,6 +99,11 @@ function sizeButtons(width) {
   ];
 }
 
+/* after an edit the toolbar follows the picture, if one is selected */
+export function followEdit() {
+  if (imgSel) setTimeout(placeImgTool, 0);
+}
+
 /* the toolbar above the image, and a frame with corner handles for resizing */
 export function placeImgTool() {
   const img = imgSel;

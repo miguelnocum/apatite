@@ -9,6 +9,11 @@ import { curEssay, edEssayId, essays } from './essays.js';
 /* ===== the word count in the essay's sidebar: the total, each tag's count and settings, the contents, the options ===== */
 const PERCENT = 100;
 
+/* after an edit, in an essay: the word count is redrawn */
+export function wordCountAfterEdit() {
+  if (ui.view === 'essay') renderWordCount();
+}
+
 export function renderWordCount() {
   const box = $('wcbox');
   const essay = curEssay();

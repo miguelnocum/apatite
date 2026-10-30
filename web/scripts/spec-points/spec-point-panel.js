@@ -166,6 +166,11 @@ const onSpecPointPanelMouseover = e => {
 };
 
 /* ---- the panel: the points by section, each with its rating and how often it's in the notes ---- */
+/* after an edit, in the notes: the panel is redrawn */
+export function redrawSpPanel() {
+  if (ui.view === 'notes') renderSpPanel();
+}
+
 export function renderSpPanel() {
   const current = sylInfo().cur;
   const head = sideHd(current && current.title ? esc(current.title) : 'Syllabus');

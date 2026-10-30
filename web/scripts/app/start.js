@@ -1,5 +1,6 @@
 import '../syllabus/numbering-style.js';
 import { $ } from '../core/helpers-and-state.js';
+import { initWiring } from './wiring.js';
 import { initStorage } from '../core/storage.js';
 import { initPastingAndImages } from '../editor/pasting-and-images.js';
 import { initSyllabusView } from '../syllabus/syllabus-view.js';
@@ -47,6 +48,7 @@ import { initOlderSpecNotes } from '../spec-points/older-spec-notes.js';
 // The page's load-time code runs from here: each module's own setup is its init function, called in the order the
 // scripts used to be joined in (it matters: listeners on the same event run in the order they were added, the
 // Store is replaced by the Mac app's before boot, ...).
+initWiring();
 initStorage();
 initPastingAndImages();
 initSyllabusView();
